@@ -144,6 +144,13 @@ const highDemandTerms = [
   "მონიტორ",
   "ყურსასმენ",
   "კონდიციონ",
+  "მაცივ",
+  "სარეცხ",
+  "ტელევიზ",
+  "ლეპტოპ",
+  "მონიტორ",
+  "ყურსასმენ",
+  "კონდიციონ",
 ];
 
 const technologyCategorySet = new Set<string>([
@@ -206,6 +213,13 @@ const purchaseDecisionTerms = [
   "coffee machine",
   "ssd",
   "router",
+  "ტელეფონ",
+  "ლეპტოპ",
+  "ტელევიზ",
+  "მაცივ",
+  "სარეცხ",
+  "კონდიციონ",
+  "მტვერსასრუტ",
   "áƒ¢áƒ”áƒšáƒ”áƒ¤áƒáƒœ",
   "áƒšáƒ”áƒžáƒ¢áƒáƒž",
   "áƒ¢áƒ”áƒšáƒ”áƒ•áƒ˜áƒ–",
@@ -223,6 +237,9 @@ const lowAttentionFeaturedTerms = [
   "cable",
   "adapter",
   "strap",
+  "ქეის",
+  "შუშა",
+  "კაბელ",
   "áƒ¥áƒ”áƒ˜áƒ¡",
   "áƒ¨áƒ£áƒ¨áƒ",
   "áƒ™áƒáƒ‘áƒ”áƒš",
@@ -266,11 +283,7 @@ export function toPublicProduct(product: ProductView): ProductView | null {
   if (isExcludedPublicCategory(product.category) || hasExcludedKeyword(product.name)) return null;
   const safeOffers = publicOffers(product.offers);
   const offers = safeOffers.filter((offer) => isComparableOffer(product, offer));
-  if (!offers.length) {
-    const legacyOffer = safeOffers.find((offer) => offer.matchStatus == null || offer.matchStatus === "UNVERIFIED");
-    if (!legacyOffer) return null;
-    return { ...product, offers: [legacyOffer], offerCount: 1 };
-  }
+  if (!offers.length) return null;
   return { ...product, offers, offerCount: offers.length };
 }
 
@@ -412,8 +425,9 @@ function isPublicOffer(offer: OfferView) {
     offer.currentPrice > 0 &&
     Number.isFinite(offer.currentPrice) &&
     isHttpUrl(offer.url) &&
-    (offer.matchStatus == null || offer.matchStatus === "CONFIRMED" || offer.matchStatus === "UNVERIFIED") &&
-    (offer.verificationStatus == null || offer.verificationStatus === "CONFIRMED" || offer.verificationStatus === "UNVERIFIED");
+    offer.matchStatus === "CONFIRMED" &&
+    offer.verificationStatus === "CONFIRMED" &&
+    (offer.matchConfidence == null || offer.matchConfidence >= 90);
 }
 
 function isComparableOffer(product: ProductView, offer: OfferView) {
