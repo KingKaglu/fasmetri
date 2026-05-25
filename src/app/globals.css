@@ -1,0 +1,213 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #12203a;
+  --surface: #ffffff;
+  --surface-soft: #eef5ff;
+  --line: #d9e4f2;
+  --muted: #64748b;
+  --brand: #0054d2;
+  --brand-strong: #003f9f;
+  --accent: #ff6800;
+  --accent-soft: #fff1e8;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --radius-card: 1.25rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  background:
+    radial-gradient(circle at 7% 2%, rgba(0, 84, 210, 0.13), transparent 20rem),
+    radial-gradient(circle at 92% 3%, rgba(255, 104, 0, 0.15), transparent 18rem),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 1) 22rem),
+    var(--background);
+  color: var(--foreground);
+  font-family: "Noto Sans Georgian", "Segoe UI", Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+* {
+  border-color: var(--line);
+  letter-spacing: 0;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+:is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.shell {
+  margin-inline: auto;
+  width: min(100% - 2rem, 80rem);
+}
+
+.soft-grid {
+  background-image: linear-gradient(rgba(0, 84, 210, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 84, 210, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.glass-line {
+  background: color-mix(in srgb, white 88%, transparent);
+  backdrop-filter: blur(22px);
+}
+
+.surface-shadow {
+  box-shadow: 0 1px 1px rgba(18, 32, 58, 0.04), 0 18px 52px rgba(0, 84, 210, 0.08);
+}
+
+.surface-glow {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(238, 245, 255, 0.92));
+}
+
+.section-rule {
+  background: linear-gradient(90deg, transparent, rgba(0, 84, 210, 0.24), rgba(255, 104, 0, 0.24), transparent);
+}
+
+.filter-control {
+  min-height: 2.5rem;
+  width: 100%;
+  border-radius: 0.875rem;
+  border-width: 1px;
+  background: #f8fafc;
+  padding-inline: 0.625rem;
+}
+
+.contact-control {
+  min-height: 2.75rem;
+  width: 100%;
+  border-radius: 0.875rem;
+  border-width: 1px;
+  background: #f8fafc;
+  padding-inline: 0.75rem;
+  color: var(--muted);
+}
+
+.brand-gradient {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.32), transparent 9rem),
+    linear-gradient(135deg, #003f9f 0%, #0054d2 52%, #0b6bff 100%);
+}
+
+.brand-card {
+  border-radius: var(--radius-card);
+  border: 1px solid rgba(217, 228, 242, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 48px rgba(18, 32, 58, 0.08);
+}
+
+.product-marquee {
+  overflow: hidden;
+  padding-block: 0.25rem 0.75rem;
+  mask-image: linear-gradient(90deg, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+}
+
+.product-marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: product-marquee-left 58s linear infinite;
+}
+
+.product-marquee:hover .product-marquee-track {
+  animation-play-state: paused;
+}
+
+.product-marquee-set {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+  padding-right: 1rem;
+}
+
+.product-marquee-item {
+  flex: 0 0 15.5rem;
+  width: 15.5rem;
+}
+
+.mobile-bottom-safe {
+  padding-bottom: max(5.5rem, env(safe-area-inset-bottom));
+}
+
+.product-grid-dense {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.product-grid-catalog {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 520px) {
+  .product-grid-dense {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 640px) {
+  .product-grid-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .product-grid-dense {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .product-grid-dense {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1180px) {
+  .product-grid-catalog {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .product-grid-dense {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@keyframes product-marquee-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(calc(100vw - 1rem), 80rem);
+  }
+
+  main {
+    padding-bottom: max(4.5rem, env(safe-area-inset-bottom));
+  }
+}

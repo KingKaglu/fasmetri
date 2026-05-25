@@ -1,0 +1,458 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OfferAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
+  UNKNOWN
+}
+
+enum ScrapeStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  PARTIAL
+  FAILED
+  SKIPPED
+}
+
+enum AlertStatus {
+  ACTIVE
+  TRIGGERED
+  PAUSED
+}
+
+enum RawOfferStatus {
+  IMPORTED
+  NORMALIZED
+  ATTACHED
+  NEEDS_REVIEW
+  EXCLUDED
+  UNABLE_TO_FETCH
+}
+
+enum ProductVerificationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  VERIFIED_FULLY
+  PARTIALLY_VERIFIED
+  NEEDS_REVIEW
+  FAILED
+}
+
+enum StoreVerificationStatus {
+  EXACT_MATCH_FOUND
+  NO_MATCH_FOUND
+  POSSIBLE_MATCH_NEEDS_REVIEW
+  DIFFERENT_VARIANT_REJECTED
+  STORE_UNAVAILABLE
+  SEARCH_FAILED
+  BLOCKED_OR_REQUIRES_MANUAL_CHECK
+}
+
+enum MatchReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Shop {
+  id                 String                      @id @default(cuid())
+  slug               String                      @unique
+  name               String
+  baseUrl            String
+  logoUrl            String?
+  enabled            Boolean                     @default(false)
+  reliabilityLabel   String?
+  needsConfiguration Boolean                     @default(true)
+  lastScrapedAt      DateTime?
+  offers             ProductOffer[]
+  rawOffers          RawOffer[]
+  scrapeRuns         ScrapeRun[]
+  storeVerifications ProductStoreVerification[]
+  offerEvidence      OfferVerificationEvidence[]
+  possibleMatches    PossibleProductMatch[]
+  lastIngestedAt     DateTime?
+  ingestionStatus    String                      @default("NOT_STARTED")
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+}
+
+model Category {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  nameKa         String
+  nameEn         String?
+  parentId       String?
+  parent         Category?       @relation("CategoryTree", fields: [parentId], references: [id])
+  children       Category[]      @relation("CategoryTree")
+  products       Product[]       @relation("ProductCategory")
+  manualProducts Product[]       @relation("ManualProductCategory")
+  parentProducts ParentProduct[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Product {
+  id                          String                     @id @default(cuid())
+  slug                        String                     @unique
+  name                        String
+  normalizedName              String
+  canonicalKey                String?
+  productIdentity             Json?
+  brand                       String?
+  model                       String?
+  imageUrl                    String?
+  categoryId                  String?
+  category                    Category?                  @relation("ProductCategory", fields: [categoryId], references: [id])
+  manualCategoryId            String?
+  manualCategory              Category?                  @relation("ManualProductCategory", fields: [manualCategoryId], references: [id])
+  categoryLocked              Boolean                    @default(false)
+  categoryConfidence          Int?
+  categoryNeedsReview         Boolean                    @default(true)
+  categorySuggestedSlug       String?
+  categoryReason              String?
+  categoryMatchedRules        Json?
+  categorySourceSignals       Json?
+  offers                      ProductOffer[]
+  matchCandidates             OfferMatchCandidate[]
+  alerts                      UserPriceAlert[]
+  manualGroupKey              String?
+  matchingLocked              Boolean                    @default(false)
+  crossStoreCheckedAt         DateTime?
+  checkedShopsCount           Int                        @default(0)
+  totalEnabledShopsCount      Int                        @default(0)
+  missingOfferDiscoveryStatus String                     @default("PENDING")
+  popularityScore             Int                        @default(0)
+  isPublic                    Boolean                    @default(true)
+  needsReview                 Boolean                    @default(false)
+  archivedAt                  DateTime?
+  reviewedAt                  DateTime?
+  rawOffers                   RawOffer[]
+  verifications               ProductVerification[]
+  storeVerifications          ProductStoreVerification[]
+  possibleMatches             PossibleProductMatch[]
+  createdAt                   DateTime                   @default(now())
+  updatedAt                   DateTime                   @updatedAt
+
+  @@index([normalizedName])
+  @@index([canonicalKey])
+  @@index([categoryNeedsReview, categoryConfidence])
+  @@index([isPublic, archivedAt, needsReview])
+}
+
+model ParentProduct {
+  id                 String           @id @default(cuid())
+  brand              String?
+  model              String?
+  productLine        String?
+  baseSpecsJson      Json?
+  categoryId         String?
+  category           Category?        @relation(fields: [categoryId], references: [id])
+  canonicalParentKey String           @unique
+  title              String
+  slug               String           @unique
+  primaryImage       String?
+  isPublic           Boolean          @default(false)
+  needsReview        Boolean          @default(true)
+  variants           ProductVariant[]
+  offers             ProductOffer[]
+  rawOffers          RawOffer[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([categoryId, isPublic])
+  @@index([brand, model])
+  @@index([needsReview, updatedAt])
+}
+
+model ProductVariant {
+  id                  String         @id @default(cuid())
+  parentProductId     String
+  parentProduct       ParentProduct  @relation(fields: [parentProductId], references: [id], onDelete: Cascade)
+  variantTitle        String
+  canonicalVariantKey String         @unique
+  color               String?
+  storage             String?
+  ram                 String?
+  cpu                 String?
+  gpu                 String?
+  size                String?
+  capacity            String?
+  sku                 String?
+  specsJson           Json?
+  primaryImage        String?
+  isPublic            Boolean        @default(false)
+  needsReview         Boolean        @default(true)
+  offers              ProductOffer[]
+  rawOffers           RawOffer[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([parentProductId])
+  @@index([isPublic, needsReview])
+  @@index([canonicalVariantKey])
+}
+
+model ProductOffer {
+  id                   String                      @id @default(cuid())
+  productId            String
+  product              Product                     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  parentProductId      String?
+  parentProduct        ParentProduct?              @relation(fields: [parentProductId], references: [id], onDelete: SetNull)
+  variantId            String?
+  variant              ProductVariant?             @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  shopId               String
+  shop                 Shop                        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  rawOfferId           String?                     @unique
+  rawOffer             RawOffer?                   @relation(fields: [rawOfferId], references: [id], onDelete: SetNull)
+  externalId           String?
+  url                  String
+  affiliateUrl         String?
+  title                String
+  canonicalKey         String?
+  productIdentity      Json?
+  matchStatus          String                      @default("UNVERIFIED")
+  matchConfidence      Int?
+  verificationStatus   String                      @default("CONFIRMED")
+  currentPrice         Decimal                     @db.Decimal(12, 2)
+  oldPrice             Decimal?                    @db.Decimal(12, 2)
+  currency             String                      @default("GEL")
+  discountPercent      Int                         @default(0)
+  availability         OfferAvailability           @default(UNKNOWN)
+  imageUrl             String?
+  lastSeenAt           DateTime                    @default(now())
+  lastPriceChangedAt   DateTime?
+  histories            PriceHistory[]
+  clickEvents          ClickEvent[]
+  matchCandidates      OfferMatchCandidate[]
+  verificationEvidence OfferVerificationEvidence[]
+  storeVerifications   ProductStoreVerification[]
+  possibleMatches      PossibleProductMatch[]
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+
+  @@unique([shopId, url])
+  @@unique([shopId, externalId])
+  @@index([productId, currentPrice])
+  @@index([parentProductId])
+  @@index([variantId, currentPrice])
+  @@index([canonicalKey])
+  @@index([matchStatus, matchConfidence])
+}
+
+model RawOffer {
+  id                  String                 @id @default(cuid())
+  shopId              String
+  shop                Shop                   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId           String?
+  product             Product?               @relation(fields: [productId], references: [id], onDelete: SetNull)
+  parentProductId     String?
+  parentProduct       ParentProduct?         @relation(fields: [parentProductId], references: [id], onDelete: SetNull)
+  variantId           String?
+  variant             ProductVariant?        @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  productOffer        ProductOffer?
+  possibleMatches     PossibleProductMatch[]
+  externalId          String?
+  originalTitle       String
+  originalUrl         String
+  originalImageUrl    String?
+  rawPrice            Decimal?               @db.Decimal(12, 2)
+  rawOldPrice         Decimal?               @db.Decimal(12, 2)
+  currency            String                 @default("GEL")
+  availability        OfferAvailability      @default(UNKNOWN)
+  rawCategory         String?
+  sourceCategory      String?
+  breadcrumbs         Json?
+  sourceBreadcrumbs   Json?
+  description         String?
+  imageAlt            String?
+  rawDiscount         Int?
+  rawSpecsJson        Json?
+  importBatchId       String?
+  brand               String?
+  model               String?
+  normalizedTitle     String?
+  cleanTitle          String?
+  canonicalKey        String?
+  productIdentity     Json?
+  categorySlug        String?
+  categoryConfidence  Int?
+  categoryNeedsReview Boolean                @default(true)
+  status              RawOfferStatus         @default(IMPORTED)
+  unableToFetchReason String?
+  errorMessage        String?
+  scrapedAt           DateTime               @default(now())
+  processedAt         DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@unique([shopId, originalUrl])
+  @@unique([shopId, externalId])
+  @@index([shopId, status, scrapedAt])
+  @@index([canonicalKey])
+  @@index([categorySlug, categoryNeedsReview])
+  @@index([parentProductId])
+  @@index([variantId])
+  @@index([importBatchId])
+}
+
+model OfferMatchCandidate {
+  id         String       @id @default(cuid())
+  productId  String
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  offerId    String
+  offer      ProductOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  confidence Int
+  status     String       @default("POSSIBLE")
+  reasons    Json?
+  attributes Json?
+  rejectedAt DateTime?
+  reviewedAt DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([productId, offerId])
+  @@index([status, confidence])
+}
+
+model PossibleProductMatch {
+  id               String            @id @default(cuid())
+  productId        String
+  product          Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rawOfferId       String?
+  rawOffer         RawOffer?         @relation(fields: [rawOfferId], references: [id], onDelete: Cascade)
+  candidateOfferId String?
+  candidateOffer   ProductOffer?     @relation(fields: [candidateOfferId], references: [id], onDelete: Cascade)
+  shopId           String
+  shop             Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  candidateTitle   String
+  candidateUrl     String
+  confidence       Int
+  reason           String?
+  status           MatchReviewStatus @default(PENDING)
+  createdAt        DateTime          @default(now())
+  reviewedAt       DateTime?
+
+  @@index([status, confidence])
+  @@index([productId, shopId])
+}
+
+model ProductVerification {
+  id                      String                    @id @default(cuid())
+  productId               String
+  product                 Product                   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  status                  ProductVerificationStatus @default(NOT_STARTED)
+  startedAt               DateTime?
+  finishedAt              DateTime?
+  checkedShopsCount       Int                       @default(0)
+  totalEnabledShopsCount  Int                       @default(0)
+  exactMatchesFound       Int                       @default(0)
+  possibleMatchesFound    Int                       @default(0)
+  rejectedCandidatesCount Int                       @default(0)
+  errorMessage            String?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@index([productId, status])
+  @@index([status, updatedAt])
+}
+
+model ProductStoreVerification {
+  id              String                  @id @default(cuid())
+  productId       String
+  product         Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  shopId          String
+  shop            Shop                    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  status          StoreVerificationStatus
+  checkedAt       DateTime                @default(now())
+  matchedOfferId  String?
+  matchedOffer    ProductOffer?           @relation(fields: [matchedOfferId], references: [id], onDelete: SetNull)
+  candidateUrl    String?
+  candidateTitle  String?
+  candidatePrice  Decimal?                @db.Decimal(12, 2)
+  candidateImage  String?
+  matchConfidence Int?
+  mismatchReasons Json?
+  evidenceNotes   String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@unique([productId, shopId])
+  @@index([shopId, status])
+  @@index([status, checkedAt])
+}
+
+model OfferVerificationEvidence {
+  id                    String       @id @default(cuid())
+  productOfferId        String
+  productOffer          ProductOffer @relation(fields: [productOfferId], references: [id], onDelete: Cascade)
+  sourceShopId          String
+  sourceShop            Shop         @relation(fields: [sourceShopId], references: [id], onDelete: Cascade)
+  originalTitle         String
+  originalUrl           String
+  extractedIdentityJson Json?
+  matchedFieldsJson     Json?
+  missingFieldsJson     Json?
+  mismatchFieldsJson    Json?
+  confidence            Int
+  verifiedAt            DateTime     @default(now())
+
+  @@index([productOfferId, verifiedAt])
+  @@index([sourceShopId, verifiedAt])
+}
+
+model ClickEvent {
+  id        String        @id @default(cuid())
+  offerId   String?
+  offer     ProductOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  targetUrl String
+  referrer  String?
+  userAgent String?
+  createdAt DateTime      @default(now())
+
+  @@index([offerId, createdAt])
+}
+
+model PriceHistory {
+  id         String       @id @default(cuid())
+  offerId    String
+  offer      ProductOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  price      Decimal      @db.Decimal(12, 2)
+  oldPrice   Decimal?     @db.Decimal(12, 2)
+  capturedAt DateTime     @default(now())
+
+  @@index([offerId, capturedAt])
+}
+
+model ScrapeRun {
+  id           String       @id @default(cuid())
+  shopId       String?
+  shop         Shop?        @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  status       ScrapeStatus @default(QUEUED)
+  startedAt    DateTime     @default(now())
+  finishedAt   DateTime?
+  pagesVisited Int          @default(0)
+  offersSeen   Int          @default(0)
+  errorLog     Json?
+  createdAt    DateTime     @default(now())
+}
+
+model UserPriceAlert {
+  id             String      @id @default(cuid())
+  email          String
+  productId      String
+  product        Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  targetPrice    Decimal     @db.Decimal(12, 2)
+  status         AlertStatus @default(ACTIVE)
+  lastNotifiedAt DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([email, status])
+}
