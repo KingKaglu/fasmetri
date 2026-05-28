@@ -1,0 +1,4 @@
+# CLI scripts are not part of the Next.js runtime — exclude from deploy/type-check
+scripts/
+fix.py
+*.sql
