@@ -81,6 +81,10 @@ export type ProductView = {
   updatedAt: string;
 };
 
+export type ConfirmedProductOffer = Omit<OfferView, "verificationStatus"> & {
+  verificationStatus: "CONFIRMED";
+};
+
 export type ScrapeRunView = {
   id: string;
   shopName?: string | null;

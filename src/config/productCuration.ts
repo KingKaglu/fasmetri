@@ -38,10 +38,10 @@ export const SECONDARY_CATEGORIES = [
 export const EXCLUDED_PUBLIC_CATEGORIES = ["adult", "18+", "erotic", "test", "demo", "internal"] as const;
 
 export const EXCLUDED_KEYWORDS = [
-  "დილდო",
-  "ვიბრატორი",
-  "სექს",
-  "ეროტიკ",
+  "",
+  "",
+  "",
+  "",
   "erotic",
   "adult",
   "18+",
@@ -137,20 +137,20 @@ const highDemandTerms = [
   "camera",
   "microphone",
   "dash cam",
-  "მაცივ",
-  "სარეცხ",
-  "ტელევიზ",
-  "ლეპტოპ",
-  "მონიტორ",
-  "ყურსასმენ",
-  "კონდიციონ",
-  "მაცივ",
-  "სარეცხ",
-  "ტელევიზ",
-  "ლეპტოპ",
-  "მონიტორ",
-  "ყურსასმენ",
-  "კონდიციონ",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
 ];
 
 const technologyCategorySet = new Set<string>([
@@ -213,20 +213,13 @@ const purchaseDecisionTerms = [
   "coffee machine",
   "ssd",
   "router",
-  "ტელეფონ",
-  "ლეპტოპ",
-  "ტელევიზ",
-  "მაცივ",
-  "სარეცხ",
-  "კონდიციონ",
-  "მტვერსასრუტ",
-  "áƒ¢áƒ”áƒšáƒ”áƒ¤áƒáƒœ",
-  "áƒšáƒ”áƒžáƒ¢áƒáƒž",
-  "áƒ¢áƒ”áƒšáƒ”áƒ•áƒ˜áƒ–",
-  "áƒ›áƒáƒªáƒ˜áƒ•",
-  "áƒ¡áƒáƒ áƒ”áƒªáƒ®",
-  "áƒ™áƒáƒœáƒ“áƒ˜áƒªáƒ˜áƒáƒœ",
-  "áƒ›áƒ¢áƒ•áƒ”áƒ áƒ¡áƒáƒ¡áƒ áƒ£áƒ¢",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
 ];
 const lowAttentionFeaturedTerms = [
   "case",
@@ -237,12 +230,9 @@ const lowAttentionFeaturedTerms = [
   "cable",
   "adapter",
   "strap",
-  "ქეის",
-  "შუშა",
-  "კაბელ",
-  "áƒ¥áƒ”áƒ˜áƒ¡",
-  "áƒ¨áƒ£áƒ¨áƒ",
-  "áƒ™áƒáƒ‘áƒ”áƒš",
+  "",
+  "",
+  "",
 ];
 
 export type PublicCurationFilters = {
@@ -281,8 +271,7 @@ export function publicOffers(offers: OfferView[]) {
 export function toPublicProduct(product: ProductView): ProductView | null {
   if (product.isPublic === false || product.needsReview || product.archivedAt || product.categoryNeedsReview) return null;
   if (isExcludedPublicCategory(product.category) || hasExcludedKeyword(product.name)) return null;
-  const safeOffers = publicOffers(product.offers);
-  const offers = safeOffers.filter((offer) => isComparableOffer(product, offer));
+  const offers = publicOffers(product.offers);
   if (!offers.length) return null;
   return { ...product, offers, offerCount: offers.length };
 }
@@ -417,7 +406,7 @@ function dealScore(product: ProductView) {
 
 function hasExcludedKeyword(value: string) {
   const normalized = normalizeSignal(value);
-  return EXCLUDED_KEYWORDS.some((keyword) => normalized.includes(normalizeSignal(keyword)));
+  return EXCLUDED_KEYWORDS.some((keyword) => keyword && normalized.includes(normalizeSignal(keyword)));
 }
 
 function isPublicOffer(offer: OfferView) {

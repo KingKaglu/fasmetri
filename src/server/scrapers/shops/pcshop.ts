@@ -1,3 +1,4 @@
+import { FasmetriCategorySlug } from "@/config/categoryMapping";
 import { categorySlugForSignals } from "@/server/scrapers/categories";
 import { jsonLdNodes, nodeHasType, objectValue, objectValues, stringValue } from "@/server/scrapers/json-ld";
 import { loadProductUrlsFromIndexes } from "@/server/scrapers/sitemap";
@@ -13,8 +14,19 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function extractImageString(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  // ImageObject: {"@type": "ImageObject", "url": "..."}
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    return stringValue(obj.url) ?? stringValue(obj["@id"]) ?? stringValue(obj.contentUrl);
+  }
+  return undefined;
+}
+
 function imageUrl(value: unknown, baseUrl: URL) {
-  const raw = Array.isArray(value) ? stringValue(value[0]) : stringValue(value);
+  const candidate = Array.isArray(value) ? value[0] : value;
+  const raw = extractImageString(candidate);
   if (!raw) return undefined;
   try {
     return new URL(raw, baseUrl).toString();
@@ -46,7 +58,26 @@ function availability(value: unknown): "IN_STOCK" | "OUT_OF_STOCK" | "UNKNOWN" {
   return "UNKNOWN";
 }
 
-async function listProductUrls() {
+// PCShop uses WooCommerce. Product URLs are at /shop/{product-slug}/.
+// Category is inferred from JSON-LD breadcrumbs + title at scrape time.
+// The path filters below are best-effort heuristics based on WooCommerce slugs
+// PCShop uses; verified against sitemap samples. May need refinement.
+// PCShop WooCommerce slugs are hyphenated product titles, e.g. /shop/lenovo-thinkpad-t14-gen5-...
+// Model names appear after the brand with a hyphen separator, so we match [-/]keyword, not \/keyword.
+const PCSHOP_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>> = {
+  laptops:              /[-/](?:laptop|noutbuk|macbook|notebook|thinkpad|ideapad|zenbook|vivobook|aspire|chromebook|elitebook|probook|spectre|envy|inspiron|xps|gram|swift|spin|rog-|tuf-|strix|zephyrus)/i,
+  monitors:             /[-/](?:monitor|display|lcd|led-display|curved|ultrawide|gaming-monitor)/i,
+  computers:            /[-/](?:desktop-pc|mini-pc|all-in-one|nettop|beelink|minisforum|acemagic|intel-nuc|workstation|imac|mac-mini|mac-pro|elitedesk|prodesk|thinkcentre|thinkstation)/i,
+  gaming:               /[-/](?:gaming-(?:pc|chair|desk|keyboard|mouse|headset|pad)|razer|corsair-k|logitech-g|steelseries|redragon|peripherals)/i,
+  "computer-accessories": /[-/](?:keyboard|mouse-(?!pad)|ram-|ssd-|hdd-|nvme|cooler|cpu-cooler|case-fan|power-supply|motherboard|graphics-card|gpu-)/i,
+  "cables-adapters":    /[-/](?:cable|adapter|hub|dock|usb-c|hdmi-cable|displayport|thunderbolt|kvm)/i,
+  audio:                /[-/](?:headset|headphone|speaker|soundbar|microphone|webcam|earbuds)/i,
+  "photo-video":        /[-/](?:webcam|capture-card|streaming|camera-(?!bag|case))/i,
+  tablets:              /[-/](?:tablet|ipad|galaxy-tab)/i,
+  "tablet-accessories": /[-/](?:tablet-case|tablet-keyboard|stylus|tablet-stand)/i,
+};
+
+async function listProductUrls(categorySlug?: string) {
   const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
   const urls = await loadProductUrlsFromIndexes(["https://pcshop.ge/sitemap.xml"], {
     includeSitemap: /\/sitemap-post-type-product(?:-\d+)?\.xml$/i,
@@ -54,7 +85,16 @@ async function listProductUrls() {
     userAgent,
   });
 
-  return [...new Set(urls.filter((url) => !new URL(url).pathname.startsWith("/ka-ge/")))];
+  const unique = [...new Set(urls.filter((url) => !new URL(url).pathname.startsWith("/ka-ge/")))];
+
+  if (!categorySlug) return unique;
+
+  const pathFilter = PCSHOP_CATEGORY_PATH_FILTERS[categorySlug as FasmetriCategorySlug];
+  if (!pathFilter) return unique; // No filter for this category — return all
+
+  const filtered = unique.filter((url) => pathFilter.test(new URL(url).pathname));
+  // Fall back to full list if filter is too aggressive (returns nothing)
+  return filtered.length > 0 ? filtered : unique;
 }
 
 function parseProductPage(context: ProductPageParseContext) {
@@ -80,10 +120,11 @@ export const pcshopAdapter: ShopAdapter = {
   slug: "pcshop",
   name: "PCShop",
   baseUrl: "https://pcshop.ge",
-  enabledByDefault: false,
+  enabledByDefault: true,
   needsConfiguration: false,
   rateLimitMs: 3000,
-  maxProductsPerRun: 48,
+  maxProductsPerRun: 200,
+  preferProductUrlsForCategory: true,
   listProductUrls,
   parseProductPage,
 };
