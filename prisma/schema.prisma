@@ -34,6 +34,10 @@ enum RawOfferStatus {
   NEEDS_REVIEW
   EXCLUDED
   UNABLE_TO_FETCH
+  PARSE_FAILED
+  DUPLICATE_URL
+  STORE_UNAVAILABLE
+  BLOCKED_OR_UNABLE_TO_FETCH
 }
 
 enum ProductVerificationStatus {
@@ -59,6 +63,15 @@ enum MatchReviewStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum OfferVerificationStatus {
+  UNVERIFIED
+  CONFIRMED
+  POSSIBLE_MATCH
+  REJECTED
+  NEEDS_REVIEW
+  DIFFERENT_VARIANT
 }
 
 model Shop {
@@ -219,7 +232,9 @@ model ProductOffer {
   productIdentity      Json?
   matchStatus          String                      @default("UNVERIFIED")
   matchConfidence      Int?
-  verificationStatus   String                      @default("CONFIRMED")
+  verificationStatus   OfferVerificationStatus     @default(CONFIRMED)
+  extractedIdentityJson Json?
+  lastCheckedAt        DateTime?
   currentPrice         Decimal                     @db.Decimal(12, 2)
   oldPrice             Decimal?                    @db.Decimal(12, 2)
   currency             String                      @default("GEL")
@@ -275,6 +290,7 @@ model RawOffer {
   rawDiscount         Int?
   rawSpecsJson        Json?
   importBatchId       String?
+  storeKey            String?
   brand               String?
   model               String?
   normalizedTitle     String?
@@ -300,6 +316,7 @@ model RawOffer {
   @@index([parentProductId])
   @@index([variantId])
   @@index([importBatchId])
+  @@index([storeKey])
 }
 
 model OfferMatchCandidate {

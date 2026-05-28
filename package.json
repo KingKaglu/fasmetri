@@ -21,7 +21,7 @@
     "build-product-variants": "tsx scripts/match-offers-to-variants.ts",
     "match-offers-to-variants": "tsx scripts/match-offers-to-variants.ts",
     "recategorize-products": "tsx scripts/recategorize-products.ts",
-    "validate-category-assignments": "tsx scripts/check-category-mapping.ts",
+    "validate-category-assignments": "tsx scripts/validate-category-assignments.ts",
     "validate-variant-matching": "tsx scripts/validate-variant-matching.ts",
     "audit-public-catalog": "tsx scripts/audit-public-catalog.ts",
     "catalog:coverage": "tsx scripts/catalog-coverage.ts",
@@ -34,7 +34,7 @@
     "test:categories": "tsx scripts/check-category-mapping.ts",
     "live:bootstrap": "tsx scripts/live-bootstrap.ts",
     "scrape": "tsx scripts/scrape.ts",
-    "import:store:full": "tsx scripts/scrape.ts --live --raw-only",
+    "import:store:full": "tsx scripts/import-store.ts",
     "import:zoommer:category": "tsx scripts/scrape.ts --live --raw-only --shop=zoommer",
     "import:alta:category": "tsx scripts/scrape.ts --live --raw-only --shop=alta",
     "import:ee:category": "tsx scripts/scrape.ts --live --raw-only --shop=ee",
@@ -61,8 +61,10 @@
     "ingest:domino:full": "tsx scripts/scrape.ts --live --raw-only --shop=domino",
     "ingest:elitemarket": "tsx scripts/scrape.ts --live --shop=elitemarket",
     "ingest:all:full": "tsx scripts/ingest-all-full.ts --raw-only",
-    "import:all:staged": "tsx scripts/ingest-all-full.ts --raw-only",
-    "jobs:prices": "tsx scripts/price-jobs.ts"
+    "import:all:staged": "tsx scripts/import-store.ts",
+    "jobs:prices": "tsx scripts/price-jobs.ts",
+    "jobs:daily": "tsx scripts/daily-refresh.ts",
+    "store-category-coverage": "tsx scripts/store-category-coverage.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

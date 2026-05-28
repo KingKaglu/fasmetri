@@ -33,7 +33,9 @@ cron.schedule(schedule, async () => {
       const offersCreated = ("offersCreated" in run ? run.offersCreated : 0) ?? 0;
       const offersUpdated = ("offersUpdated" in run ? run.offersUpdated : 0) ?? 0;
       const offersSkipped = ("offersSkipped" in run ? run.offersSkipped : 0) ?? 0;
-      const nextOffset = offset + batchOptions.limit;
+      // Reset offset to 0 when batch returned nothing (completed a full sweep)
+      const nextOffset = offersSeen === 0 ? 0 : offset + batchOptions.limit;
+      if (offersSeen === 0) console.log(`${adapter.slug}: completed full sweep, resetting offset to 0`);
       offsetsByShop.set(adapter.slug, nextOffset);
       const progress = {
         checkpointId: checkpointId("jobs-prices", { ...batchOptions, shop: adapter.slug }),

@@ -41,3 +41,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# throwaway diagnostics & local migration artifacts (not for production)
+scripts/_*.ts
+/fix.py
+/data.sql
+/fks.sql
+/drop_fks.sql
+/prisma_cloud_schema.sql

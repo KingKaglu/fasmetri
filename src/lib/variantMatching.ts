@@ -34,7 +34,8 @@ export function buildParentKey(identity: ProductIdentity) {
   if (identity.productType === "mobile_phone" || identity.productType === "tablet") {
     if (!identity.brand || !identity.model || !identity.storage) return undefined;
     const ram = phoneRamBelongsInParentKey(identity) ? identity.ram : undefined;
-    return key([identity.brand, identity.model, ram, identity.storage]);
+    const sim = identity.simType === "esim_only" ? "esim_only" : undefined;
+    return key([identity.brand, identity.model, ram, identity.storage, sim]);
   }
 
   if (identity.productType === "laptop") {
@@ -58,6 +59,11 @@ export function buildParentKey(identity: ProductIdentity) {
   if (identity.productType === "phone_accessory" || identity.productType === "tablet_accessory") {
     if (!identity.brand || !identity.productForm) return undefined;
     return key([identity.brand, identity.productForm, identity.compatibleDevice, identity.modelCode ?? identity.sku]);
+  }
+
+  if (identity.productType === "wearable") {
+    if (!identity.brand || !identity.model) return undefined;
+    return key([identity.brand, identity.model]);
   }
 
   if (identity.productType === "furniture") {
@@ -98,6 +104,10 @@ export function buildVariantKey(identity: ProductIdentity) {
     return key([parentKey, identity.capacity, identity.color]);
   }
 
+  if (identity.productType === "wearable") {
+    return key([parentKey, identity.screenSize, identity.color]);
+  }
+
   if (identity.productType === "appliance" || identity.productType === "small_appliance" || identity.productType === "television" || identity.productType === "monitor") {
     return key([parentKey, identity.color]);
   }
@@ -108,13 +118,32 @@ export function buildVariantKey(identity: ProductIdentity) {
 export function compareVariantIdentities(leftInput: ProductIdentity | ProductAttributeInput, rightInput: ProductIdentity | ProductAttributeInput): VariantMatchDecision {
   const left = extractVariantIdentity(leftInput);
   const right = extractVariantIdentity(rightInput);
-  const decision = explainMatchDecision(left, right);
 
-  if (decision.status === "CONFIRMED" && left.canonicalVariantKey && left.canonicalVariantKey === right.canonicalVariantKey) {
+  // Parent key equality is checked first — before running explainMatchDecision — because
+  // explainMatchDecision treats color differences as hard mismatches (correct for same-product
+  // matching), but color differences are expected and valid within the same parent product.
+  if (left.canonicalParentKey && left.canonicalParentKey === right.canonicalParentKey) {
+    const sameVariant = Boolean(left.canonicalVariantKey && left.canonicalVariantKey === right.canonicalVariantKey);
+    if (sameVariant) {
+      const decision = explainMatchDecision(left, right);
+      return {
+        status: "SAME_VARIANT",
+        confidence: 100,
+        reasons: [`Variant key matched: ${left.canonicalVariantKey}.`, ...decision.reasons],
+        hardMismatchReasons: [],
+        missingAttributes: decision.missingAttributes,
+        parentKey: left.canonicalParentKey,
+        variantKey: left.canonicalVariantKey,
+        left,
+        right,
+      };
+    }
+    // Same parent key, different or unresolvable variant key — keep prices separate.
+    const decision = explainMatchDecision(left, right);
     return {
-      status: "SAME_VARIANT",
-      confidence: 100,
-      reasons: [`Variant key matched: ${left.canonicalVariantKey}.`, ...decision.reasons],
+      status: "SAME_PARENT_DIFFERENT_VARIANT",
+      confidence: Math.min(89, Math.max(70, decision.confidence || 80)),
+      reasons: [`Parent key matched: ${left.canonicalParentKey}.`, "Variant key differs — prices must stay separate."],
       hardMismatchReasons: [],
       missingAttributes: decision.missingAttributes,
       parentKey: left.canonicalParentKey,
@@ -124,16 +153,15 @@ export function compareVariantIdentities(leftInput: ProductIdentity | ProductAtt
     };
   }
 
-  if (
-    !decision.hardMismatchReasons.length &&
-    left.canonicalParentKey &&
-    left.canonicalParentKey === right.canonicalParentKey &&
-    left.canonicalVariantKey !== right.canonicalVariantKey
-  ) {
+  // No parent key match: use full conflict detection including color hard-reject.
+  const decision = explainMatchDecision(left, right);
+
+  // Fallback same-variant detection when canonical keys are unavailable but attributes confirm match.
+  if (decision.status === "CONFIRMED" && left.canonicalVariantKey && left.canonicalVariantKey === right.canonicalVariantKey) {
     return {
-      status: "SAME_PARENT_DIFFERENT_VARIANT",
-      confidence: Math.min(89, Math.max(70, decision.confidence || 80)),
-      reasons: [`Parent key matched: ${left.canonicalParentKey}.`, "Variant key differs, so prices must stay separate."],
+      status: "SAME_VARIANT",
+      confidence: decision.confidence,
+      reasons: [`Variant key matched: ${left.canonicalVariantKey}.`, ...decision.reasons],
       hardMismatchReasons: [],
       missingAttributes: decision.missingAttributes,
       parentKey: left.canonicalParentKey,

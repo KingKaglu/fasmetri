@@ -12,8 +12,8 @@ export function SearchBar({ defaultValue = "", large = false }: { defaultValue?:
           className={`${large ? "h-12 text-base" : "h-11 text-sm sm:text-base"} w-full bg-transparent font-semibold text-[#12203a] outline-none placeholder:text-[#64748b]`}
         />
       </label>
-      <button className="h-11 min-w-24 rounded-[0.95rem] bg-[#ff6800] px-4 text-sm font-black text-white shadow-[0_10px_24px_rgba(255,104,0,.2)] hover:bg-[#e85f00] sm:h-auto">
-        პროდუქტის ძებნა
+      <button className="h-11 min-w-20 rounded-[0.95rem] bg-[#ff6800] px-5 text-sm font-black text-white shadow-[0_10px_24px_rgba(255,104,0,.2)] hover:bg-[#e85f00] sm:h-auto">
+        ძებნა
       </button>
     </form>
   );

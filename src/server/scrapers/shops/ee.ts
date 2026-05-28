@@ -1,4 +1,5 @@
-import { loadProductUrlsFromIndexes } from "@/server/scrapers/sitemap";
+import { fetchSitemapLocs, loadProductUrlsFromIndexes } from "@/server/scrapers/sitemap";
+import { FasmetriCategorySlug } from "@/config/categoryMapping";
 import { categorySlugForSignals } from "@/server/scrapers/categories";
 import { ProductPageParseContext, ShopAdapter } from "@/server/scrapers/types";
 
@@ -38,6 +39,54 @@ type EliteLdProduct = {
 };
 
 const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@sazoge.ge)";
+const SITEMAP_BASE = "https://ee.ge/sitemap/products/";
+
+// Maps Fasmetri category slugs to EE's product sitemap slugs.
+// Each sitemap covers a set of products; multiple sitemaps may overlap.
+// Outlet products (path: autleti/) appear across sitemaps — detected in parseProductPage.
+const EE_CATEGORY_SITEMAPS: Partial<Record<FasmetriCategorySlug, string[]>> = {
+  mobiles:                ["mobile-and-smart-tech-c29", "mobile-and-smart-tech-c320"],
+  "phone-accessories":    ["mobile-and-smart-tech-c82", "computer-equipment-and-accessories-c3"],
+  laptops:                ["computers-and-gaming-c27"],
+  televisions:            ["tv-and-home-theatre-c31", "tv-and-audio-c327"],
+  audio:                  ["tv-and-audio-c15", "computers-and-gaming-c326"],
+  wearables:              ["mobile-and-smart-tech-c334", "mobile-and-smart-tech-c82"],
+  gaming:                 ["gartoba-c87", "computers-and-gaming-c323"],
+  monitors:               ["computers-and-gaming-c23"],
+  computers:              ["computers-and-gaming-c27", "it-products-c322"],
+  "computer-accessories": ["computers-and-gaming-c92", "computers-and-gaming-c79"],
+  "cables-adapters":      ["computers-and-gaming-c79", "computer-equipment-and-accessories-c3"],
+  refrigerators:          ["domestic-appliances-c25"],
+  "washing-machines":     ["domestic-appliances-c16", "domestic-appliances-c17"],
+  "home-appliances":      ["domestic-appliances-c16", "domestic-appliances-c293", "house-and-cleaning-c294", "haeris-movla-c84"],
+  "small-appliances":     ["small-domestic-appliances-c30", "small-domestic-appliances-c90", "small-domestic-appliances-c83", "small-domestic-appliances-c333"],
+  "photo-video":          ["photo-video-entertainment-c81", "enertainment-c28", "photo-video-entertainment-c328", "photo-video-c331"],
+  beauty:                 ["personal-care-c311"],
+  other:                  ["gartoba-c88", "smart-home-accessories-c321"],
+};
+
+// Path prefix filters per category — keeps only Georgian or canonical English paths,
+// drops /en/ and /ru/ duplicates to avoid counting the same product twice.
+const EE_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>> = {
+  mobiles:                /^\/(mobilurebi-da-chkviani-teqnika|en\/mobile-and-smart-tech|autleti|en\/outlet)\//i,
+  "phone-accessories":    /^\/(mobilurebi-da-chkviani-teqnika|en\/mobile-and-smart-tech|kompiuterebi-da-geimingi|en\/computers-and-gaming)\//i,
+  laptops:                /^\/(kompiuterebi-da-geimingi|en\/computers-and-gaming|autleti|en\/outlet)\//i,
+  televisions:            /^\/(televizorebi-da-audio-motsyobilobebi|en\/tv-and-audio|autleti|en\/outlet)\//i,
+  audio:                  /^\/(televizorebi-da-audio-motsyobilobebi|en\/tv-and-audio|kompiuterebi-da-geimingi|en\/computers-and-gaming)\//i,
+  wearables:              /^\/(mobilurebi-da-chkviani-teqnika|en\/mobile-and-smart-tech|autleti|en\/outlet)\//i,
+  gaming:                 /^\/(kompiuterebi-da-geimingi|en\/computers-and-gaming|autleti|en\/outlet)\//i,
+  monitors:               /^\/(kompiuterebi-da-geimingi|en\/computers-and-gaming)\//i,
+  computers:              /^\/(kompiuterebi-da-geimingi|en\/computers-and-gaming|autleti|en\/outlet)\//i,
+  "computer-accessories": /^\/(kompiuterebi-da-geimingi|en\/computers-and-gaming)\//i,
+  "cables-adapters":      /^\/(kompiuterebi-da-geimingi|en\/computers-and-gaming)\//i,
+  refrigerators:          /^\/(sayofackhovrebo-teqnika|en\/domestic-appliances|autleti|en\/outlet)\//i,
+  "washing-machines":     /^\/(sayofackhovrebo-teqnika|en\/domestic-appliances|autleti|en\/outlet)\//i,
+  "home-appliances":      /^\/(sayofackhovrebo-teqnika|en\/domestic-appliances)\//i,
+  "small-appliances":     /^\/(tsvrili-sayofackhovrebo-teqnika|en\/small-domestic-appliances|tavis-movla|en\/personal-care)\//i,
+  "photo-video":          /^\/(foto-video-da-gartoba|en\/photo-video-entertainment|en\/photo-video)\//i,
+  beauty:                 /^\/(tavis-movla|en\/personal-care)\//i,
+  other:                  /^\/(mobilurebi-da-chkviani-teqnika|en\/mobile-and-smart-tech|kompiuterebi-da-geimingi|en\/computers-and-gaming|televizorebi-da-audio-motsyobilobebi|foto-video-da-gartoba)\//i,
+};
 
 function toNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -56,6 +105,10 @@ function canonicalProductKey(rawUrl: string) {
 function productId(rawUrl: string) {
   const match = new URL(rawUrl).pathname.match(/-p(\d+)$/i);
   return match ? Number(match[1]) : 0;
+}
+
+function isOutletPath(pathname: string): boolean {
+  return /^\/(autleti|en\/outlet|ru\/)\//i.test(pathname);
 }
 
 function parseNextData({ $ }: ProductPageParseContext) {
@@ -108,27 +161,62 @@ function parseBrand(ldProduct: EliteLdProduct | null) {
   return ldProduct.brand.name;
 }
 
-async function listProductUrls() {
+async function listProductUrls(categorySlug?: string) {
   const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
-  const urls = await loadProductUrlsFromIndexes(["https://ee.ge/sitemap.xml"], {
-    includeSitemap: /\/sitemap\/products\//i,
-    includeProductUrl: /-p\d+$/i,
-    userAgent,
-  });
+  const sitemapSlugs = categorySlug
+    ? EE_CATEGORY_SITEMAPS[categorySlug as FasmetriCategorySlug]
+    : undefined;
 
+  const rawUrls: string[] = [];
+
+  if (sitemapSlugs?.length) {
+    // Load specific product sitemaps directly (they are leaf sitemaps, not indexes)
+    for (const slug of sitemapSlugs) {
+      try {
+        const locs = await fetchSitemapLocs(`${SITEMAP_BASE}${slug}.xml`, userAgent);
+        for (const loc of locs) {
+          if (/-p\d+$/i.test(loc)) rawUrls.push(loc);
+        }
+      } catch {
+        // Skip inaccessible sitemaps silently
+      }
+    }
+  } else {
+    // Full catalog: load from the main sitemap index
+    const all = await loadProductUrlsFromIndexes(["https://ee.ge/sitemap.xml"], {
+      includeSitemap: /\/sitemap\/products\//i,
+      includeProductUrl: /-p\d+$/i,
+      userAgent,
+    });
+    rawUrls.push(...all);
+  }
+
+  // Deduplicate by canonical key: prefer Georgian path over en/ru duplicates
   const deduped = new Map<string, string>();
-  for (const candidate of urls) {
-    const parsed = new URL(candidate);
-    const existing = deduped.get(canonicalProductKey(candidate));
+  for (const candidate of rawUrls) {
+    const key = canonicalProductKey(candidate);
+    const existing = deduped.get(key);
     if (!existing) {
-      deduped.set(canonicalProductKey(candidate), candidate);
+      deduped.set(key, candidate);
       continue;
     }
-    const existingPath = new URL(existing).pathname;
-    const shouldPreferCurrent = /^\/(en|ru)\//i.test(existingPath) && !/^\/(en|ru)\//i.test(parsed.pathname);
-    if (shouldPreferCurrent) deduped.set(canonicalProductKey(candidate), candidate);
+    const existingIsLocale = /^\/(en|ru)\//i.test(new URL(existing).pathname);
+    const currentIsLocale = /^\/(en|ru)\//i.test(new URL(candidate).pathname);
+    if (existingIsLocale && !currentIsLocale) {
+      deduped.set(key, candidate);
+    }
   }
-  return [...deduped.values()].sort((left, right) => productId(right) - productId(left));
+
+  const pathFilter = categorySlug
+    ? EE_CATEGORY_PATH_FILTERS[categorySlug as FasmetriCategorySlug]
+    : undefined;
+
+  return [...deduped.values()]
+    .filter((url) => {
+      if (!pathFilter) return true;
+      return pathFilter.test(new URL(url).pathname);
+    })
+    .sort((left, right) => productId(right) - productId(left));
 }
 
 function parseProductPage(context: ProductPageParseContext) {
@@ -145,6 +233,11 @@ function parseProductPage(context: ProductPageParseContext) {
   const imageFromLd = Array.isArray(ldProduct?.image) ? ldProduct?.image[0] : ldProduct?.image;
   const imageUrl = product?.imageUrl || imageFromLd;
 
+  const pathname = context.url.pathname;
+  const outlet = isOutletPath(pathname);
+  const breadcrumbs: string[] = [];
+  if (outlet) breadcrumbs.push("outlet");
+
   return {
     externalId: product?.id ? String(product.id) : ldProduct?.sku ? String(ldProduct.sku) : undefined,
     title,
@@ -154,10 +247,12 @@ function parseProductPage(context: ProductPageParseContext) {
     oldPrice: normalizedOldPrice,
     availability: parseAvailability(nextData, ldProduct),
     brand: parseBrand(ldProduct),
+    breadcrumbs,
     categorySlug: categorySlugForSignals([
       product?.parentCategoryName,
       product?.categoryName,
       product?.route,
+      outlet ? "outlet" : null,
       title,
     ], "other"),
   };
@@ -171,6 +266,7 @@ export const eeAdapter: ShopAdapter = {
   needsConfiguration: false,
   rateLimitMs: 5000,
   maxProductsPerRun: 36,
+  preferProductUrlsForCategory: true,
   listProductUrls,
   parseProductPage,
 };

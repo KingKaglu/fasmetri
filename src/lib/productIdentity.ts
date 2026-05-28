@@ -23,6 +23,7 @@ export type ProductIdentity = {
   productType: ProductType;
   categorySlug?: string | null;
   brand?: string;
+  productLine?: string;
   model?: string;
   variant?: string;
   storage?: string;
@@ -63,6 +64,7 @@ export function mergeProductIdentities(base: ProductIdentity, supplement: Produc
   const merged: ProductIdentity = {
     ...base,
     brand: base.brand ?? supplement.brand,
+    productLine: base.productLine ?? supplement.productLine,
     model: base.model ?? supplement.model,
     variant: base.variant ?? supplement.variant,
     storage: base.storage ?? supplement.storage,
@@ -120,7 +122,8 @@ export function buildCanonicalProductKey(identity: Omit<ProductIdentity, "canoni
   if (identity.productType === "mobile_phone" || identity.productType === "tablet") {
     if (!brand || !model || !identity.storage) return undefined;
     const ram = ramBelongsInPhoneKey(identity) ? identity.ram : undefined;
-    return key([brand, model, ram, identity.storage, identity.color]);
+    const sim = identity.simType === "esim_only" ? "esim_only" : undefined;
+    return key([brand, model, ram, identity.storage, identity.color, sim]);
   }
   if (identity.productType === "laptop") {
     if (!brand || !model) return undefined;
@@ -144,6 +147,10 @@ export function buildCanonicalProductKey(identity: Omit<ProductIdentity, "canoni
     if (!brand || !identity.productForm || !identity.compatibleDevice) return undefined;
     return key([brand, identity.productForm, identity.compatibleDevice, identity.modelCode, identity.color]);
   }
+  if (identity.productType === "wearable") {
+    if (!brand || !model) return undefined;
+    return key([brand, model, identity.screenSize, identity.color]);
+  }
   if (brand && (identity.modelCode || model)) {
     return key([brand, identity.modelCode ?? model, identity.productForm, identity.color]);
   }
@@ -158,10 +165,12 @@ function identityFromTitle(title: string, forcedType: ProductType) {
 
 function identityFromAttributes(attributes: ProductAttributes, productType: ProductType): Omit<ProductIdentity, "canonicalKey"> {
   const family = attributes.modelFamily;
+  const brand = brandForIdentity(attributes.brand, family);
   return {
     productType,
     categorySlug: attributes.categorySlug,
-    brand: brandForIdentity(attributes.brand, family),
+    brand,
+    productLine: attributes.productLine,
     model: family,
     variant: attributes.variant,
     storage: chooseStorage(attributes.storage),

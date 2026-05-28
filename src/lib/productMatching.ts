@@ -19,6 +19,9 @@ export function compareProductIdentities(identityA: ProductIdentity, identityB: 
   return explainMatchDecision(identityA, identityB);
 }
 
+/** Alias exported under the name the spec requires. */
+export const compareIdentities = compareProductIdentities;
+
 export function compareProductVariants(left: ProductAttributeInput, right: ProductAttributeInput) {
   return explainMatchDecision(left, right);
 }
@@ -112,7 +115,10 @@ function conflicts(left: ProductIdentity, right: ProductIdentity) {
   if (differentKnown(left.capacity, right.capacity)) mismatches.push(`Capacity differs: ${left.capacity} / ${right.capacity}.`);
   if (differentKnown(left.compatibleDevice, right.compatibleDevice)) mismatches.push(`Compatible device differs: ${left.compatibleDevice} / ${right.compatibleDevice}.`);
   if (differentKnown(left.color, right.color) && colorMatters(left.productType, right.productType)) mismatches.push(`Color differs: ${left.color} / ${right.color}.`);
-  if (left.simType && right.simType && !compatibleSim(left.simType, right.simType)) mismatches.push(`SIM variant differs: ${left.simType} / ${right.simType}.`);
+  const simConflict = (left.simType === "esim_only" && right.simType && right.simType !== "esim_only") ||
+    (right.simType === "esim_only" && left.simType && left.simType !== "esim_only") ||
+    (left.simType && right.simType && !compatibleSim(left.simType, right.simType));
+  if (simConflict) mismatches.push(`SIM variant differs: ${left.simType} / ${right.simType}.`);
   return mismatches;
 }
 

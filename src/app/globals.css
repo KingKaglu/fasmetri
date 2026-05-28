@@ -150,19 +150,21 @@ textarea {
 
 .product-grid-dense {
   grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.625rem;
 }
 
 .product-grid-catalog {
   grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
-@media (min-width: 520px) {
+@media (min-width: 400px) {
   .product-grid-dense {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 640px) {
+@media (min-width: 540px) {
   .product-grid-catalog {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -206,8 +208,11 @@ textarea {
   .shell {
     width: min(calc(100vw - 1rem), 80rem);
   }
+}
 
+/* Bottom nav is md:hidden (< 768px) — pad content so it's not obscured */
+@media (max-width: 767px) {
   main {
-    padding-bottom: max(4.5rem, env(safe-area-inset-bottom));
+    padding-bottom: max(5.5rem, env(safe-area-inset-bottom));
   }
 }

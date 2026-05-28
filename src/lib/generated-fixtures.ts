@@ -1,10 +1,10 @@
-﻿import { CategoryView, ProductView, ShopView } from "@/lib/catalog-types";
+import { CategoryView, ProductView, ShopView } from "@/lib/catalog-types";
 
 export const generatedCategoryFixtures = [
   {
     "id": "cmph6gkn30006o0dt3ndubccm",
     "slug": "audio",
-    "nameKa": "áƒáƒ£áƒ“áƒ˜áƒ",
+    "nameKa": "",
     "nameEn": "Audio",
     "productCount": 1,
     "dealCount": 0
@@ -12,7 +12,7 @@ export const generatedCategoryFixtures = [
   {
     "id": "cmph6gkn00003o0dts1xzuj0f",
     "slug": "laptops",
-    "nameKa": "áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ”áƒ‘áƒ˜",
+    "nameKa": "",
     "nameEn": "Laptops",
     "productCount": 1,
     "dealCount": 0
@@ -20,7 +20,7 @@ export const generatedCategoryFixtures = [
   {
     "id": "cmpfywl1o0001tkdtdtlwoksz",
     "slug": "mobiles",
-    "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+    "nameKa": "",
     "nameEn": "Mobiles",
     "productCount": 33,
     "dealCount": 10
@@ -28,7 +28,7 @@ export const generatedCategoryFixtures = [
   {
     "id": "cmpl1q7z6000ofcdtdfdk65nx",
     "slug": "tablets",
-    "nameKa": "áƒ¢áƒáƒ‘áƒšáƒ”áƒ¢áƒ”áƒ‘áƒ˜",
+    "nameKa": "",
     "nameEn": "Tablets",
     "productCount": 1,
     "dealCount": 0
@@ -43,7 +43,7 @@ export const generatedShopFixtures = [
     "baseUrl": "https://alta.ge",
     "logoUrl": null,
     "enabled": false,
-    "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+    "reliabilityLabel": " ",
     "needsConfiguration": true,
     "lastScrapedAt": "2026-05-21T20:53:26.174Z",
     "lastIngestedAt": null,
@@ -128,7 +128,7 @@ export const generatedShopFixtures = [
     "baseUrl": "https://zoommer.ge",
     "logoUrl": null,
     "enabled": true,
-    "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+    "reliabilityLabel": " ",
     "needsConfiguration": false,
     "lastScrapedAt": "2026-05-25T11:12:10.138Z",
     "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -200,7 +200,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -233,7 +233,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -363,7 +363,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -396,7 +396,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -529,7 +529,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -562,7 +562,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -694,7 +694,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -727,7 +727,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -855,7 +855,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -888,7 +888,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -1017,7 +1017,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -1050,7 +1050,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -1182,7 +1182,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -1215,7 +1215,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -1349,7 +1349,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -1382,7 +1382,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -1514,7 +1514,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -1547,7 +1547,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -1678,7 +1678,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -1711,7 +1711,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -1842,7 +1842,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -1875,7 +1875,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2006,7 +2006,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -2039,7 +2039,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2171,7 +2171,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -2204,7 +2204,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2279,8 +2279,8 @@ export const generatedProductFixtures = [
   },
   {
     "id": "cmpl1vthk0007c8dtm432cxfp",
-    "slug": "msi-cyborg-17-9s7-17u332-252-intel-core-5-210h-nvidia-geforce-rtx-5050-8gb-16gb-ram-ssd-1tb-free-dos-áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜-03c417ea",
-    "name": "MSI Cyborg 17 9S7-17U332-252, Intel Core 5-210H, Nvidia GeForce RTX 5050 8GB, 16GB RAM SSD 1TB, Free Dos, áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+    "slug": "msi-cyborg-17-9s7-17u332-252-intel-core-5-210h-nvidia-geforce-rtx-5050-8gb-16gb-ram-ssd-1tb-free-dos--03c417ea",
+    "name": "MSI Cyborg 17 9S7-17U332-252, Intel Core 5-210H, Nvidia GeForce RTX 5050 8GB, 16GB RAM SSD 1TB, Free Dos, ",
     "canonicalKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb|freedos",
     "productIdentity": {
       "os": "freedos",
@@ -2307,7 +2307,7 @@ export const generatedProductFixtures = [
         "skuCodes": [
           "9s7-17u332-252"
         ],
-        "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+        "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos ",
         "modelCodes": [
           "9s7-17u332-252"
         ],
@@ -2335,14 +2335,14 @@ export const generatedProductFixtures = [
         ],
         "modelFamily": "msi_cyborg_17",
         "categorySlug": "laptops",
-        "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜"
+        "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos "
       },
-      "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+      "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos ",
       "confidence": 100,
       "productType": "laptop",
       "canonicalKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb",
       "categorySlug": "laptops",
-      "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+      "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos ",
       "canonicalParentKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb",
       "canonicalVariantKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb|freedos"
     },
@@ -2352,7 +2352,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "laptops",
       "slug": "laptops",
-      "nameKa": "áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Laptops"
     },
     "popularityScore": 0,
@@ -2385,7 +2385,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2394,7 +2394,7 @@ export const generatedProductFixtures = [
           "updatedAt": "2026-05-25T11:12:10.144Z"
         },
         "url": "https://zoommer.ge/leptopebi/msi-cyborg-17-9s7-17u332-252-intel-core-5-210h-nvidia-geforce-rtx-5050-8gb-16g-p53309",
-        "title": "MSI Cyborg 17 9S7-17U332-252, Intel Core 5-210H, Nvidia GeForce RTX 5050 8GB, 16GB RAM SSD 1TB, Free Dos, áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+        "title": "MSI Cyborg 17 9S7-17U332-252, Intel Core 5-210H, Nvidia GeForce RTX 5050 8GB, 16GB RAM SSD 1TB, Free Dos, ",
         "canonicalKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb|freedos",
         "productIdentity": {
           "os": "freedos",
@@ -2421,7 +2421,7 @@ export const generatedProductFixtures = [
             "skuCodes": [
               "9s7-17u332-252"
             ],
-            "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+            "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos ",
             "modelCodes": [
               "9s7-17u332-252"
             ],
@@ -2449,14 +2449,14 @@ export const generatedProductFixtures = [
             ],
             "modelFamily": "msi_cyborg_17",
             "categorySlug": "laptops",
-            "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜"
+            "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos "
           },
-          "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+          "cleanTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos ",
           "confidence": 100,
           "productType": "laptop",
           "canonicalKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb",
           "categorySlug": "laptops",
-          "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos áƒšáƒ”áƒžáƒ¢áƒáƒžáƒ˜",
+          "normalizedTitle": "msi cyborg 17 9s7-17u332-252 intel core 5-210h nvidia geforce rtx 5050 8gb 16gb ram ssd 1tb free dos ",
           "canonicalParentKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb",
           "canonicalVariantKey": "msi|msi_cyborg_17|9s7_17u332_252|intel_core_5_210h|8gb|1tb|freedos"
         },
@@ -2524,7 +2524,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "audio",
       "slug": "audio",
-      "nameKa": "áƒáƒ£áƒ“áƒ˜áƒ",
+      "nameKa": "",
       "nameEn": "Audio"
     },
     "popularityScore": 0,
@@ -2557,7 +2557,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2675,7 +2675,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -2708,7 +2708,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2834,7 +2834,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "tablets",
       "slug": "tablets",
-      "nameKa": "áƒ¢áƒáƒ‘áƒšáƒ”áƒ¢áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Tablets"
     },
     "popularityScore": 0,
@@ -2867,7 +2867,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -2992,7 +2992,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3025,7 +3025,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -3147,7 +3147,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3180,7 +3180,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -3304,7 +3304,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3337,7 +3337,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -3456,7 +3456,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3489,7 +3489,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -3604,7 +3604,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3637,7 +3637,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -3754,7 +3754,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3787,7 +3787,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -3906,7 +3906,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -3939,7 +3939,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4058,7 +4058,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -4091,7 +4091,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4210,7 +4210,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -4243,7 +4243,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4365,7 +4365,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -4398,7 +4398,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4518,7 +4518,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -4551,7 +4551,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4666,7 +4666,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -4699,7 +4699,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4817,7 +4817,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -4850,7 +4850,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -4972,7 +4972,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -5005,7 +5005,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -5127,7 +5127,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -5160,7 +5160,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -5281,7 +5281,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -5314,7 +5314,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -5435,7 +5435,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -5468,7 +5468,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -5589,7 +5589,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -5622,7 +5622,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
@@ -5744,7 +5744,7 @@ export const generatedProductFixtures = [
     "category": {
       "id": "mobiles",
       "slug": "mobiles",
-      "nameKa": "áƒ›áƒáƒ‘áƒ˜áƒšáƒ£áƒ áƒ”áƒ‘áƒ˜",
+      "nameKa": "",
       "nameEn": "Mobiles"
     },
     "popularityScore": 0,
@@ -5777,7 +5777,7 @@ export const generatedProductFixtures = [
           "baseUrl": "https://zoommer.ge",
           "logoUrl": null,
           "enabled": true,
-          "reliabilityLabel": "áƒ¡áƒáƒ¯áƒáƒ áƒ áƒ™áƒáƒ¢áƒáƒšáƒáƒ’áƒ˜",
+          "reliabilityLabel": " ",
           "needsConfiguration": false,
           "lastScrapedAt": "2026-05-25T11:12:10.138Z",
           "lastIngestedAt": "2026-05-25T11:12:10.138Z",
