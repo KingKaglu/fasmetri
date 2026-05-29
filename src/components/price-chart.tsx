@@ -19,7 +19,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
 
   if (!data.length) {
     return (
-      <div className="grid min-h-64 w-full place-items-center rounded-lg border bg-white p-5 text-center text-sm font-bold text-[#53656e]">
+      <div className="surface-flat grid min-h-48 w-full place-items-center p-5 text-center text-sm font-bold text-[#64748b]">
         ფასის ისტორია ჯერ გროვდება.
       </div>
     );
@@ -32,14 +32,14 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
 
   if (data.length === 1) {
     return (
-      <div className="grid min-h-64 w-full gap-5 rounded-lg border bg-white p-5 sm:p-6">
+      <div className="surface-flat grid min-h-56 w-full gap-4 p-4 sm:p-5">
         <HistorySummary firstPoint={firstPoint} latestPoint={latestPoint} minPrice={minPrice} maxPrice={maxPrice} />
-        <div className="relative grid min-h-28 place-items-center overflow-hidden rounded-lg border border-dashed bg-[#f8fafc] px-5">
-          <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-[#bdd4d0]" />
-          <div className="relative grid gap-2 text-center">
-            <span className="mx-auto size-4 rounded-full border-[3px] border-[#087d6b] bg-[#f5b63c] shadow-[0_0_0_6px_rgba(8,125,107,.12)]" />
-            <strong className="text-2xl font-black">{formatGel(latestPoint.price)}</strong>
-            <span className="text-sm font-bold text-[#53656e]">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
+        <div className="relative grid min-h-24 place-items-center overflow-hidden rounded-md border border-dashed border-[#e2e8f0] bg-[#f8fafc] px-5">
+          <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-[#cbd5e1]" />
+          <div className="relative grid gap-1.5 text-center">
+            <span className="mx-auto size-3 rounded-full bg-[#84cc16] ring-4 ring-[#ecfccb]" />
+            <strong className="text-xl font-black text-[#0f172a]">{formatGel(latestPoint.price)}</strong>
+            <span className="text-xs font-bold text-[#64748b]">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
           </div>
         </div>
       </div>
@@ -47,12 +47,12 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
   }
 
   return (
-    <div className="grid min-h-72 w-full gap-5 rounded-lg border bg-white p-5 sm:p-6">
+    <div className="surface-flat grid min-h-64 w-full gap-4 p-4 sm:p-5">
       <HistorySummary firstPoint={firstPoint} latestPoint={latestPoint} minPrice={minPrice} maxPrice={maxPrice} />
       <div className="h-56 w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 720, height: 224 }}>
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 4 }}>
-            <CartesianGrid vertical={false} stroke="#dbe7e5" strokeDasharray="4 4" />
+            <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
               type="number"
@@ -62,37 +62,38 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               tickFormatter={formatShortDate}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "#53656e", fontSize: 12, fontWeight: 700 }}
+              tick={{ fill: "#64748b", fontSize: 11, fontWeight: 700 }}
             />
             <YAxis
               domain={priceDomain(data)}
               tickFormatter={(value) => formatGel(Number(value))}
-              width={88}
+              width={80}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "#53656e", fontSize: 12, fontWeight: 700 }}
+              tick={{ fill: "#64748b", fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
-              cursor={{ stroke: "#8ebbb3", strokeDasharray: "4 4" }}
+              cursor={{ stroke: "#0f172a", strokeDasharray: "3 3" }}
               formatter={(value) => [formatGel(Number(value)), "ფასი"]}
               labelFormatter={(_, payload) => {
                 const timestamp = Number(payload?.[0]?.payload?.timestamp);
                 return Number.isFinite(timestamp) ? formatUpdated(new Date(timestamp)) : "";
               }}
               contentStyle={{
-                borderColor: "#d3e2df",
-                borderRadius: 8,
-                boxShadow: "0 16px 40px rgba(16,33,41,.14)",
+                border: "1px solid #e2e8f0",
+                borderRadius: 6,
+                boxShadow: "0 8px 24px rgba(15,23,42,.08)",
                 fontWeight: 700,
+                fontSize: 12,
               }}
             />
             <Line
               type="monotone"
               dataKey="price"
-              stroke="#087d6b"
-              strokeWidth={3}
-              activeDot={{ r: 6, fill: "#f5b63c", stroke: "#087d6b", strokeWidth: 3 }}
-              dot={{ r: 4, fill: "#f5b63c", stroke: "#087d6b", strokeWidth: 2 }}
+              stroke="#0f172a"
+              strokeWidth={2}
+              activeDot={{ r: 5, fill: "#84cc16", stroke: "#0f172a", strokeWidth: 2 }}
+              dot={{ r: 3, fill: "#0f172a", stroke: "#0f172a" }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -114,16 +115,16 @@ function HistorySummary({
   maxPrice: number;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0054d2]">დაკვირვების პერიოდი</p>
-        <p className="mt-1 text-sm font-bold text-[#53656e]">
-          {formatUpdated(firstPoint.capturedAt)} - {formatUpdated(latestPoint.capturedAt)}
+        <p className="eyebrow text-[#65a30d]">დაკვირვების პერიოდი</p>
+        <p className="mt-1 text-xs font-bold text-[#64748b]">
+          {formatUpdated(firstPoint.capturedAt)} — {formatUpdated(latestPoint.capturedAt)}
         </p>
       </div>
-      <div className="flex flex-wrap gap-2 text-sm font-black">
-        <span className="rounded-md bg-[#edf5f3] px-3 py-2 text-[#003f9f]">მინ. {formatGel(minPrice)}</span>
-        <span className="rounded-md bg-[#fff4dd] px-3 py-2 text-[#7b4e00]">მაქს. {formatGel(maxPrice)}</span>
+      <div className="flex flex-wrap gap-1.5 text-xs font-black">
+        <span className="rounded-sm border border-[#bbf7d0] bg-[#ecfdf5] px-2 py-1 text-[#15803d]">მინ. {formatGel(minPrice)}</span>
+        <span className="rounded-sm border border-[#fed7aa] bg-[#fff7ed] px-2 py-1 text-[#c2410c]">მაქს. {formatGel(maxPrice)}</span>
       </div>
     </div>
   );

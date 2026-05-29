@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { BadgePercent, Flame } from "lucide-react";
 import { listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product-grid";
@@ -43,35 +43,52 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
   const products = filterCuratedProducts(rankedDeals, filters).slice(0, productPageSize);
 
   return (
-    <section className="shell py-7 sm:py-10">
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-        <aside className="hidden lg:sticky lg:top-20 lg:block lg:h-fit">
-          <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts />
-        </aside>
-        <div className="min-w-0">
-          <div className="brand-gradient relative mb-6 overflow-hidden rounded-[1.6rem] border border-[#d9e4f2] py-8 text-white shadow-[0_22px_58px_rgba(0,84,210,.18)] sm:py-10">
-            <div className="soft-grid absolute inset-0 opacity-20" />
-            <div className="relative flex flex-col justify-between gap-5 px-5 sm:px-7 lg:flex-row lg:items-end">
-              <div className="max-w-2xl">
-                <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-sm font-black text-white backdrop-blur"><Flame className="size-4 text-[#ffb000]" /> დღის საუკეთესო ფასდაკლებები</p>
-                <h1 className="mt-4 text-4xl font-black">აქციები</h1>
-                <p className="mt-2 leading-7 text-white/85">პირველ რიგში ჩანს ის აქციები, სადაც ფასის შედარებას რეალური აზრი აქვს: ტელეფონები, ლეპტოპები, დიდი ტექნიკა და მაღალი მოთხოვნის მოწყობილობები.</p>
-                <div className="mt-4">
-                  <MobileFilterDrawer badge="აქციები">
-                    <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts variant="drawer" />
-                  </MobileFilterDrawer>
-                </div>
-              </div>
-              <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-white/25 bg-white/95 px-4 py-3 text-[#12203a] shadow-sm">
-                <BadgePercent className="size-5 text-[#ff6800]" />
-                <div><p className="text-xs font-bold text-[#64748b]">ამ გვერდზე ნაპოვნი აქცია</p><p className="text-xl font-black">{products.length}</p></div>
-              </div>
+    <>
+      {/* Page header band */}
+      <section className="hero-band-dark">
+        <div className="shell flex flex-col gap-3 py-7 sm:py-9 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <p className="eyebrow text-[#84cc16] inline-flex items-center gap-1.5">
+              <Flame className="size-3.5" /> დღის საუკეთესო ფასდაკლებები
+            </p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">აქციები</h1>
+            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-300">
+              პირველ რიგში ჩანს ის აქციები, სადაც ფასის შედარებას რეალური აზრი აქვს —
+              ტელეფონები, ლეპტოპები, დიდი ტექნიკა.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 rounded-md border border-white/15 bg-white/5 px-4 py-3">
+            <BadgePercent className="size-5 text-[#84cc16]" />
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-300">ამ გვერდზე</p>
+              <p className="text-2xl font-black leading-none text-white">{products.length}</p>
             </div>
           </div>
-          <ProductGrid products={products} deal resetHref="/deals" emptyTitle="აქციები ვერ მოიძებნა" emptyDescription="შეცვალე ფილტრები ან მოგვიანებით გადაამოწმე ახალი ფასდაკლებები." />
-          <CatalogPager baseHref="/deals" params={params} page={page} hasNext={rankedDeals.length === rankedBatchSize} />
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="shell py-6 sm:py-8">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+          <aside className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
+            <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts />
+          </aside>
+          <div className="min-w-0">
+            <div className="mb-4 lg:hidden">
+              <MobileFilterDrawer badge="აქციები">
+                <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts variant="drawer" />
+              </MobileFilterDrawer>
+            </div>
+            <ProductGrid
+              products={products}
+              deal
+              resetHref="/deals"
+              emptyTitle="აქციები ვერ მოიძებნა"
+              emptyDescription="შეცვალე ფილტრები ან მოგვიანებით გადაამოწმე ახალი ფასდაკლებები."
+            />
+            <CatalogPager baseHref="/deals" params={params} page={page} hasNext={rankedDeals.length === rankedBatchSize} />
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

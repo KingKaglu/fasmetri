@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { Mail, MessageSquareText } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -12,28 +12,33 @@ export default function ContactPage() {
     <section className="shell py-8 sm:py-12">
       <div className="grid gap-7 lg:grid-cols-[minmax(0,.82fr)_minmax(24rem,1fr)]">
         <div className="max-w-xl">
-          <p className="text-sm font-black text-[#0054d2]">კავშირი</p>
-          <h1 className="mt-2 text-4xl font-black">კონტაქტი</h1>
-          <p className="mt-4 leading-8 text-[#475569]">
-            მოგვწერე მაღაზიის დამატების, ფასის შესწორების ან თანამშრომლობის საკითხზე. შეტყობინებას
-            გასაგებად მიუთითე პროდუქტის ან მაღაზიის ბმულიც, თუ გაქვს.
+          <p className="eyebrow text-[#65a30d]">კავშირი</p>
+          <h1 className="mt-1 text-3xl font-black tracking-tight text-[#0f172a] sm:text-4xl">კონტაქტი</h1>
+          <p className="mt-3 text-base leading-7 text-[#475569]">
+            მოგვწერე მაღაზიის დამატების, ფასის შესწორების ან თანამშრომლობის საკითხზე.
+            შეტყობინებას მიუთითე პროდუქტის ან მაღაზიის ბმულიც, თუ გაქვს.
           </p>
-          <a href="mailto:hello@sazoge.ge" className="mt-6 inline-flex items-center gap-2 rounded-md border bg-white px-4 py-3 font-black text-[#003f9f] shadow-sm hover:border-[#0054d2] hover:bg-[#eef5ff]">
-            <Mail className="size-4" />
+          <a
+            href="mailto:hello@sazoge.ge"
+            className="mt-5 inline-flex items-center gap-2 rounded-md border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-bold text-[#0f172a] hover:border-[#0f172a]"
+          >
+            <Mail className="size-4 text-[#65a30d]" />
             hello@sazoge.ge
           </a>
-          <p className="mt-4 text-sm leading-6 text-[#64748b]">ფორმის გაგზავნა მალე დაემატება. მანამდე მოგვწერე ელფოსტაზე.</p>
+          <p className="mt-3 text-xs leading-5 text-[#64748b]">ფორმის გაგზავნა მალე დაემატება. მანამდე — ელფოსტაზე.</p>
         </div>
 
-        <form className="surface-shadow rounded-lg border bg-white p-4 sm:p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-lg bg-[#eef5ff] text-[#0054d2]"><MessageSquareText className="size-5" /></span>
+        <form className="surface-flat p-4 sm:p-5">
+          <div className="mb-4 flex items-center gap-3 border-b border-[#e2e8f0] pb-3">
+            <span className="grid size-9 place-items-center rounded-md bg-[#0f172a] text-[#84cc16]">
+              <MessageSquareText className="size-4" />
+            </span>
             <div>
-              <h2 className="text-xl font-black">მოგვწერე</h2>
-              <p className="text-sm text-[#64748b]">შეავსე მოკლე შეტყობინება.</p>
+              <h2 className="text-base font-black text-[#0f172a]">მოგვწერე</h2>
+              <p className="text-xs text-[#64748b]">შეავსე მოკლე შეტყობინება.</p>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Field label="სახელი"><input disabled className="contact-control" placeholder="შენი სახელი" /></Field>
             <Field label="ელფოსტა"><input disabled type="email" className="contact-control" placeholder="name@email.ge" /></Field>
           </div>
@@ -46,9 +51,11 @@ export default function ContactPage() {
             </select>
           </Field>
           <Field label="შეტყობინება">
-            <textarea disabled className="contact-control min-h-36 resize-y py-3" placeholder="დაწერე დეტალები..." />
+            <textarea disabled className="contact-control min-h-32 resize-y py-2" placeholder="დაწერე დეტალები..." />
           </Field>
-          <button type="button" disabled className="mt-2 h-11 w-full rounded-md bg-[#12203a] px-4 font-black text-white opacity-70 sm:w-auto">გაგზავნა</button>
+          <button type="button" disabled className="mt-1 h-11 w-full rounded-md bg-[#0f172a] px-4 text-sm font-bold text-white opacity-60 sm:w-auto">
+            გაგზავნა
+          </button>
         </form>
       </div>
     </section>
@@ -56,5 +63,10 @@ export default function ContactPage() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="mb-4 block text-sm font-black">{label}<span className="mt-1 block font-semibold text-[#12203a]">{children}</span></label>;
+  return (
+    <label className="mb-3 block text-[11px] font-black uppercase tracking-wider text-[#64748b]">
+      {label}
+      <span className="mt-1 block text-sm font-medium text-[#0f172a] normal-case tracking-normal">{children}</span>
+    </label>
+  );
 }
