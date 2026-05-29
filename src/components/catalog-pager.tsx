@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -17,16 +17,27 @@ export function CatalogPager({
   if (currentPage === 1 && !hasNext) return null;
 
   return (
-    <nav aria-label="კატალოგის გვერდები" className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-white/90 p-3 shadow-sm">
-      <span className="text-sm font-black text-[#64748b]">გვერდი {currentPage}</span>
+    <nav
+      aria-label="კატალოგის გვერდები"
+      className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[#e2e8f0] bg-white p-3"
+    >
+      <span className="text-xs font-bold uppercase tracking-wider text-[#64748b]">
+        გვერდი <span className="text-[#0f172a]">{currentPage}</span>
+      </span>
       <div className="flex flex-wrap items-center gap-2">
         {currentPage > 1 ? (
-          <Link href={pageHref(baseHref, params, currentPage - 1)} className="inline-flex h-10 items-center rounded-md border px-3 text-sm font-black text-[#003f9f] hover:border-[#0054d2] hover:bg-[#eef5ff]">
+          <Link
+            href={pageHref(baseHref, params, currentPage - 1)}
+            className="inline-flex h-10 items-center rounded-md border border-[#e2e8f0] bg-white px-3 text-sm font-bold text-[#0f172a] hover:border-[#0f172a]"
+          >
             წინა
           </Link>
         ) : null}
         {hasNext ? (
-          <Link href={pageHref(baseHref, params, currentPage + 1)} className="inline-flex h-10 items-center rounded-md bg-[#12203a] px-3 text-sm font-black text-white hover:bg-[#0054d2]">
+          <Link
+            href={pageHref(baseHref, params, currentPage + 1)}
+            className="inline-flex h-10 items-center rounded-md bg-[#0f172a] px-4 text-sm font-bold text-white hover:bg-black"
+          >
             შემდეგი
           </Link>
         ) : null}

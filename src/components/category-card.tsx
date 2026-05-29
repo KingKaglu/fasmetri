@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowRight,
   Baby,
   BookOpen,
   CarFront,
@@ -58,40 +59,59 @@ const descriptions: Record<string, string> = {
 
 export function CategoryCard({ category, comingSoon = false }: { category: CategoryView; comingSoon?: boolean }) {
   return (
-    <Link href={`/categories/${category.slug}`} className="group grid min-h-56 gap-4 overflow-hidden rounded-[1.35rem] border border-[#d9e4f2] bg-white p-5 shadow-[0_10px_32px_rgba(18,32,58,.06)] hover:-translate-y-1 hover:border-[#b8cdf0] hover:shadow-[0_22px_54px_rgba(0,84,210,.12)]">
+    <Link
+      href={`/categories/${category.slug}`}
+      className="group flex min-h-44 flex-col gap-3 overflow-hidden rounded-md border border-[#e2e8f0] bg-white p-4 transition hover:border-[#0f172a] hover:shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
+    >
       <div className="flex items-start justify-between gap-3">
-        <span className="grid size-13 place-items-center rounded-2xl border border-[#d9e4f2] bg-[#eef5ff] text-[#0054d2] shadow-sm group-hover:bg-[#0054d2] group-hover:text-white">{categoryIcon(category.slug)}</span>
-        <span className={`rounded-full px-2.5 py-1 text-xs font-black ${comingSoon ? "bg-[#fff1e8] text-[#c2410c]" : "bg-[#eef5ff] text-[#0054d2]"}`}>
-          {comingSoon ? "მალე დაემატება" : `${category.productCount ?? 0} პროდუქტი`}
+        <span className="grid size-10 place-items-center rounded-md bg-[#0f172a] text-[#84cc16] group-hover:bg-[#84cc16] group-hover:text-[#1a2e05]">
+          {categoryIcon(category.slug)}
+        </span>
+        <span
+          className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-[11px] font-bold ${
+            comingSoon
+              ? "border-[#fed7aa] bg-[#fff7ed] text-[#c2410c]"
+              : "border-[#e2e8f0] bg-[#f8fafc] text-[#0f172a]"
+          }`}
+        >
+          {comingSoon ? "მალე" : `${category.productCount ?? 0} პროდ.`}
         </span>
       </div>
-      <div>
-        <h2 className="text-xl font-black text-[#12203a] group-hover:text-[#0054d2]">{category.nameKa}</h2>
-        <p className="mt-2 line-clamp-2 leading-6 text-[#64748b]">{descriptions[category.slug] ?? "შეთავაზებები ამ კატეგორიაში რეგულარულად ახლდება."}</p>
+      <div className="flex-1">
+        <h2 className="text-base font-black tracking-tight text-[#0f172a] group-hover:text-[#65a30d]">
+          {category.nameKa}
+        </h2>
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#64748b]">
+          {descriptions[category.slug] ?? "შეთავაზებები ამ კატეგორიაში რეგულარულად ახლდება."}
+        </p>
       </div>
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#e6edf7] pt-4 text-sm font-black">
-        <span className="text-[#64748b]">{category.dealCount ?? 0} აქტიური აქცია</span>
-        <span className="text-[#ff6800]">ნახვა</span>
+      <div className="flex items-center justify-between gap-2 border-t border-[#e2e8f0] pt-2.5 text-xs font-bold">
+        <span className="text-[#64748b]">
+          {category.dealCount ?? 0} აქცია
+        </span>
+        <span className="inline-flex items-center gap-1 text-[#0f172a] group-hover:text-[#65a30d]">
+          ნახვა <ArrowRight className="size-3.5" />
+        </span>
       </div>
     </Link>
   );
 }
 
 function categoryIcon(slug: string) {
-  if (slug === "mobiles" || slug === "tablets" || slug === "tablet-accessories" || slug === "phone-accessories" || slug === "wearables") return <Smartphone className="size-6" />;
-  if (slug === "computers" || slug === "computer-accessories" || slug === "cables-adapters" || slug === "laptops") return <Laptop className="size-6" />;
-  if (slug === "televisions" || slug === "monitors" || slug === "audio" || slug === "gaming") return <Tv className="size-6" />;
-  if (slug === "clothing") return <Shirt className="size-6" />;
-  if (slug === "shoes") return <Footprints className="size-6" />;
-  if (slug === "beauty") return <Sparkles className="size-6" />;
-  if (slug === "furniture") return <Sofa className="size-6" />;
-  if (slug === "home-garden" || slug === "home-appliances" || slug === "refrigerators" || slug === "washing-machines" || slug === "small-appliances" || slug === "kitchen-dishes" || slug === "air-conditioners") return <House className="size-6" />;
-  if (slug === "sport") return <Dumbbell className="size-6" />;
-  if (slug === "kids") return <Baby className="size-6" />;
-  if (slug === "auto-accessories") return <CarFront className="size-6" />;
-  if (slug === "supermarket") return <Leaf className="size-6" />;
-  if (slug === "books-stationery") return <BookOpen className="size-6" />;
-  if (slug === "pets") return <PawPrint className="size-6" />;
-  if (slug === "tools") return <Wrench className="size-6" />;
-  return <Package className="size-6" />;
+  if (slug === "mobiles" || slug === "tablets" || slug === "tablet-accessories" || slug === "phone-accessories" || slug === "wearables") return <Smartphone className="size-5" />;
+  if (slug === "computers" || slug === "computer-accessories" || slug === "cables-adapters" || slug === "laptops") return <Laptop className="size-5" />;
+  if (slug === "televisions" || slug === "monitors" || slug === "audio" || slug === "gaming") return <Tv className="size-5" />;
+  if (slug === "clothing") return <Shirt className="size-5" />;
+  if (slug === "shoes") return <Footprints className="size-5" />;
+  if (slug === "beauty") return <Sparkles className="size-5" />;
+  if (slug === "furniture") return <Sofa className="size-5" />;
+  if (slug === "home-garden" || slug === "home-appliances" || slug === "refrigerators" || slug === "washing-machines" || slug === "small-appliances" || slug === "kitchen-dishes" || slug === "air-conditioners") return <House className="size-5" />;
+  if (slug === "sport") return <Dumbbell className="size-5" />;
+  if (slug === "kids") return <Baby className="size-5" />;
+  if (slug === "auto-accessories") return <CarFront className="size-5" />;
+  if (slug === "supermarket") return <Leaf className="size-5" />;
+  if (slug === "books-stationery") return <BookOpen className="size-5" />;
+  if (slug === "pets") return <PawPrint className="size-5" />;
+  if (slug === "tools") return <Wrench className="size-5" />;
+  return <Package className="size-5" />;
 }

@@ -17,13 +17,13 @@ export default async function CategoriesPage() {
 
   return (
     <section className="shell py-7 sm:py-10">
-      <div className="mb-7 max-w-2xl">
-        <p className="mb-2 inline-flex items-center gap-2 text-sm font-black text-[#0054d2]"><Boxes className="size-4" /> კატალოგი</p>
-        <h1 className="text-3xl font-black sm:text-4xl">კატეგორიები</h1>
-        <p className="mt-2 leading-7 text-[#64748b]">იპოვე შეთავაზებები ტექნიკაში, სახლში, მოვლაში და ყოველდღიურ საყიდლებში.</p>
+      <div className="mb-6 border-b border-[#e2e8f0] pb-4">
+        <p className="eyebrow inline-flex items-center gap-1.5 text-[#65a30d]"><Boxes className="size-3.5" /> კატალოგი</p>
+        <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">კატეგორიები</h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[#64748b]">იპოვე შეთავაზებები ტექნიკაში, სახლში, მოვლაში და ყოველდღიურ საყიდლებში.</p>
       </div>
       {publicCategories.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {publicCategories.map((category) => <CategoryCard key={category.id} category={category} comingSoon={(category.productCount ?? 0) === 0} />)}
         </div>
       ) : <EmptyState title="კატეგორიები მალე შეივსება" description="მონაცემები უკვე მოწმდება და ახალი კატეგორიები ეტაპობრივად დაემატება." />}

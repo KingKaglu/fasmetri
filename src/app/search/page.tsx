@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Metadata } from "next";
 import { BadgePercent } from "lucide-react";
 import { listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
@@ -23,32 +23,38 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
   const headline = filters.q ? `"${filters.q}"` : "მოძებნე პროდუქტი";
 
   return (
-    <section className="shell py-7 sm:py-10">
+    <section className="shell py-7 sm:py-9">
       <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-        <aside className="hidden lg:sticky lg:top-20 lg:block lg:h-fit">
+        <aside className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
           <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} />
         </aside>
         <div className="min-w-0">
-          <div className="mb-7 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#e2e8f0] pb-4">
             <div className="min-w-0 max-w-3xl">
-              <p className="mb-2 text-sm font-black text-[#0054d2]">ფასების შედარება</p>
-              <h1 className="break-words text-3xl font-black sm:text-4xl">{headline}</h1>
-              <p className="mt-2 text-sm leading-6 text-[#64748b]">ფილტრებით სწრაფად შეადარე ფასი, მაღაზია, ფასდაკლება და მარაგი.</p>
+              <p className="eyebrow text-[#65a30d]">ფასების შედარება</p>
+              <h1 className="mt-1 break-words text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{headline}</h1>
+              <p className="mt-1.5 text-sm leading-6 text-[#64748b]">ფილტრებით სწრაფად შეადარე ფასი, მაღაზია, ფასდაკლება და მარაგი.</p>
             </div>
-            <Link href="/deals" className="inline-flex h-11 w-fit items-center gap-2 rounded-md border bg-white px-4 text-sm font-black text-[#003f9f] hover:border-[#0054d2] hover:bg-[#eef5ff]">
-              <BadgePercent className="size-4" />
+            <Link
+              href="/deals"
+              className="inline-flex h-10 w-fit shrink-0 items-center gap-1.5 rounded-md border border-[#e2e8f0] bg-white px-4 text-sm font-bold text-[#0f172a] hover:border-[#0f172a]"
+            >
+              <BadgePercent className="size-4 text-[#65a30d]" />
               აქციები
             </Link>
           </div>
 
-          <div className="mb-5 max-w-3xl"><SearchBar defaultValue={filters.q} /></div>
-          <MobileFilterDrawer>
-            <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} variant="drawer" />
-          </MobileFilterDrawer>
+          <div className="mb-4 max-w-3xl"><SearchBar defaultValue={filters.q} /></div>
 
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white/85 px-4 py-3 text-sm">
-            <p className="font-black">ამ გვერდზე {products.length} შედეგი</p>
-            <p className="font-bold text-[#64748b]">ბოლო განახლება ბარათებზე ჩანს</p>
+          <div className="mb-4 lg:hidden">
+            <MobileFilterDrawer>
+              <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} variant="drawer" />
+            </MobileFilterDrawer>
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[#e2e8f0] bg-white px-3 py-2 text-sm">
+            <p className="font-bold text-[#0f172a]">ამ გვერდზე <span className="font-black text-[#65a30d]">{products.length}</span> შედეგი</p>
+            <p className="text-xs font-semibold text-[#64748b]">ბოლო განახლება ბარათებზე ჩანს</p>
           </div>
           {hasSearchIntent ? (
             <>

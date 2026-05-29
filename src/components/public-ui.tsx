@@ -1,4 +1,4 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, ArrowRight, Clock3, PackageSearch, ShieldCheck, Store } from "lucide-react";
 import { Availability, ShopView } from "@/lib/catalog-types";
@@ -8,49 +8,67 @@ export { ProductImage } from "@/components/product-image";
 export function AvailabilityBadge({ availability }: { availability: Availability }) {
   const meta =
     availability === "IN_STOCK"
-      ? { label: "მარაგშია", style: "bg-[#eaf8ef] text-[#15803d] ring-[#bbefcc]" }
+      ? { label: "მარაგშია", className: "bg-[#ecfdf5] text-[#15803d] border-[#bbf7d0]" }
       : availability === "OUT_OF_STOCK"
-        ? { label: "არ არის მარაგში", style: "bg-[#f1f5f9] text-[#64748b] ring-[#d9e4f2]" }
-        : { label: "მოწმდება", style: "bg-[#fff1e8] text-[#c2410c] ring-[#fed7aa]" };
+        ? { label: "არ არის", className: "bg-[#f1f5f9] text-[#64748b] border-[#e2e8f0]" }
+        : { label: "მოწმდება", className: "bg-[#fff7ed] text-[#c2410c] border-[#fed7aa]" };
 
-  return <span className={`inline-flex h-6 items-center rounded-full px-2 text-[11px] font-black ring-1 ${meta.style}`}>{meta.label}</span>;
+  return (
+    <span className={`inline-flex h-5 items-center rounded-sm border px-1.5 text-[10px] font-bold ${meta.className}`}>
+      {meta.label}
+    </span>
+  );
 }
 
 export function DiscountBadge({ percent, label }: { percent: number; label?: string }) {
   if (!percent) return null;
   return (
-    <span className="inline-flex items-center rounded-full bg-[#ff6800] px-2 py-0.5 text-[11px] font-black text-white shadow-[0_10px_24px_rgba(255,104,0,.24)]">
+    <span className="inline-flex items-center rounded-sm bg-[#b91c1c] px-1.5 py-0.5 text-[11px] font-black leading-none text-white">
       {label ?? `-${percent}%`}
     </span>
   );
 }
 
-export function PriceDisplay({ price, oldPrice, strong = false }: { price: number; oldPrice?: number | null; strong?: boolean }) {
+export function PriceDisplay({
+  price,
+  oldPrice,
+  strong = false,
+  deal = false,
+}: {
+  price: number;
+  oldPrice?: number | null;
+  strong?: boolean;
+  deal?: boolean;
+}) {
   return (
-    <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-      <strong className={`${strong ? "text-4xl" : "text-xl sm:text-2xl"} font-black leading-none text-[#ff6800]`}>{formatGel(price)}</strong>
-      {oldPrice ? <span className="text-sm font-bold text-[#64748b] line-through">{formatGel(oldPrice)}</span> : null}
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <strong
+        className={`${strong ? "text-3xl sm:text-4xl" : "text-lg sm:text-xl"} price-now ${deal ? "price-now-deal" : ""} leading-none`}
+      >
+        {formatGel(price)}
+      </strong>
+      {oldPrice ? <span className="price-old text-xs sm:text-sm">{formatGel(oldPrice)}</span> : null}
     </div>
   );
 }
 
 export function LastUpdatedText({ value, exact = false, className = "" }: { value: string | Date; exact?: boolean; className?: string }) {
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1.5 text-[#64748b] ${className}`}>
-      <Clock3 className="size-3.5 shrink-0" />
+    <span className={`inline-flex min-w-0 items-center gap-1 text-[#64748b] ${className}`}>
+      <Clock3 className="size-3 shrink-0" />
       <span className="min-w-0">
         <span className="block">{formatRelativeUpdated(value)}</span>
-        {exact ? <span className="block text-xs font-semibold text-[#64748b]">{formatUpdated(value)}</span> : null}
+        {exact ? <span className="block text-[11px] font-medium text-[#64748b]">{formatUpdated(value)}</span> : null}
       </span>
     </span>
   );
 }
 
 export function ShopMark({ shop, size = "md" }: { shop: Pick<ShopView, "name" | "logoUrl">; size?: "sm" | "md" }) {
-  const dimension = size === "sm" ? "size-8" : "size-11";
+  const dimension = size === "sm" ? "size-6" : "size-9";
   return (
-    <span className={`relative grid ${dimension} shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#d9e4f2] bg-white text-sm font-black text-[#0054d2] shadow-sm`}>
-      {shop.logoUrl ? <Image src={shop.logoUrl} alt="" fill unoptimized className="object-contain p-1" /> : shop.name.slice(0, 1)}
+    <span className={`relative grid ${dimension} shrink-0 place-items-center overflow-hidden rounded-sm border border-[#e2e8f0] bg-white text-[11px] font-black text-[#0f172a]`}>
+      {shop.logoUrl ? <Image src={shop.logoUrl} alt="" fill unoptimized className="object-contain p-0.5" /> : shop.name.slice(0, 1)}
     </span>
   );
 }
@@ -59,12 +77,16 @@ export function ShopStatusBadge({ shop }: { shop: ShopView }) {
   const hasComparedProducts = shop.productCount == null ? Boolean(shop.lastScrapedAt) : shop.productCount > 0;
   const meta =
     hasComparedProducts && shop.lastScrapedAt
-      ? { label: "აქტიური", style: "bg-[#eaf8ef] text-[#15803d]" }
-    : shop.enabled
-        ? { label: "მონაცემები მოწმდება", style: "bg-[#fff1e8] text-[#c2410c]" }
-        : { label: "მალე დაემატება", style: "bg-[#f1f5f9] text-[#64748b]" };
+      ? { label: "აქტიური", className: "bg-[#ecfdf5] text-[#15803d] border-[#bbf7d0]" }
+      : shop.enabled
+        ? { label: "მონაცემები მოწმდება", className: "bg-[#fff7ed] text-[#c2410c] border-[#fed7aa]" }
+        : { label: "მალე დაემატება", className: "bg-[#f1f5f9] text-[#64748b] border-[#e2e8f0]" };
 
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-black ${meta.style}`}>{meta.label}</span>;
+  return (
+    <span className={`inline-flex rounded-sm border px-2 py-0.5 text-[11px] font-bold ${meta.className}`}>
+      {meta.label}
+    </span>
+  );
 }
 
 export function SectionHeader({
@@ -81,14 +103,14 @@ export function SectionHeader({
   action?: string;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-[#e2e8f0] pb-3">
       <div className="max-w-2xl">
-        {eyebrow ? <p className="text-sm font-black text-[#0054d2]">{eyebrow}</p> : null}
-        <h2 className="mt-1 text-2xl font-black sm:text-3xl">{title}</h2>
-        {description ? <p className="mt-2 leading-7 text-[#64748b]">{description}</p> : null}
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+        <h2 className="mt-1 text-xl font-black text-[#0f172a] sm:text-2xl">{title}</h2>
+        {description ? <p className="mt-1.5 text-sm leading-6 text-[#64748b]">{description}</p> : null}
       </div>
       {href ? (
-        <Link href={href} className="inline-flex h-11 items-center gap-1 rounded-2xl border border-[#d9e4f2] bg-white px-4 text-sm font-black text-[#0054d2] shadow-sm hover:border-[#0054d2] hover:bg-[#eef5ff]">
+        <Link href={href} className="inline-flex h-9 items-center gap-1 text-sm font-bold text-[#0f172a] hover:text-[#65a30d]">
           {action}
           <ArrowRight className="size-4" />
         </Link>
@@ -112,12 +134,18 @@ export function EmptyState({
 }) {
   const Icon = icon === "store" ? Store : icon === "error" ? AlertCircle : PackageSearch;
   return (
-    <div className="brand-card grid min-h-60 place-items-center px-5 py-10 text-center">
+    <div className="surface-flat grid min-h-60 place-items-center px-5 py-10 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-14 place-items-center rounded-2xl border border-[#d9e4f2] bg-white text-[#0054d2] shadow-sm"><Icon className="size-6" /></span>
-        <h2 className="mt-4 text-xl font-black">{title}</h2>
-        <p className="mt-2 leading-7 text-[#64748b]">{description}</p>
-        {href ? <Link href={href} className="mt-5 inline-flex h-11 items-center rounded-2xl bg-[#0054d2] px-4 font-black text-white hover:bg-[#003f9f]">{action}</Link> : null}
+        <span className="mx-auto grid size-12 place-items-center rounded-md border border-[#e2e8f0] bg-[#f8fafc] text-[#64748b]">
+          <Icon className="size-5" />
+        </span>
+        <h2 className="mt-4 text-lg font-black text-[#0f172a]">{title}</h2>
+        <p className="mt-1.5 text-sm leading-6 text-[#64748b]">{description}</p>
+        {href ? (
+          <Link href={href} className="mt-5 inline-flex h-10 items-center rounded-md bg-[#0f172a] px-4 text-sm font-bold text-white hover:bg-black">
+            {action}
+          </Link>
+        ) : null}
       </div>
     </div>
   );
@@ -133,11 +161,13 @@ export function ErrorState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="brand-card grid min-h-60 place-items-center px-5 py-10 text-center">
+    <div className="surface-flat grid min-h-60 place-items-center px-5 py-10 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-14 place-items-center rounded-2xl border bg-white text-[#dc2626] shadow-sm"><AlertCircle className="size-6" /></span>
-        <h1 className="mt-4 text-2xl font-black">{title}</h1>
-        <p className="mt-2 leading-7 text-[#64748b]">{description}</p>
+        <span className="mx-auto grid size-12 place-items-center rounded-md border border-[#fecaca] bg-[#fef2f2] text-[#dc2626]">
+          <AlertCircle className="size-5" />
+        </span>
+        <h1 className="mt-4 text-xl font-black text-[#0f172a]">{title}</h1>
+        <p className="mt-1.5 text-sm leading-6 text-[#64748b]">{description}</p>
         {action ? <div className="mt-5">{action}</div> : null}
       </div>
     </div>
@@ -146,12 +176,12 @@ export function ErrorState({
 
 export function TrustNote({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`brand-card ${compact ? "p-4 text-sm" : "p-5"}`}>
-      <p className="flex gap-2 font-black">
-        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-[#0054d2]" />
-        ფასები და მარაგის ინფორმაცია რეგულარულად ახლდება.
+    <div className={`surface-flat ${compact ? "p-4" : "p-5"}`}>
+      <p className="flex gap-2 text-sm font-bold text-[#0f172a]">
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#65a30d]" />
+        ფასები და მარაგი რეგულარულად ახლდება.
       </p>
-      <p className="mt-2 leading-6 text-[#64748b]">შეძენამდე საბოლოო ფასი ყოველთვის გადაამოწმე მაღაზიის ვებსაიტზე.</p>
+      <p className="mt-1.5 text-sm leading-5 text-[#64748b]">შეძენამდე საბოლოო ფასი ყოველთვის გადაამოწმე მაღაზიის საიტზე.</p>
     </div>
   );
 }
@@ -171,13 +201,12 @@ export function ProductNotFound() {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-3xl border border-[#d9e4f2] bg-white">
-      <div className="aspect-[4/3] animate-pulse bg-[#eef5ff]" />
-      <div className="grid gap-2.5 p-3">
-        <div className="h-6 w-24 animate-pulse rounded bg-[#edf3f3]" />
-        <div className="h-12 animate-pulse rounded bg-[#edf3f3]" />
-        <div className="h-8 w-36 animate-pulse rounded bg-[#edf3f3]" />
-        <div className="h-11 animate-pulse rounded bg-[#edf3f3]" />
+    <div className="overflow-hidden rounded-md border border-[#e2e8f0] bg-white">
+      <div className="aspect-square animate-pulse bg-[#f1f5f9]" />
+      <div className="grid gap-2 p-2.5">
+        <div className="h-4 w-20 animate-pulse rounded bg-[#f1f5f9]" />
+        <div className="h-8 animate-pulse rounded bg-[#f1f5f9]" />
+        <div className="h-6 w-24 animate-pulse rounded bg-[#f1f5f9]" />
       </div>
     </div>
   );

@@ -74,17 +74,25 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   if (!category) notFound();
 
   return (
-    <section className="shell py-7 sm:py-10">
-      <div className="surface-glow mb-6 rounded-lg border p-5 shadow-sm">
-        <p className="text-sm font-black text-[#0054d2]">კატეგორია</p>
-        <h1 className="mt-1 text-3xl font-black sm:text-4xl">{category.nameKa}</h1>
-        <p className="mt-2 leading-7 text-[#64748b]">{category.productCount ?? products.length} პროდუქტი და {category.dealCount ?? 0} ფასდაკლებული შეთავაზება.</p>
+    <section className="shell py-6 sm:py-9">
+      <div className="mb-5 border-b border-[#e2e8f0] pb-4">
+        <p className="eyebrow text-[#65a30d]">კატეგორია</p>
+        <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{category.nameKa}</h1>
+        <p className="mt-1.5 text-sm leading-6 text-[#64748b]">
+          <span className="font-bold text-[#0f172a]">{category.productCount ?? products.length}</span> პროდუქტი
+          {" · "}
+          <span className="font-bold text-[#0f172a]">{category.dealCount ?? 0}</span> ფასდაკლება
+        </p>
       </div>
-      <MobileFilterDrawer>
-        <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} variant="drawer" />
-      </MobileFilterDrawer>
+      <div className="mb-4 lg:hidden">
+        <MobileFilterDrawer>
+          <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} variant="drawer" />
+        </MobileFilterDrawer>
+      </div>
       <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
-        <div className="hidden lg:block lg:sticky lg:top-28 lg:h-fit"><CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} /></div>
+        <div className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
+          <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} />
+        </div>
         <div className="min-w-0">
           <ProductGrid products={products} resetHref={`/categories/${category.slug}`} emptyTitle="კატეგორიაში პროდუქტი ვერ მოიძებნა" emptyDescription="სცადე სხვა ფილტრები ან მოგვიანებით გადაამოწმე ახალი შეთავაზებები." />
           <CatalogPager baseHref={`/categories/${category.slug}`} params={raw} page={page} hasNext={products.length === productPageSize} />

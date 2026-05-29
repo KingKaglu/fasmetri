@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { BadgePercent, ScanSearch, ShieldCheck } from "lucide-react";
 import { TrustNote } from "@/components/public-ui";
 
@@ -11,19 +11,19 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <section className="shell py-8 sm:py-12">
-      <div className="max-w-3xl">
-        <p className="text-sm font-black text-[#0054d2]">ფასმეტრი</p>
-        <h1 className="mt-2 text-4xl font-black">ჩვენ შესახებ</h1>
-        <p className="mt-4 text-lg leading-8 text-[#475569]">
+      <div className="max-w-3xl border-b border-[#e2e8f0] pb-6">
+        <p className="eyebrow text-[#65a30d]">ფასმეტრი</p>
+        <h1 className="mt-1 text-3xl font-black tracking-tight text-[#0f172a] sm:text-4xl">ჩვენ შესახებ</h1>
+        <p className="mt-3 text-base leading-7 text-[#475569]">
           ფასმეტრი გეხმარება ქართულ ონლაინ მაღაზიებში ფასების, აქციებისა და შეთავაზებების შედარებაში.
-          ჩვენი მიზანია, პროდუქტის ძებნა უფრო სწრაფი, მარტივი და გამჭვირვალე გავხადოთ.
+          მიზანი — პროდუქტის ძებნა უფრო სწრაფი, მარტივი და გამჭვირვალე.
         </p>
       </div>
 
-      <div className="mt-9 grid gap-4 md:grid-cols-3">
-        <InfoBlock icon={ScanSearch} title="რას ვაკეთებთ" body="ერთ ხედში გაჩვენებთ სხვადასხვა მაღაზიის შეთავაზებებს, ფასებსა და განახლებებს." />
-        <InfoBlock icon={BadgePercent} title="როგორ გეხმარება" body="ფასდაკლებები, მარაგის სტატუსი და ფასების შედარება უფრო სწრაფ გადაწყვეტილებას გაძლევს." />
-        <InfoBlock icon={ShieldCheck} title="მნიშვნელოვანი შენიშვნა" body="შეძენამდე საბოლოო ფასი და პირობები ყოველთვის მაღაზიის გვერდზე გადაამოწმე." />
+      <div className="mt-8 grid gap-3 md:grid-cols-3">
+        <InfoBlock icon={ScanSearch} title="რას ვაკეთებთ" body="ერთ ხედში ვაჩვენებთ სხვადასხვა მაღაზიის შეთავაზებებს, ფასებსა და განახლებებს." />
+        <InfoBlock icon={BadgePercent} title="როგორ გეხმარება" body="ფასდაკლებები, მარაგის სტატუსი და ფასების შედარება — სწრაფი გადაწყვეტილებისთვის." />
+        <InfoBlock icon={ShieldCheck} title="მნიშვნელოვანი" body="შეძენამდე საბოლოო ფასი და პირობები ყოველთვის მაღაზიის გვერდზე გადაამოწმე." />
       </div>
 
       <div className="mt-6 max-w-3xl">
@@ -43,10 +43,12 @@ function InfoBlock({
   body: string;
 }) {
   return (
-    <article className="rounded-lg border bg-white p-5 shadow-sm">
-      <span className="grid size-11 place-items-center rounded-lg bg-[#eef5ff] text-[#0054d2]"><Icon className="size-5" /></span>
-      <h2 className="mt-4 text-xl font-black">{title}</h2>
-      <p className="mt-2 leading-7 text-[#64748b]">{body}</p>
+    <article className="surface-flat p-5">
+      <span className="grid size-9 place-items-center rounded-md bg-[#0f172a] text-[#84cc16]">
+        <Icon className="size-4" />
+      </span>
+      <h2 className="mt-3 text-base font-black text-[#0f172a]">{title}</h2>
+      <p className="mt-1.5 text-sm leading-6 text-[#64748b]">{body}</p>
     </article>
   );
 }

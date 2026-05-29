@@ -30,15 +30,24 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
   if (!shop) notFound();
 
   return (
-    <section className="shell py-7 sm:py-10">
-      <div className="surface-glow surface-shadow mb-6 grid gap-4 rounded-lg border p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+    <section className="shell py-6 sm:py-9">
+      <div className="mb-5 grid gap-4 rounded-md border border-[#e2e8f0] bg-white p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
         <ShopMark shop={shop} />
-        <div>
-          <div className="flex flex-wrap items-center gap-2"><h1 className="text-3xl font-black">{shop.name}</h1><ShopStatusBadge shop={shop} /></div>
-          <p className="mt-2 text-[#64748b]">{shop.productCount ?? products.length} პროდუქტი და {shop.dealCount ?? 0} მიმდინარე აქცია შედარებისთვის.</p>
-          {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} className="mt-2 text-sm font-bold" /> : null}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{shop.name}</h1>
+            <ShopStatusBadge shop={shop} />
+          </div>
+          <p className="mt-1 text-sm text-[#64748b]">
+            <span className="font-bold text-[#0f172a]">{shop.productCount ?? products.length}</span> პროდუქტი
+            {" · "}
+            <span className="font-bold text-[#0f172a]">{shop.dealCount ?? 0}</span> აქცია
+          </p>
+          {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} className="mt-1 text-xs font-bold" /> : null}
         </div>
-        <p className="rounded-md border bg-white px-3 py-2 text-sm font-bold text-[#64748b]">საბოლოო ფასი მაღაზიაში გადაამოწმე</p>
+        <p className="rounded-sm border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-xs font-bold text-[#64748b]">
+          საბოლოო ფასი მაღაზიაში გადაამოწმე
+        </p>
       </div>
       <ProductGrid products={products} resetHref={`/shops/${shop.slug}`} emptyTitle="შეთავაზებები მალე გამოჩნდება" emptyDescription="ამ მაღაზიის პროდუქტები დამატებისთანავე გამოჩნდება ფასების შედარებაში." />
       <CatalogPager baseHref={`/shops/${shop.slug}`} params={raw} page={page} hasNext={products.length === productPageSize} />
