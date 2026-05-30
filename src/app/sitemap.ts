@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { PUBLIC_CATEGORY_TAXONOMY } from "@/config/categoryMapping";
+import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY } from "@/config/categoryMapping";
 import { categoryFixtures, productFixtures, shopFixtures } from "@/lib/fixtures";
 import { prisma } from "@/lib/prisma";
 
@@ -24,6 +24,11 @@ async function listSitemapProducts() {
         archivedAt: null,
         needsReview: false,
         categoryNeedsReview: false,
+        // Public MVP scope: phones + laptops only.
+        OR: [
+          { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
+          { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
+        ],
         offers: { some: { shop: { enabled: true }, currentPrice: { gt: 0 } } },
       },
       orderBy: { updatedAt: "desc" },

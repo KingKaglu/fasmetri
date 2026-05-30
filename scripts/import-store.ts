@@ -16,7 +16,7 @@ import type { ScrapedOffer } from "../src/server/scrapers/types";
 if (!prisma) throw new Error("DATABASE_URL is required.");
 const db = prisma;
 
-const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@sazoge.ge)";
+const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
 
 function hr(char = "─", width = 60) {
   return char.repeat(width);

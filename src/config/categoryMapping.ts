@@ -44,39 +44,54 @@ export type CategoryRule = {
 
 export const FALLBACK_CATEGORY: FasmetriCategorySlug = "other";
 
+// ── Public scope (MVP) ───────────────────────────────────────────────
+// Fasmetri's public site is intentionally limited to phones + laptops.
+// This is the single source of truth: the data layer, taxonomy `public`
+// flags, navbar, homepage and sitemap are all derived from it. Every
+// other category remains in the DB (raw offers are never destroyed) but
+// is never queried or rendered publicly.
+export const PUBLIC_CATEGORY_SLUGS = ["mobiles", "laptops"] as const;
+export type PublicCategorySlug = (typeof PUBLIC_CATEGORY_SLUGS)[number];
+
+const PUBLIC_CATEGORY_SLUG_SET = new Set<string>(PUBLIC_CATEGORY_SLUGS);
+
+export function isPublicCategorySlug(slug?: string | null): slug is PublicCategorySlug {
+  return Boolean(slug && PUBLIC_CATEGORY_SLUG_SET.has(slug));
+}
+
 export const PUBLIC_CATEGORY_TAXONOMY: Record<
   FasmetriCategorySlug,
   { nameKa: string; nameEn: string; public: boolean }
 > = {
   adult: { nameKa: "18+ პროდუქტები", nameEn: "Adult products", public: false },
-  audio: { nameKa: "აუდიო", nameEn: "Audio", public: true },
-  "auto-accessories": { nameKa: "ავტო აქსესუარები", nameEn: "Auto accessories", public: true },
-  beauty: { nameKa: "სილამაზე და მოვლა", nameEn: "Beauty", public: true },
-  "books-stationery": { nameKa: "წიგნები და საკანცელარიო", nameEn: "Books and stationery", public: true },
-  "cables-adapters": { nameKa: "კაბელები და ადაპტერები", nameEn: "Cables and adapters", public: true },
-  "computer-accessories": { nameKa: "კომპიუტერის აქსესუარები", nameEn: "Computer accessories", public: true },
-  computers: { nameKa: "კომპიუტერები და ნაწილები", nameEn: "Computers and parts", public: true },
-  furniture: { nameKa: "ავეჯი", nameEn: "Furniture", public: true },
-  gaming: { nameKa: "Gaming", nameEn: "Gaming", public: true },
-  "home-appliances": { nameKa: "საყოფაცხოვრებო ტექნიკა", nameEn: "Home appliances", public: true },
-  "home-garden": { nameKa: "სახლი და ბაღი", nameEn: "Home and garden", public: true },
-  kids: { nameKa: "საბავშვო", nameEn: "Kids", public: true },
-  "kitchen-dishes": { nameKa: "სამზარეულო და ჭურჭელი", nameEn: "Kitchen and dishes", public: true },
+  audio: { nameKa: "აუდიო", nameEn: "Audio", public: false },
+  "auto-accessories": { nameKa: "ავტო აქსესუარები", nameEn: "Auto accessories", public: false },
+  beauty: { nameKa: "სილამაზე და მოვლა", nameEn: "Beauty", public: false },
+  "books-stationery": { nameKa: "წიგნები და საკანცელარიო", nameEn: "Books and stationery", public: false },
+  "cables-adapters": { nameKa: "კაბელები და ადაპტერები", nameEn: "Cables and adapters", public: false },
+  "computer-accessories": { nameKa: "კომპიუტერის აქსესუარები", nameEn: "Computer accessories", public: false },
+  computers: { nameKa: "კომპიუტერები და ნაწილები", nameEn: "Computers and parts", public: false },
+  furniture: { nameKa: "ავეჯი", nameEn: "Furniture", public: false },
+  gaming: { nameKa: "Gaming", nameEn: "Gaming", public: false },
+  "home-appliances": { nameKa: "საყოფაცხოვრებო ტექნიკა", nameEn: "Home appliances", public: false },
+  "home-garden": { nameKa: "სახლი და ბაღი", nameEn: "Home and garden", public: false },
+  kids: { nameKa: "საბავშვო", nameEn: "Kids", public: false },
+  "kitchen-dishes": { nameKa: "სამზარეულო და ჭურჭელი", nameEn: "Kitchen and dishes", public: false },
   laptops: { nameKa: "ლეპტოპები", nameEn: "Laptops", public: true },
-  mobiles: { nameKa: "მობილურები", nameEn: "Mobiles", public: true },
-  monitors: { nameKa: "მონიტორები", nameEn: "Monitors", public: true },
-  other: { nameKa: "სხვა", nameEn: "Other", public: true },
-  pets: { nameKa: "ცხოველების მოვლა", nameEn: "Pet supplies", public: true },
-  "phone-accessories": { nameKa: "ტელეფონის აქსესუარები", nameEn: "Phone accessories", public: true },
-  "photo-video": { nameKa: "ფოტო/ვიდეო", nameEn: "Photo and video", public: true },
-  refrigerators: { nameKa: "მაცივრები", nameEn: "Refrigerators", public: true },
-  "small-appliances": { nameKa: "მცირე ტექნიკა", nameEn: "Small appliances", public: true },
-  sport: { nameKa: "სპორტი", nameEn: "Sport", public: true },
-  tablets: { nameKa: "ტაბლეტები", nameEn: "Tablets", public: true },
-  "tablet-accessories": { nameKa: "ტაბლეტის აქსესუარები", nameEn: "Tablet accessories", public: true },
-  televisions: { nameKa: "ტელევიზორები", nameEn: "Televisions", public: true },
-  "washing-machines": { nameKa: "სარეცხი მანქანები", nameEn: "Washing machines", public: true },
-  wearables: { nameKa: "სმარტ საათები", nameEn: "Wearables", public: true },
+  mobiles: { nameKa: "ტელეფონები", nameEn: "Phones", public: true },
+  monitors: { nameKa: "მონიტორები", nameEn: "Monitors", public: false },
+  other: { nameKa: "სხვა", nameEn: "Other", public: false },
+  pets: { nameKa: "ცხოველების მოვლა", nameEn: "Pet supplies", public: false },
+  "phone-accessories": { nameKa: "ტელეფონის აქსესუარები", nameEn: "Phone accessories", public: false },
+  "photo-video": { nameKa: "ფოტო/ვიდეო", nameEn: "Photo and video", public: false },
+  refrigerators: { nameKa: "მაცივრები", nameEn: "Refrigerators", public: false },
+  "small-appliances": { nameKa: "მცირე ტექნიკა", nameEn: "Small appliances", public: false },
+  sport: { nameKa: "სპორტი", nameEn: "Sport", public: false },
+  tablets: { nameKa: "ტაბლეტები", nameEn: "Tablets", public: false },
+  "tablet-accessories": { nameKa: "ტაბლეტის აქსესუარები", nameEn: "Tablet accessories", public: false },
+  televisions: { nameKa: "ტელევიზორები", nameEn: "Televisions", public: false },
+  "washing-machines": { nameKa: "სარეცხი მანქანები", nameEn: "Washing machines", public: false },
+  wearables: { nameKa: "სმარტ საათები", nameEn: "Wearables", public: false },
 };
 
 

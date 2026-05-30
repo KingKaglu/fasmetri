@@ -1,3 +1,4 @@
+import { isPublicCategorySlug } from "@/config/categoryMapping";
 import { CategoryView, OfferView, ProductView } from "@/lib/catalog-types";
 import { normalizeProductName } from "@/lib/matching";
 import { readProductIdentity } from "@/lib/productIdentity";
@@ -270,6 +271,8 @@ export function publicOffers(offers: OfferView[]) {
 
 export function toPublicProduct(product: ProductView): ProductView | null {
   if (product.isPublic === false || product.needsReview || product.archivedAt || product.categoryNeedsReview) return null;
+  // Public MVP scope: only phones + laptops are ever shown publicly.
+  if (!isPublicCategorySlug(product.category?.slug)) return null;
   if (isExcludedPublicCategory(product.category) || hasExcludedKeyword(product.name)) return null;
   const offers = publicOffers(product.offers);
   if (!offers.length) return null;
