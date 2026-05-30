@@ -2,15 +2,22 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request, context: { params: Promise<{ offerId: string }> }) {
   const fallback = new URL("/", request.url);
-  if (!prisma) { console.error("[out] prisma null"); return Response.redirect(fallback); }
+  const requestUrl0 = new URL(request.url);
+  const debug = requestUrl0.searchParams.get("debug") === "fasmetri";
+  if (!prisma) return debug ? Response.json({ stage: "prisma-null" }) : Response.redirect(fallback);
   const { offerId } = await context.params;
   let offer: Awaited<ReturnType<typeof loadOffer>> = null;
+  let dbError: string | null = null;
   try {
     offer = await loadOffer(offerId);
   } catch (error) {
-    console.error("[out] findUnique threw for", offerId, "::", error instanceof Error ? error.message : error);
+    dbError = error instanceof Error ? error.message : String(error);
+    console.error("[out-err]", dbError);
   }
-  if (!offer) { console.error("[out] offer not found for", offerId); return Response.redirect(fallback); }
+  if (!offer) {
+    if (debug) return Response.json({ stage: offer === null && dbError ? "query-threw" : "not-found", offerId, dbError });
+    return Response.redirect(fallback);
+  }
   const target = trackedTarget(offer.url, offer.id);
   if (!target) return Response.redirect(fallback);
 
