@@ -65,7 +65,7 @@ function availability(value: unknown): "IN_STOCK" | "OUT_OF_STOCK" | "UNKNOWN" {
 // PCShop WooCommerce slugs are hyphenated product titles, e.g. /shop/lenovo-thinkpad-t14-gen5-...
 // Model names appear after the brand with a hyphen separator, so we match [-/]keyword, not \/keyword.
 const PCSHOP_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>> = {
-  laptops:              /[-/](?:laptop|noutbuk|macbook|notebook|thinkpad|ideapad|zenbook|vivobook|aspire|chromebook|elitebook|probook|spectre|envy|inspiron|xps|gram|swift|spin|rog-|tuf-|strix|zephyrus)/i,
+  laptops:              /[-/](?:laptop|noutbuk|macbook|notebook|thinkpad|thinkbook|ideapad|legion|loq|yoga-(?:slim|pro|book|[0-9])|zenbook|vivobook|expertbook|proart|aspire|nitro|predator|swift|spin|travelmate|extensa|chromebook|elitebook|probook|zbook|omnibook|pavilion|spectre|envy|omen|victus|inspiron|xps|latitude|vostro|precision|alienware|gram|katana|vector|raider|stealth|sword|cyborg|crosshair|creator-(?:m|z|[0-9])|prestige|summit-e|galaxy-?book|matebook|surface-(?:laptop|book)|rog-|tuf-|strix|zephyrus)/i,
   monitors:             /[-/](?:monitor|display|lcd|led-display|curved|ultrawide|gaming-monitor)/i,
   computers:            /[-/](?:desktop-pc|mini-pc|all-in-one|nettop|beelink|minisforum|acemagic|intel-nuc|workstation|imac|mac-mini|mac-pro|elitedesk|prodesk|thinkcentre|thinkstation)/i,
   gaming:               /[-/](?:gaming-(?:pc|chair|desk|keyboard|mouse|headset|pad)|razer|corsair-k|logitech-g|steelseries|redragon|peripherals)/i,
