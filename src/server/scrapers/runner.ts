@@ -234,7 +234,7 @@ async function saveOffer(shopId: string, scraped: ScrapedOffer, options: Pick<Sc
   return { created: existing ? 0 : 1, updated: existing ? 1 : 0, skipped: 0 };
 }
 
-async function saveRawOffer(shopId: string, scraped: ScrapedOffer, importBatchId?: string) {
+export async function saveRawOffer(shopId: string, scraped: ScrapedOffer, importBatchId?: string) {
   if (!prisma) throw new Error("DATABASE_URL is required for scraping.");
   const categoryDecision = categorizeProduct({
     title: scraped.title,
