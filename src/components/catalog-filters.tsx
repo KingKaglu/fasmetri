@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { CategoryView, ShopView } from "@/lib/catalog-types";
+import { trackEvent } from "@/lib/analytics";
 
 export type CatalogFilterValues = {
   q?: string;
@@ -70,6 +71,14 @@ export function CatalogFilters({
     }
 
     target.search = query.toString();
+
+    // Report which filters were actually applied (one event per filter).
+    const trackedCategory = fixedCategory ?? query.get("category") ?? values.category ?? undefined;
+    for (const [name, value] of query.entries()) {
+      if (name === "q" || name === "page" || name === "category") continue;
+      trackEvent("filter_used", { category: trackedCategory, filter_name: name, filter_value: value });
+    }
+
     window.location.assign(`${target.pathname}${target.search}`);
   };
 

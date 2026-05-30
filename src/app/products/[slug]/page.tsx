@@ -6,6 +6,8 @@ import { getPublicProduct, listPublicProducts } from "@/lib/catalog";
 import { PriceChart } from "@/components/price-chart";
 import { AlertForm } from "@/components/alert-form";
 import { ProductGrid } from "@/components/product-grid";
+import { ShopClickLink } from "@/components/shop-click-link";
+import { TrackView } from "@/components/track-view";
 import {
   AvailabilityBadge,
   DiscountBadge,
@@ -82,6 +84,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <section className="shell py-5 sm:py-8">
+      <TrackView
+        event="product_view"
+        signature={`product_view:${product.id}`}
+        params={{
+          product_id: product.id,
+          product_name: product.name,
+          category: product.category?.slug,
+          lowest_price: cheapest.currentPrice,
+          shops_count: priceSummary.shopCount,
+        }}
+      />
       {/* Breadcrumb */}
       <nav aria-label="ნავიგაცია" className="mb-4 flex flex-wrap items-center gap-1.5 text-xs font-bold text-[#64748b]">
         <Link href="/" className="hover:text-[#0f172a]">მთავარი</Link>
@@ -150,15 +163,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 </div>
               </div>
 
-              <a
-                href={`/api/out/${cheapest.id}`}
-                target="_blank"
-                rel="noreferrer"
+              <ShopClickLink
+                offerId={cheapest.id}
+                productId={product.id}
+                productName={product.name}
+                category={product.category?.slug}
+                shopName={cheapest.shop.name}
+                price={cheapest.currentPrice}
+                sourceUrl={cheapest.url}
                 className="mt-4 inline-flex h-12 w-fit items-center gap-2 rounded-md bg-[#0f172a] px-6 text-sm font-black text-white hover:bg-black"
               >
                 ნახე მაღაზიაში
                 <ArrowUpRight className="size-4" />
-              </a>
+              </ShopClickLink>
             </div>
           </article>
 
@@ -208,16 +225,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 md:flex-col md:items-end">
                     <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={offer.discountPercent > 0} />
-                    <a
-                      href={`/api/out/${offer.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={`${offer.shop.name} მაღაზიაში ნახვა`}
+                    <ShopClickLink
+                      offerId={offer.id}
+                      productId={product.id}
+                      productName={product.name}
+                      category={product.category?.slug}
+                      shopName={offer.shop.name}
+                      price={offer.currentPrice}
+                      sourceUrl={offer.url}
+                      ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
                       className="inline-flex h-10 items-center gap-1.5 rounded-md bg-[#0f172a] px-3 text-xs font-bold text-white hover:bg-black"
                     >
                       მაღაზიაში
                       <ArrowUpRight className="size-3.5" />
-                    </a>
+                    </ShopClickLink>
                   </div>
                 </article>
               ))}

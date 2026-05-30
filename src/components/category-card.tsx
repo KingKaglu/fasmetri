@@ -60,7 +60,7 @@ const descriptions: Record<string, string> = {
 export function CategoryCard({ category, comingSoon = false }: { category: CategoryView; comingSoon?: boolean }) {
   return (
     <Link
-      href={`/categories/${category.slug}`}
+      href={`/${category.slug}`}
       className="group flex min-h-44 flex-col gap-3 overflow-hidden rounded-md border border-[#e2e8f0] bg-white p-4 transition hover:border-[#0f172a] hover:shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
     >
       <div className="flex items-start justify-between gap-3">

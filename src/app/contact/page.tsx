@@ -18,6 +18,11 @@ export default function ContactPage() {
             მოგვწერე მაღაზიის დამატების, ფასის შესწორების ან თანამშრომლობის საკითხზე.
             შეტყობინებას მიუთითე პროდუქტის ან მაღაზიის ბმულიც, თუ გაქვს.
           </p>
+          <p className="mt-3 rounded-md border border-[#e2e8f0] bg-[#f8fafc] p-3 text-sm leading-6 text-[#475569]">
+            <strong className="text-[#0f172a]">მაღაზიის წარმომადგენელი ხარ?</strong> თუ გსურს შენი
+            მაღაზიის მონაცემების შესწორება ან საჯარო კატალოგიდან ამოღება (takedown), მოგვწერე — დროულად
+            დავამუშავებთ მოთხოვნას.
+          </p>
           {/* TODO: point this at a real, monitored Fasmetri inbox once the
               fasmetri.ge (or chosen domain) mailbox is provisioned. */}
           <a

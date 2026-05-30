@@ -19,15 +19,25 @@ export function SiteFooter() {
         ["/contact", "კონტაქტი"],
       ],
     ],
+    [
+      "სამართლებრივი",
+      [
+        ["/legal", "დისკლეიმერი"],
+        ["/privacy", "კონფიდენციალურობა"],
+        ["/terms", "გამოყენების პირობები"],
+      ],
+    ],
   ];
 
   return (
     <footer className="mt-12 border-t border-[#e2e8f0] bg-white">
-      <div className="shell grid gap-8 py-10 md:grid-cols-[1.5fr_1fr_1fr]">
+      <div className="shell grid gap-8 py-10 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <div>
           <BrandLogo compact />
           <p className="mt-4 max-w-md text-sm leading-6 text-[#64748b]">
-            ფასები და მარაგი რეგულარულად ახლდება. შეძენამდე საბოლოო ფასი ყოველთვის გადაამოწმე მაღაზიის საიტზე.
+            ფასმეტრი დამოუკიდებელი ფასების შედარების პლატფორმაა. ფასმეტრი არ არის Zoommer-ის, EE.ge-ის,
+            PCShop-ის ან სხვა ჩამოთვლილი მაღაზიის ოფიციალური პარტნიორი, თუ ეს პირდაპირ არ არის
+            მითითებული. ფასები და ხელმისაწვდომობა იცვლება — საბოლოო ფასი გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
           </p>
           <p className="mt-2 max-w-md text-[11px] leading-5 text-[#94a3b8]">
             ზოგი ბმული შეიძლება იყოს პარტნიორული ან დასპონსორებული. ეს არ ცვლის ფასს მომხმარებლისთვის.
