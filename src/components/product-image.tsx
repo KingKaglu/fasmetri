@@ -1,14 +1,21 @@
 "use client";
 
-import Image from "next/image";
+import Image, { ImageLoaderProps } from "next/image";
 import { ImageOff } from "lucide-react";
 import { useState } from "react";
+
+// Free image proxy (wsrv.nl): resizes store-CDN images and re-encodes to WebP
+// on the fly, so browsers download ~30-60KB thumbnails instead of full-size
+// originals. Keeps Vercel's image-optimization quota untouched. `we` = never
+// upscale, `output=webp` = modern format with broad support.
+function wsrvLoader({ src, width, quality }: ImageLoaderProps) {
+  return `https://wsrv.nl/?url=${encodeURIComponent(src)}&w=${width}&q=${quality ?? 70}&output=webp&we`;
+}
 
 export function ProductImage({ src, alt, priority = false, tall = false }: { src?: string | null; alt: string; priority?: boolean; tall?: boolean }) {
   const [failed, setFailed] = useState(false);
   const showImage = Boolean(src) && !failed;
   const isExternalImage = Boolean(src && /^https?:\/\//i.test(src));
-  const shouldPreload = priority && !isExternalImage;
   const shape = tall ? "h-full min-h-[14rem]" : "aspect-square";
 
   return (
@@ -18,8 +25,11 @@ export function ProductImage({ src, alt, priority = false, tall = false }: { src
           src={src!}
           alt={alt}
           fill
-          priority={shouldPreload}
-          unoptimized
+          sizes={tall ? "(max-width: 1024px) 90vw, 480px" : "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"}
+          priority={priority}
+          loading={priority ? undefined : "lazy"}
+          loader={isExternalImage ? wsrvLoader : undefined}
+          unoptimized={!isExternalImage}
           onError={() => setFailed(true)}
           className="object-contain p-2 transition duration-200 group-hover:scale-[1.04]"
         />
