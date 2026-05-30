@@ -2,23 +2,15 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request, context: { params: Promise<{ offerId: string }> }) {
   const fallback = new URL("/", request.url);
-  if (!prisma) return Response.redirect(fallback);
+  if (!prisma) { console.error("[out] prisma null"); return Response.redirect(fallback); }
   const { offerId } = await context.params;
-  const offer = await prisma.productOffer
-    .findUnique({
-      where: { id: offerId },
-      select: {
-        id: true,
-        url: true,
-        currentPrice: true,
-        shop: { select: { name: true } },
-        product: {
-          select: { id: true, name: true, categorySuggestedSlug: true, category: { select: { slug: true } } },
-        },
-      },
-    })
-    .catch(() => null);
-  if (!offer) return Response.redirect(fallback);
+  let offer: Awaited<ReturnType<typeof loadOffer>> = null;
+  try {
+    offer = await loadOffer(offerId);
+  } catch (error) {
+    console.error("[out] findUnique threw for", offerId, "::", error instanceof Error ? error.message : error);
+  }
+  if (!offer) { console.error("[out] offer not found for", offerId); return Response.redirect(fallback); }
   const target = trackedTarget(offer.url, offer.id);
   if (!target) return Response.redirect(fallback);
 
@@ -46,6 +38,19 @@ export async function GET(request: Request, context: { params: Promise<{ offerId
   }
 
   return Response.redirect(target);
+}
+
+async function loadOffer(offerId: string) {
+  return prisma!.productOffer.findUnique({
+    where: { id: offerId },
+    select: {
+      id: true,
+      url: true,
+      currentPrice: true,
+      shop: { select: { name: true } },
+      product: { select: { id: true, name: true, categorySuggestedSlug: true, category: { select: { slug: true } } } },
+    },
+  });
 }
 
 function trackedTarget(rawTarget: string, offerId: string) {
