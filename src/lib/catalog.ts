@@ -374,8 +374,37 @@ export async function getProduct(identifier: string) {
   }
 }
 
+// Public category/listing pages are rendered dynamically (they read filter
+// search params), so without caching every visit re-ran the full public scan
+// against the (remote) DB and streamed the product grid in 1-4s. The result of
+// a given filter combination is identical for every visitor and only changes
+// when the catalog is re-scraped, so we memoize per filter signature for a
+// short window. Cache miss still does the full fetch; cache hit is instant.
+function publicListingKey(filters: ProductFilters): string {
+  return JSON.stringify([
+    filters.q ?? "",
+    filters.category ?? "",
+    [...(filters.categorySlugs ?? [])].sort(),
+    filters.shop ?? "",
+    filters.minPrice ?? "",
+    filters.maxPrice ?? "",
+    filters.minDiscount ?? "",
+    filters.availability ?? "",
+    filters.sort ?? "",
+    filters.dealsOnly ? 1 : 0,
+    filters.page ?? 1,
+    filters.pageSize ?? "",
+  ]);
+}
+
 export async function listPublicProducts(filters: ProductFilters = {}) {
-  return listProducts({ ...filters, publicSafe: true });
+  const scoped = { ...filters, publicSafe: true } as const;
+  const cached = unstable_cache(
+    () => listProducts(scoped),
+    ["public-products-v1", publicListingKey(filters)],
+    { revalidate: 300, tags: ["catalog"] },
+  );
+  return cached();
 }
 
 export async function getPublicProduct(identifier: string) {
