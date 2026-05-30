@@ -23,6 +23,11 @@ import { extractProductAttributes, ProductAttributes } from "@/lib/productNormal
 import { extractProductIdentity, readProductIdentity } from "@/lib/productIdentity";
 import { explainMatchDecision } from "@/lib/productMatching";
 
+// Product pages depend only on the slug (no searchParams) and the catalog
+// refreshes daily — serve them via ISR so each product is cached at the edge
+// after the first render instead of re-querying Supabase on every visit.
+export const revalidate = 600;
+
 const historyDayFormatter = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Tbilisi",
   day: "2-digit",
