@@ -64,6 +64,7 @@ type Args = {
   stores: string[];
   categories: string[];
   dryRun: boolean;
+  skipExisting: boolean;
   limit?: number;
   offset: number;
   sample: number;
@@ -87,6 +88,7 @@ function parseArgs(): Args {
     stores: list("shop", DEFAULT_STORES),
     categories: list("category", DEFAULT_CATEGORIES),
     dryRun: process.argv.includes("--dry-run"),
+    skipExisting: process.argv.includes("--skip-existing"),
     limit: num("limit"),
     offset: num("offset") ?? 0,
     sample: num("sample") ?? 3,
@@ -160,6 +162,23 @@ async function importCategory(store: string, category: string, args: Args): Prom
     if (!robotsAllows(url, policy)) {
       report.skippedUrls.push({ url: rawUrl, reason: "robots_blocked" });
       continue;
+    }
+
+    // --skip-existing: if we already have this product, mark it "have" and don't
+    // re-scrape it — only the genuinely missing products get fetched.
+    if (args.skipExisting && !args.dryRun) {
+      const existing = await prisma!.rawOffer
+        .findUnique({
+          where: { shopId_originalUrl: { shopId, originalUrl: url.toString() } },
+          select: { originalTitle: true, rawPrice: true },
+        })
+        .catch(() => null);
+      if (existing) {
+        report.imported += 1;
+        report.updated += 1;
+        report.rows.push({ status: "have", title: existing.originalTitle ?? "", price: Number(existing.rawPrice) || 0, url: url.toString() });
+        continue;
+      }
     }
 
     await sleep(delayMs(adapter.rateLimitMs, policy.crawlDelayMs));
