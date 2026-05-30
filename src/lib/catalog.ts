@@ -451,7 +451,20 @@ export async function listPublicCategories() {
     .filter((category) => (category.productCount ?? 0) > 0);
 }
 
+// Cross-request cache: listShops runs two groupBy scans over ALL offers, and
+// for public pages those counts are discarded and replaced by the cached
+// summary anyway. Caching keeps that scan off the per-request path of every
+// category/product/deals render.
+const cachedShops = unstable_cache(loadShops, ["shops-v1"], {
+  revalidate: 600,
+  tags: ["catalog"],
+});
+
 export async function listShops(): Promise<ShopView[]> {
+  return cachedShops();
+}
+
+async function loadShops(): Promise<ShopView[]> {
   if (!prisma) return shopFixtures;
   try {
     const [shops, offerGroups, dealGroups] = await Promise.all([
