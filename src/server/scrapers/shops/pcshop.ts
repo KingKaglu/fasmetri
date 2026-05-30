@@ -77,8 +77,44 @@ const PCSHOP_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>
   "tablet-accessories": /[-/](?:tablet-case|tablet-keyboard|stylus|tablet-stand)/i,
 };
 
+// PCShop's flat product sitemap has no category info, so slug-keyword filtering
+// is unreliable. For laptops we instead read the authoritative WooCommerce
+// "notebooks" category (paginated) to get the exact set of notebook products.
+async function listNotebookUrls(userAgent: string) {
+  const urls = new Set<string>();
+  for (let page = 1; page <= 40; page++) {
+    const url =
+      page === 1
+        ? "https://pcshop.ge/product-category/notebooks/"
+        : `https://pcshop.ge/product-category/notebooks/page/${page}/`;
+    let html: string;
+    try {
+      const res = await fetch(url, { headers: { "user-agent": userAgent } });
+      if (!res.ok) break;
+      html = await res.text();
+    } catch {
+      break;
+    }
+    const before = urls.size;
+    for (const m of html.matchAll(/https:\/\/pcshop\.ge\/shop\/[a-z0-9-]+\/?/gi)) {
+      const clean = m[0].replace(/\/?$/, "/");
+      if (!clean.includes("/ka-ge/")) urls.add(clean);
+    }
+    if (urls.size === before) break; // no new products discovered → last page
+  }
+  return [...urls];
+}
+
 async function listProductUrls(categorySlug?: string) {
   const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
+
+  // Laptops: authoritative category-based discovery (complete + no false positives).
+  if (categorySlug === "laptops") {
+    const fromCategory = await listNotebookUrls(userAgent);
+    if (fromCategory.length > 0) return fromCategory;
+    // fall through to sitemap+regex if the category page layout changes
+  }
+
   const urls = await loadProductUrlsFromIndexes(["https://pcshop.ge/sitemap.xml"], {
     includeSitemap: /\/sitemap-post-type-product(?:-\d+)?\.xml$/i,
     includeProductUrl: /\/shop\//i,
