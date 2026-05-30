@@ -11,7 +11,7 @@ import { robotsAllows, robotsPolicy } from "@/server/scrapers/robots";
 import { ScrapedOffer, ShopAdapter } from "@/server/scrapers/types";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@sazoge.ge)";
+const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
 const DEFAULT_MAX_PRODUCTS_PER_SHOP = 120;
 const categoryIdBySlug = new Map<string, string | null>();
 

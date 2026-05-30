@@ -18,12 +18,14 @@ export default function ContactPage() {
             მოგვწერე მაღაზიის დამატების, ფასის შესწორების ან თანამშრომლობის საკითხზე.
             შეტყობინებას მიუთითე პროდუქტის ან მაღაზიის ბმულიც, თუ გაქვს.
           </p>
+          {/* TODO: point this at a real, monitored Fasmetri inbox once the
+              fasmetri.ge (or chosen domain) mailbox is provisioned. */}
           <a
-            href="mailto:hello@sazoge.ge"
+            href="mailto:hello@fasmetri.ge"
             className="mt-5 inline-flex items-center gap-2 rounded-md border border-[#e2e8f0] bg-white px-4 py-3 text-sm font-bold text-[#0f172a] hover:border-[#0f172a]"
           >
             <Mail className="size-4 text-[#65a30d]" />
-            hello@sazoge.ge
+            hello@fasmetri.ge
           </a>
           <p className="mt-3 text-xs leading-5 text-[#64748b]">ფორმის გაგზავნა მალე დაემატება. მანამდე — ელფოსტაზე.</p>
         </div>

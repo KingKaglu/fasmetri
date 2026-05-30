@@ -3,7 +3,7 @@ import { JsonLdNode, jsonLdNodes, nodeHasType, objectValue, objectValues, string
 import { loadProductUrlsFromIndexes } from "@/server/scrapers/sitemap";
 import { ProductPageParseContext, ShopAdapter } from "@/server/scrapers/types";
 
-const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@sazoge.ge)";
+const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
 
 function toNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;

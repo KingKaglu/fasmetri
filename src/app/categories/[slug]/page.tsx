@@ -1,6 +1,6 @@
 ﻿import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { PUBLIC_CATEGORY_TAXONOMY } from "@/config/categoryMapping";
+import { PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
 import { listCategories, listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { CategoryView } from "@/lib/catalog-types";
 import { ProductGrid } from "@/components/product-grid";
@@ -39,6 +39,8 @@ async function resolveCategoryForPage(slug: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const slug = resolvePublicCategorySlug((await params).slug);
+  // Removed (non-public) categories must not be indexed.
+  if (!isPublicCategorySlug(slug)) return { title: "კატეგორია ვერ მოიძებნა", robots: { index: false, follow: false } };
   const { category } = await resolveCategoryForPage(slug);
   return category
     ? {
@@ -53,6 +55,8 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const routeSlug = (await params).slug;
   const slug = resolvePublicCategorySlug(routeSlug);
   if (isCategoryAlias(routeSlug)) permanentRedirect(`/categories/${slug}`);
+  // Public MVP is phones + laptops only — every other category 404s.
+  if (!isPublicCategorySlug(slug)) notFound();
   const raw = await searchParams;
   const page = Number(one(raw.page)) || 1;
   const filters = {

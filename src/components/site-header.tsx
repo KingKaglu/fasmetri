@@ -47,7 +47,7 @@ export function SiteHeader() {
             <input
               name="q"
               aria-label="პროდუქტის ძიება"
-              placeholder="მოძებნე iPhone 16, RTX 4090, LG OLED..."
+              placeholder="მოძებნე iPhone 17, MacBook, ლეპტოპი..."
               className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
             />
           </label>

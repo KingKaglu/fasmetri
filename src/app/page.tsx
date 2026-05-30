@@ -3,24 +3,21 @@ import { Metadata } from "next";
 import {
   ArrowRight,
   ArrowUpRight,
-  Cpu,
-  Headphones,
   Laptop,
-  MonitorSmartphone,
   Search,
   ShieldCheck,
   Smartphone,
   Store,
   TrendingDown,
-  Tv,
-  Watch,
 } from "lucide-react";
-import { getCatalogStats, listPublicProducts, listPublicShops } from "@/lib/catalog";
+import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
+import { CategoryCard } from "@/components/category-card";
 import { ProductCard } from "@/components/product-card";
 import { ProductGrid } from "@/components/product-grid";
 import { ProductMarquee } from "@/components/product-marquee";
+import { SearchBar } from "@/components/search-bar";
 import { ShopCard } from "@/components/shop-card";
 import {
   AvailabilityBadge,
@@ -40,21 +37,16 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const CATEGORIES = [
-  { href: "/categories/mobiles",           label: "მობილური",       icon: Smartphone },
-  { href: "/categories/laptops",           label: "ლეპტოპი",        icon: Laptop },
-  { href: "/categories/televisions",       label: "ტელევიზორი",     icon: Tv },
-  { href: "/categories/audio",             label: "აუდიო",          icon: Headphones },
-  { href: "/categories/wearables",         label: "სმარტ საათი",    icon: Watch },
-  { href: "/categories/gaming",            label: "გეიმინგი",       icon: Cpu },
-  { href: "/categories/phone-accessories", label: "აქსესუარი",      icon: MonitorSmartphone },
-  { href: "/categories",                   label: "ყველა",          icon: Search },
+  { href: "/categories/mobiles", label: "ტელეფონები", icon: Smartphone },
+  { href: "/categories/laptops", label: "ლეპტოპები",  icon: Laptop },
 ];
 
 export default async function Home() {
-  const [discoveryCandidates, shops, stats] = await Promise.all([
+  const [discoveryCandidates, shops, stats, categories] = await Promise.all([
     listPublicProducts({ categorySlugs: PRIORITY_CATEGORIES, sort: "priority", pageSize: 200, candidateLimit: 240 }),
     listPublicShops(),
     getCatalogStats(),
+    listPublicCategories(),
   ]);
   const activeShops = shops
     .filter((shop) => (shop.productCount ?? 0) > 0)
@@ -91,11 +83,14 @@ export default async function Home() {
           <div className="max-w-2xl">
             <p className="eyebrow text-[#84cc16]">ფასმეტრი · {stats.shops} მაღაზია</p>
             <h1 className="mt-2 text-3xl font-black leading-[1.1] tracking-tight text-white sm:text-4xl xl:text-[2.75rem]">
-              ერთი ფასი არასდროს არის სწორი ფასი.
+              შეადარე ტელეფონებისა და ლეპტოპების ფასები საქართველოში
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              {stats.products?.toLocaleString() ?? "—"} პროდუქტი, {stats.deals?.toLocaleString() ?? "—"} აქტიური აქცია — ერთ ხედში.
+              იპოვე პროდუქტი, შეადარე შეთავაზებები და გახსენი საუკეთესო მაღაზია — ერთ სივრცეში.
             </p>
+            <div className="mt-4 max-w-xl">
+              <SearchBar large />
+            </div>
           </div>
           <div className="flex flex-wrap items-stretch gap-2">
             <Link
@@ -114,6 +109,17 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* ─── CATEGORY CARDS (MVP: phones + laptops) ─────── */}
+      {categories.length ? (
+        <section className="shell pt-8 sm:pt-10">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {categories.map((category) => (
+              <CategoryCard key={category.id} category={category} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* ─── DEALS ─────────────────────────────────────── */}
       <section className="shell pt-8 sm:pt-10">

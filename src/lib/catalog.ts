@@ -1,5 +1,6 @@
+import { unstable_cache } from "next/cache";
 import { OfferAvailability, Prisma } from "@prisma/client";
-import { PUBLIC_CATEGORY_TAXONOMY } from "@/config/categoryMapping";
+import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
 import { CategoryView, OfferView, ProductView, ScrapeRunView, ShopView } from "@/lib/catalog-types";
 import { categoryFixtures, productFixtures, scrapeRunFixtures, shopFixtures } from "@/lib/fixtures";
 import {
@@ -209,8 +210,27 @@ function slicePage<T>(items: T[], page?: number, pageSize?: number) {
   return items.slice(start, start + size);
 }
 
+// Sentinel slug that matches no category — used to force an empty public
+// result when a caller requests a category outside the public MVP scope.
+const NO_CATEGORY = "__no_public_category__";
+
+// Public site is limited to phones + laptops. This intersects whatever the
+// caller asked for with the public allowlist so out-of-scope products can
+// never leak into search, deals, category pages, or the homepage.
+function scopePublicCategories(filters: ProductFilters): ProductFilters {
+  if (filters.category) {
+    return isPublicCategorySlug(filters.category)
+      ? { ...filters, categorySlugs: undefined }
+      : { ...filters, category: undefined, categorySlugs: [NO_CATEGORY] };
+  }
+  const requested = filters.categorySlugs?.length ? filters.categorySlugs : PUBLIC_CATEGORY_SLUGS;
+  const scoped = requested.filter(isPublicCategorySlug);
+  return { ...filters, categorySlugs: scoped.length ? scoped : [NO_CATEGORY] };
+}
+
 export async function listProducts(filters: ProductFilters = {}) {
   filters = normalizeProductFilters(filters);
+  if (filters.publicSafe) filters = scopePublicCategories(filters);
   if (!prisma) return fixtureFilter(filters);
 
   try {
@@ -407,7 +427,7 @@ export async function listPublicCategories() {
   const [categories, summary] = await Promise.all([listCategories(), getPublicCatalogSummary()]);
 
   return categories
-    .filter((category) => !isExcludedPublicCategory(category))
+    .filter((category) => isPublicCategorySlug(category.slug) && !isExcludedPublicCategory(category))
     .map((category) => {
       const counts = summary.categories[category.id] ?? summary.categories[category.slug];
       return {
@@ -474,6 +494,11 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
           archivedAt: null,
           needsReview: false,
           categoryNeedsReview: false,
+          // Public MVP scope: phones + laptops only (by relation or confirmed suggestion).
+          OR: [
+            { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
+            { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
+          ],
           offers: { some: publicOfferWhere },
         },
         include: {
@@ -531,12 +556,24 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
   };
 }
 
+// Cross-request cache: the public summary (counts/stats/shops) is identical
+// for every visitor and only changes when the catalog is re-scraped (daily).
+// Caching it turns the per-request full-catalog scan that was timing routes
+// out into a single scan per revalidation window.
+const cachedPublicCatalogSummary = unstable_cache(
+  loadPublicCatalogSummary,
+  ["public-catalog-summary-v1"],
+  { revalidate: 600, tags: ["catalog"] },
+);
+
 let pendingPublicCatalogSummary: Promise<PublicCatalogSummary> | null = null;
 
 async function getPublicCatalogSummary() {
+  // In-flight de-dupe so concurrent sections of one render share one promise,
+  // on top of the cross-request unstable_cache layer.
   if (pendingPublicCatalogSummary) return pendingPublicCatalogSummary;
 
-  const request = loadPublicCatalogSummary();
+  const request = cachedPublicCatalogSummary();
   pendingPublicCatalogSummary = request;
   try {
     return await request;

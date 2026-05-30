@@ -22,6 +22,8 @@ const CATEGORY_ALIASES: Record<string, FasmetriCategorySlug> = {
   mobilurebi: "mobiles",
   smartphones: "mobiles",
   smartphone: "mobiles",
+  phone: "mobiles",
+  phones: "mobiles",
   tablet: "tablets",
   tablets: "tablets",
   tabletebi: "tablets",
