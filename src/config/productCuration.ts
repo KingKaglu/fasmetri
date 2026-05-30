@@ -266,7 +266,19 @@ export function isTechnologyCategory(slug?: string | null) {
 }
 
 export function publicOffers(offers: OfferView[]) {
-  return offers.filter((offer) => isPublicOffer(offer)).sort((left, right) => left.currentPrice - right.currentPrice);
+  const sorted = offers.filter((offer) => isPublicOffer(offer)).sort((left, right) => left.currentPrice - right.currentPrice);
+  // A price comparison shows one price per shop. When the same shop has several
+  // offers attached to a product (duplicate scrapes, or near-identical SKUs like
+  // "with charger" matched together), keep only that shop's cheapest so the page
+  // never presents the same store twice as if it were a real cross-store deal.
+  const seenShops = new Set<string>();
+  const deduped: OfferView[] = [];
+  for (const offer of sorted) {
+    if (seenShops.has(offer.shop.id)) continue;
+    seenShops.add(offer.shop.id);
+    deduped.push(offer);
+  }
+  return deduped;
 }
 
 export function toPublicProduct(product: ProductView): ProductView | null {
