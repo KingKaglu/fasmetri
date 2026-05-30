@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "შეარჩიე კატეგორია და შეადარე ფასები ქართულ ონლაინ მაღაზიებში.",
   alternates: { canonical: "/categories" },
 };
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 export default async function CategoriesPage() {
   const categories = await listPublicCategories();

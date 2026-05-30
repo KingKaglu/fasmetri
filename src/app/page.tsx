@@ -34,7 +34,9 @@ export const metadata: Metadata = {
   description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   alternates: { canonical: "/" },
 };
-export const dynamic = "force-dynamic";
+// Daily-refreshed catalog → serve the homepage from the CDN (ISR) and
+// revalidate every 10 minutes instead of re-querying Supabase per request.
+export const revalidate = 600;
 
 const CATEGORIES = [
   { href: "/categories/mobiles", label: "ტელეფონები", icon: Smartphone },
