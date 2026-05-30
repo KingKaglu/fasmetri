@@ -2,22 +2,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request, context: { params: Promise<{ offerId: string }> }) {
   const fallback = new URL("/", request.url);
-  const requestUrl0 = new URL(request.url);
-  const debug = requestUrl0.searchParams.get("debug") === "fasmetri";
-  if (!prisma) return debug ? Response.json({ stage: "prisma-null" }) : Response.redirect(fallback);
+  if (!prisma) return Response.redirect(fallback);
   const { offerId } = await context.params;
-  let offer: Awaited<ReturnType<typeof loadOffer>> = null;
-  let dbError: string | null = null;
-  try {
-    offer = await loadOffer(offerId);
-  } catch (error) {
-    dbError = error instanceof Error ? error.message : String(error);
-    console.error("[out-err]", dbError);
-  }
-  if (!offer) {
-    if (debug) return Response.json({ stage: offer === null && dbError ? "query-threw" : "not-found", offerId, dbError });
-    return Response.redirect(fallback);
-  }
+  const offer = await loadOffer(offerId).catch(() => null);
+  if (!offer) return Response.redirect(fallback);
   const target = trackedTarget(offer.url, offer.id);
   if (!target) return Response.redirect(fallback);
 
@@ -32,7 +20,6 @@ export async function GET(request: Request, context: { params: Promise<{ offerId
         category: offer.product?.categorySuggestedSlug ?? offer.product?.category?.slug ?? null,
         shopName: offer.shop?.name ?? null,
         price: offer.currentPrice,
-        // Inbound campaign tags if a campaign deep-linked through this endpoint.
         utmSource: requestUrl.searchParams.get("utm_source"),
         utmMedium: requestUrl.searchParams.get("utm_medium"),
         utmCampaign: requestUrl.searchParams.get("utm_campaign"),
