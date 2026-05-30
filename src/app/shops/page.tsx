@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "ნახე ფასმეტრში შედარებისთვის ხელმისაწვდომი ქართული ონლაინ მაღაზიები.",
   alternates: { canonical: "/shops" },
 };
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 export default async function ShopsPage() {
   const shops = await listPublicShops();

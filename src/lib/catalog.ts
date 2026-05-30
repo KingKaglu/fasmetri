@@ -393,7 +393,19 @@ function productIdentifiers(identifier: string) {
   return [...identifiers].filter(Boolean);
 }
 
+// Cross-request cache: category list + per-category counts change only when the
+// catalog is re-scraped. Uncached, loadCategories runs an unbounded
+// "all discounted products" scan on every category/deals render.
+const cachedCategories = unstable_cache(loadCategories, ["categories-v1"], {
+  revalidate: 600,
+  tags: ["catalog"],
+});
+
 export async function listCategories(): Promise<CategoryView[]> {
+  return cachedCategories();
+}
+
+async function loadCategories(): Promise<CategoryView[]> {
   if (!prisma) return categoryFixtures;
   try {
     const categories = await prisma.category.findMany({
