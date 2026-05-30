@@ -53,6 +53,7 @@ type CategoryReport = {
   needsReview: number;
   failedUrls: UrlOutcome[];
   skippedUrls: UrlOutcome[];
+  rows: { status: string; title: string; price: number; url: string }[];
   antiBotBlocks: number;
   abortedByAntiBot: boolean;
   startedAt: string;
@@ -104,7 +105,7 @@ async function importCategory(store: string, category: string, args: Args): Prom
     store, category,
     productUrlsDiscovered: 0, productPagesProcessed: 0,
     imported: 0, created: 0, updated: 0, duplicatesDetected: 0, needsReview: 0,
-    failedUrls: [], skippedUrls: [], antiBotBlocks: 0, abortedByAntiBot: false,
+    failedUrls: [], skippedUrls: [], rows: [], antiBotBlocks: 0, abortedByAntiBot: false,
     startedAt, finishedAt: startedAt,
   };
 
@@ -215,7 +216,11 @@ async function importCategory(store: string, category: string, args: Args): Prom
       else seenCanonical.add(identity.canonicalKey);
     }
 
-    if (args.dryRun) { report.imported += 1; continue; }
+    if (args.dryRun) {
+      report.imported += 1;
+      report.rows.push({ status: "discovered", title: offer.title, price: offer.price, url: offer.url });
+      continue;
+    }
 
     try {
       const existed = await prisma!.rawOffer.findUnique({
@@ -235,7 +240,13 @@ async function importCategory(store: string, category: string, args: Args): Prom
         }
       }
       report.imported += 1;
-      if (existed) report.updated += 1; else report.created += 1;
+      if (existed) {
+        report.updated += 1;
+        report.rows.push({ status: "have", title: offer.title, price: offer.price, url: offer.url });
+      } else {
+        report.created += 1;
+        report.rows.push({ status: "added", title: offer.title, price: offer.price, url: offer.url });
+      }
     } catch (error) {
       report.failedUrls.push({ url: rawUrl, reason: `save_failed: ${errMsg(error)}` });
     }
@@ -293,6 +304,20 @@ async function main() {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const file = path.join(dir, `full-coverage-${args.dryRun ? "dryrun-" : ""}${stamp}.json`);
   fs.writeFileSync(file, JSON.stringify({ generatedAt: new Date().toISOString(), dryRun: args.dryRun, args, reports }, null, 2));
+
+  // Excel-compatible CSV (UTF-8 BOM) — every product with its status:
+  //   added = newly imported (we didn't have it) · have = already in DB ·
+  //   failed / skipped = with reason.
+  const csvFile = path.join(dir, `products-${args.dryRun ? "dryrun-" : ""}${stamp}.csv`);
+  const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const lines = ["store,category,status,title,price,url,reason"];
+  for (const r of reports) {
+    for (const row of r.rows) lines.push([r.store, r.category, row.status, row.title, row.price, row.url, ""].map(esc).join(","));
+    for (const f of r.failedUrls) lines.push([r.store, r.category, "failed", "", "", f.url, f.reason].map(esc).join(","));
+    for (const s of r.skippedUrls) lines.push([r.store, r.category, "skipped", "", "", s.url, s.reason].map(esc).join(","));
+  }
+  fs.writeFileSync(csvFile, "﻿" + lines.join("\r\n"), "utf8");
+  console.log(`  Excel/CSV written: ${csvFile}`);
 
   // Summary table + per-store phone/laptop totals.
   console.log("\n" + "═".repeat(70));
