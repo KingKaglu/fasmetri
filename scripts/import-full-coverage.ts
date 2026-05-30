@@ -222,7 +222,18 @@ async function importCategory(store: string, category: string, args: Args): Prom
         where: { shopId_originalUrl: { shopId, originalUrl: offer.url } },
         select: { id: true },
       });
-      await saveRawOffer(shopId, offer, batchId);
+      try {
+        await saveRawOffer(shopId, offer, batchId);
+      } catch (error) {
+        // EE outlet products share an externalId/SKU with the new-condition item,
+        // which violates the (shopId, externalId) unique constraint. Retry without
+        // the colliding externalId so the offer still gets imported.
+        if (/Unique constraint/i.test(errMsg(error)) && offer.externalId) {
+          await saveRawOffer(shopId, { ...offer, externalId: undefined }, batchId);
+        } else {
+          throw error;
+        }
+      }
       report.imported += 1;
       if (existed) report.updated += 1; else report.created += 1;
     } catch (error) {
