@@ -416,10 +416,26 @@ function isPublicOffer(offer: OfferView) {
   return offer.shop.enabled &&
     offer.currentPrice > 0 &&
     Number.isFinite(offer.currentPrice) &&
-    isHttpUrl(offer.url) &&
+    isRealProductOfferUrl(offer.url) &&
     offer.matchStatus === "CONFIRMED" &&
     offer.verificationStatus === "CONFIRMED" &&
     (offer.matchConfidence == null || offer.matchConfidence >= 90);
+}
+
+// An offer is only shown publicly if its URL points to a real product page.
+// Rejects demo/seed placeholders (`?fasmetri_seed=`) and bare shop homepages
+// (no product path) — those would show a fabricated price and send the user to
+// the store's front page instead of the product.
+function isRealProductOfferUrl(value: string) {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+    if (url.searchParams.has("fasmetri_seed")) return false;
+    const path = url.pathname.replace(/\/+$/, "");
+    return path !== "";
+  } catch {
+    return false;
+  }
 }
 
 function isComparableOffer(product: ProductView, offer: OfferView) {
@@ -435,15 +451,6 @@ function isComparableOffer(product: ProductView, offer: OfferView) {
       categorySlug: product.category?.slug,
     },
   ).status === "CONFIRMED";
-}
-
-function isHttpUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 function recencyScore(offers: OfferView[]) {
