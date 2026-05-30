@@ -425,15 +425,26 @@ model OfferVerificationEvidence {
 }
 
 model ClickEvent {
-  id        String        @id @default(cuid())
-  offerId   String?
-  offer     ProductOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
-  targetUrl String
-  referrer  String?
-  userAgent String?
-  createdAt DateTime      @default(now())
+  id          String        @id @default(cuid())
+  offerId     String?
+  offer       ProductOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  targetUrl   String
+  // Denormalised snapshot at click time for first-party business reporting.
+  productId   String?
+  productName String?
+  category    String?
+  shopName    String?
+  price       Decimal?      @db.Decimal(10, 2)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  referrer    String?
+  userAgent   String?
+  createdAt   DateTime      @default(now())
 
   @@index([offerId, createdAt])
+  @@index([shopName, createdAt])
+  @@index([category, createdAt])
 }
 
 model PriceHistory {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Scale, Store } from "lucide-react";
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
+import { ShopClickLink } from "@/components/shop-click-link";
 import {
   AvailabilityBadge,
   DiscountBadge,
@@ -92,16 +93,20 @@ export function ProductCard({
             <Scale className="size-3 shrink-0" />
             <span className="truncate">შეადარე</span>
           </Link>
-          <a
-            href={`/api/out/${offer.id}`}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`${offer.shop.name} მაღაზიაში ნახვა`}
+          <ShopClickLink
+            offerId={offer.id}
+            productId={product.id}
+            productName={product.name}
+            category={product.category?.slug}
+            shopName={offer.shop.name}
+            price={offer.currentPrice}
+            sourceUrl={offer.url}
+            ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
             title="მაღაზიაში ნახვა"
             className="grid size-8 place-items-center rounded-md border border-[#e2e8f0] bg-white text-[#0f172a] hover:border-[#84cc16] hover:bg-[#ecfccb]"
           >
             <ArrowUpRight className="size-3.5" />
-          </a>
+          </ShopClickLink>
         </div>
       </div>
     </article>

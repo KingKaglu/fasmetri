@@ -19,6 +19,7 @@ import { ProductGrid } from "@/components/product-grid";
 import { ProductMarquee } from "@/components/product-marquee";
 import { SearchBar } from "@/components/search-bar";
 import { ShopCard } from "@/components/shop-card";
+import { ShopClickLink } from "@/components/shop-click-link";
 import {
   AvailabilityBadge,
   DiscountBadge,
@@ -30,8 +31,9 @@ import {
 import { compareDealPriority, filterCuratedProducts, PRIORITY_CATEGORIES } from "@/config/productCuration";
 
 export const metadata: Metadata = {
-  title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
-  description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
+  title: "ფასმეტრი — შეადარე მობილურებისა და ლეპტოპების ფასები",
+  description:
+    "შეადარე მობილურებისა და ლეპტოპების ფასები ქართულ ონლაინ მაღაზიებში. იპოვე სად ღირს სასურველი მოდელი ყველაზე იაფად და გადაამოწმე ფასი მაღაზიის ოფიციალურ გვერდზე.",
   alternates: { canonical: "/" },
 };
 // Daily-refreshed catalog → serve the homepage from the CDN (ISR) and
@@ -39,8 +41,8 @@ export const metadata: Metadata = {
 export const revalidate = 600;
 
 const CATEGORIES = [
-  { href: "/categories/mobiles", label: "ტელეფონები", icon: Smartphone },
-  { href: "/categories/laptops", label: "ლეპტოპები",  icon: Laptop },
+  { href: "/mobiles", label: "ტელეფონები", icon: Smartphone },
+  { href: "/laptops", label: "ლეპტოპები",  icon: Laptop },
 ];
 
 export default async function Home() {
@@ -85,10 +87,11 @@ export default async function Home() {
           <div className="max-w-2xl">
             <p className="eyebrow text-[#84cc16]">ფასმეტრი · {stats.shops} მაღაზია</p>
             <h1 className="mt-2 text-3xl font-black leading-[1.1] tracking-tight text-white sm:text-4xl xl:text-[2.75rem]">
-              შეადარე ტელეფონებისა და ლეპტოპების ფასები საქართველოში
+              შეადარე მობილურებისა და ლეპტოპების ფასები საქართველოში
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              იპოვე პროდუქტი, შეადარე შეთავაზებები და გახსენი საუკეთესო მაღაზია — ერთ სივრცეში.
+              ნახე სად ღირს შენთვის სასურველი მოდელი ყველაზე იაფად. ფასები და ხელმისაწვდომობა
+              გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
             </p>
             <div className="mt-4 max-w-xl">
               <SearchBar large />
@@ -361,16 +364,20 @@ function FeaturedDeal({ product }: { product: ProductView }) {
           >
             შეადარე ფასი
           </Link>
-          <a
-            href={`/api/out/${offer.id}`}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`${offer.shop.name} მაღაზიაში ნახვა`}
+          <ShopClickLink
+            offerId={offer.id}
+            productId={product.id}
+            productName={product.name}
+            category={product.category?.slug}
+            shopName={offer.shop.name}
+            price={offer.currentPrice}
+            sourceUrl={offer.url}
+            ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
             title="მაღაზიაში ნახვა"
             className="grid h-10 w-10 place-items-center rounded-md border border-[#e2e8f0] bg-white text-[#0f172a] hover:border-[#84cc16] hover:bg-[#ecfccb]"
           >
             <ArrowUpRight className="size-4" />
-          </a>
+          </ShopClickLink>
         </div>
       </div>
     </article>

@@ -7,6 +7,7 @@ import { ProductGrid } from "@/components/product-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
+import { TrackView } from "@/components/track-view";
 import { isCategoryAlias, resolvePublicCategorySlug } from "@/lib/categoryNormalization";
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
@@ -46,7 +47,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     ? {
         title: `${category.nameKa} ფასები და აქციები`,
         description: `${category.nameKa} კატეგორიის პროდუქტების ფასები და აქციები ქართულ ონლაინ მაღაზიებში.`,
-        alternates: { canonical: `/categories/${category.slug}` },
+        // Clean public route is the canonical (/mobiles, /laptops).
+        alternates: { canonical: `/${category.slug}` },
       }
     : { title: "კატეგორია" };
 }
@@ -79,6 +81,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
   return (
     <section className="shell py-6 sm:py-9">
+      <TrackView event="category_view" signature={`category_view:${category.slug}`} params={{ category: category.slug }} />
       <div className="mb-5 border-b border-[#e2e8f0] pb-4">
         <p className="eyebrow text-[#65a30d]">კატეგორია</p>
         <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{category.nameKa}</h1>

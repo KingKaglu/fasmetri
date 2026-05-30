@@ -7,6 +7,7 @@ import { SearchBar } from "@/components/search-bar";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
+import { TrackView } from "@/components/track-view";
 import { isExcludedPublicQuery } from "@/config/productCuration";
 
 export const metadata: Metadata = { title: "პროდუქტის ძიება" };
@@ -24,6 +25,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
 
   return (
     <section className="shell py-7 sm:py-9">
+      {filters.q ? (
+        <TrackView
+          event="search"
+          signature={`search:${filters.q}:${filters.category ?? ""}:${filters.page ?? 1}`}
+          params={{ search_term: filters.q, category: filters.category, results_count: products.length }}
+        />
+      ) : null}
       <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
         <aside className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
           <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} />
