@@ -84,20 +84,40 @@ group by "shopName" order by 2 desc;
 
 ## Catalog / import jobs
 
-Ingestion saves `RawOffer`s; the pipeline then makes them public. Jobs accept
-`--shop`, `--category`, `--limit`, `--offset`, `--dry-run`, `--resume`.
+Ingestion saves `RawOffer`s; the pipeline then makes them public.
+
+### Full-coverage import (every phone + laptop)
+
+Discovers **every** product URL from each store's sitemaps and scrapes them all,
+recording an explicit outcome (imported / failed / skipped) per URL plus a
+completeness check. Stores: Zoommer + EE (phones & laptops), PCShop (laptops only).
 
 ```bash
-npm run import:store:full -- --shop=zoommer --category=mobiles --limit=300 --offset=0
-npm run normalize-raw-offers -- --shop=zoommer --limit=300
-npm run match-offers-to-variants -- --limit=300
-npm run recategorize-products -- --limit=300
-npm run catalog-coverage
+# Dry run first (discovery + a few sample parses, no DB writes):
+npm run import:full-coverage -- --dry-run --sample=3
+
+# Full live import (set DATABASE_URL to the target DB; run from Georgia):
+npm run import:full-coverage
+# …or a single store/category, chunked:
+npm run import:full-coverage -- --shop=ee --category=mobiles --limit=300 --offset=0
+
+# Then publish what was imported:
+npm run normalize-raw-offers -- --limit=100000
+npm run match-offers-to-variants -- --limit=100000
+npm run recategorize-products -- --limit=100000
+
+# Coverage snapshot (DB-only, no scraping):
+npm run import:coverage-report
 ```
 
+A JSON report (incl. `failedUrls` / `skippedUrls` with reasons) is written to
+`.codex-logs/import-reports/`. Flags: `--shop`, `--category` (comma-separated),
+`--limit`, `--offset`, `--dry-run`, `--sample`.
+
 > **Anti-bot note:** Zoommer and EE return **403 to non-Georgian / datacenter IPs**.
-> Run imports from a Georgian IP (or via a GE residential proxy). Vercel cron cannot
-> perform the large scrape. Full-coverage importer + completeness report = Phase B.
+> Run the import from a **Georgian IP** (or a GE residential proxy). Vercel cron
+> cannot perform the large scrape. The importer aborts a category after 10
+> consecutive 403/429s and reports it rather than hammering the store.
 
 ## Deployment (Vercel)
 

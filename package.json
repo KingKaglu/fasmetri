@@ -12,6 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "import:full-coverage": "tsx scripts/import-full-coverage.ts",
+    "import:coverage-report": "tsx scripts/import-coverage-report.ts",
     "catalog:categorize": "tsx scripts/categorize-products.ts",
     "archive-current-products": "tsx scripts/archive-current-products.ts",
     "reset-product-catalog": "tsx scripts/reset-product-catalog.ts",
