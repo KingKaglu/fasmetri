@@ -2,3 +2,9 @@
 scripts/
 fix.py
 *.sql
+.env
+.env.*
+AGENTS.md
+fasmetri-products.csv
+.codex-logs/
+.codex-qa/

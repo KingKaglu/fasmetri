@@ -22,7 +22,7 @@ export function SiteFooter() {
     [
       "სამართლებრივი",
       [
-        ["/legal", "დისკლეიმერი"],
+        ["/legal", "დისქლეიმერი"],
         ["/privacy", "კონფიდენციალურობა"],
         ["/terms", "გამოყენების პირობები"],
       ],
@@ -30,27 +30,25 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="mt-12 border-t border-[#e2e8f0] bg-white">
+    <footer className="mt-12 border-t border-[var(--line)] bg-[var(--brand)] text-white">
       <div className="shell grid gap-8 py-10 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <div>
-          <BrandLogo compact />
-          <p className="mt-4 max-w-md text-sm leading-6 text-[#64748b]">
-            ფასმეტრი დამოუკიდებელი ფასების შედარების პლატფორმაა. ფასმეტრი არ არის Zoommer-ის, EE.ge-ის,
-            PCShop-ის ან სხვა ჩამოთვლილი მაღაზიის ოფიციალური პარტნიორი, თუ ეს პირდაპირ არ არის
-            მითითებული. ფასები და ხელმისაწვდომობა იცვლება — საბოლოო ფასი გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
+          <BrandLogo compact tone="light" />
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/66">
+            ფასმეტრი დამოუკიდებელი ფასების შედარების პლატფორმაა. ფასები და მარაგი შეიძლება შეიცვალოს, ამიტომ ყიდვამდე საბოლოო ინფორმაცია ყოველთვის გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
           </p>
-          <p className="mt-2 max-w-md text-[11px] leading-5 text-[#94a3b8]">
-            ზოგი ბმული შეიძლება იყოს პარტნიორული ან დასპონსორებული. ეს არ ცვლის ფასს მომხმარებლისთვის.
+          <p className="mt-3 max-w-md rounded-2xl border border-white/10 bg-white/5 p-3 text-[11px] leading-5 text-white/54">
+            ფასმეტრი არ არის ჩამოთვლილი მაღაზიების ოფიციალური პარტნიორი, თუ ეს პირდაპირ არ არის მითითებული. ზოგი ბმული შეიძლება იყოს პარტნიორული ან დასპონსორებული.
           </p>
         </div>
 
         {columns.map(([title, items]) => (
           <div key={title}>
-            <p className="eyebrow text-[#64748b]">{title}</p>
+            <p className="text-[11px] font-black uppercase text-[var(--accent)]">{title}</p>
             <ul className="mt-3 grid gap-2">
               {items.map(([href, label]) => (
                 <li key={href}>
-                  <Link href={href} className="text-sm font-semibold text-[#0f172a] hover:text-[#65a30d]">
+                  <Link href={href} className="text-sm font-bold text-white/74 hover:text-white">
                     {label}
                   </Link>
                 </li>
@@ -60,8 +58,8 @@ export function SiteFooter() {
         ))}
       </div>
 
-      <div className="border-t border-[#e2e8f0]">
-        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[11px] font-bold text-[#94a3b8]">
+      <div className="border-t border-white/10">
+        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[11px] font-bold text-white/45">
           <span>© {new Date().getFullYear()} ფასმეტრი. ყველა უფლება დაცულია.</span>
           <span>ფასების შედარება ქართულ მაღაზიებში</span>
         </div>

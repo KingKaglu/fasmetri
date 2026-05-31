@@ -3,8 +3,15 @@
 import { FormEvent, useState } from "react";
 import { CategoryView, ProductView, ShopView } from "@/lib/catalog-types";
 
+const inputClassName =
+  "h-11 w-full rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#151713] focus:ring-2 focus:ring-[rgba(16,191,208,0.18)]";
+const buttonClassName =
+  "inline-flex h-11 items-center justify-center rounded-2xl bg-[#151713] px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(18,19,15,0.14)] hover:bg-black";
+const outlineButtonClassName =
+  "inline-flex h-11 items-center justify-center rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]";
+
 function Status({ text }: { text: string }) {
-  return text ? <p className="text-xs font-bold text-[#05594c]">{text}</p> : null;
+  return text ? <p className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{text}</p> : null;
 }
 
 export function ShopEditor({ shop }: { shop: ShopView }) {
@@ -25,14 +32,18 @@ export function ShopEditor({ shop }: { shop: ShopView }) {
   }
 
   return (
-    <details className="rounded-md border p-3">
-      <summary className="cursor-pointer font-bold">ინფორმაციის რედაქტირება</summary>
+    <details className="group rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+      <summary className="cursor-pointer list-none text-sm font-black text-[var(--brand)] marker:hidden">
+        ინფორმაციის რედაქტირება
+      </summary>
       <form onSubmit={submit} className="mt-3 grid gap-2 md:grid-cols-3">
-        <input name="name" defaultValue={shop.name} className="h-10 rounded-md border px-3" />
-        <input name="baseUrl" type="url" defaultValue={shop.baseUrl} className="h-10 rounded-md border px-3" />
-        <input name="reliabilityLabel" defaultValue={shop.reliabilityLabel ?? ""} placeholder="სტატუსი" className="h-10 rounded-md border px-3" />
-        <button className="h-10 rounded-md bg-[#11212a] px-3 font-bold text-white md:w-fit">შენახვა</button>
-        <Status text={status} />
+        <input name="name" defaultValue={shop.name} className={inputClassName} />
+        <input name="baseUrl" type="url" defaultValue={shop.baseUrl} className={inputClassName} />
+        <input name="reliabilityLabel" defaultValue={shop.reliabilityLabel ?? ""} placeholder="სტატუსი" className={inputClassName} />
+        <button className={`${buttonClassName} md:w-fit`}>შენახვა</button>
+        <div className="md:col-span-2">
+          <Status text={status} />
+        </div>
       </form>
     </details>
   );
@@ -54,58 +65,77 @@ export function ProductEditor({ product, categories }: { product: ProductView; c
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    await updateProduct({
-      name: form.get("name"),
-      brand: form.get("brand") || null,
-      model: form.get("model") || null,
-      categoryId: form.get("categoryId") || null,
-      categoryLocked: form.get("categoryLocked") === "on",
-      matchingLocked: form.get("matchingLocked") === "on",
-    }, "პროდუქტი განახლდა.");
+    await updateProduct(
+      {
+        name: form.get("name"),
+        brand: form.get("brand") || null,
+        model: form.get("model") || null,
+        categoryId: form.get("categoryId") || null,
+        categoryLocked: form.get("categoryLocked") === "on",
+        matchingLocked: form.get("matchingLocked") === "on",
+      },
+      "პროდუქტი განახლდა.",
+    );
   }
 
   async function discoverOffers() {
     const response = await fetch(`/api/admin/products/${product.id}/discover`, { method: "POST" });
     const payload = await response.json().catch(() => null);
     const result = payload?.result;
-    setStatus(response.ok ? `ნაპოვნია ${result?.attached ?? 0} დადასტურებული და ${result?.possible ?? 0} review კანდიდატი.` : "სხვა მაღაზიების შემოწმება ვერ შესრულდა.");
+    setStatus(
+      response.ok
+        ? `ნაპოვნია ${result?.attached ?? 0} დადასტურებული და ${result?.possible ?? 0} review კანდიდატი.`
+        : "სხვა მაღაზიების შემოწმება ვერ შესრულდა.",
+    );
   }
 
   return (
-    <details className="mt-3 rounded-md border p-3">
-      <summary className="cursor-pointer font-bold">პროდუქტის რედაქტირება</summary>
+    <details className="mt-3 rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+      <summary className="cursor-pointer list-none text-sm font-black text-[var(--brand)] marker:hidden">
+        პროდუქტის რედაქტირება
+      </summary>
       <form onSubmit={submit} className="mt-3 grid gap-2 md:grid-cols-2">
-        <input name="name" defaultValue={product.name} className="h-10 rounded-md border px-3" />
-        <select name="categoryId" defaultValue={product.category?.id} className="h-10 rounded-md border px-3">
+        <input name="name" defaultValue={product.name} className={inputClassName} />
+        <select name="categoryId" defaultValue={product.category?.id} className={inputClassName}>
           <option value="">კატეგორიის გარეშე</option>
-          {categories.map((category) => <option key={category.id} value={category.id}>{category.nameKa}</option>)}
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.nameKa}
+            </option>
+          ))}
         </select>
-        <input name="brand" defaultValue={product.brand ?? ""} placeholder="ბრენდი" className="h-10 rounded-md border px-3" />
-        <input name="model" defaultValue={product.model ?? ""} placeholder="მოდელი" className="h-10 rounded-md border px-3" />
-        <label className="flex min-h-10 items-center gap-2 rounded-md border px-3 text-sm font-bold">
-          <input name="categoryLocked" type="checkbox" defaultChecked={product.categoryLocked || Boolean(product.manualCategoryId)} />
+        <input name="brand" defaultValue={product.brand ?? ""} placeholder="ბრენდი" className={inputClassName} />
+        <input name="model" defaultValue={product.model ?? ""} placeholder="მოდელი" className={inputClassName} />
+        <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--brand)]">
+          <input name="categoryLocked" type="checkbox" defaultChecked={product.categoryLocked || Boolean(product.manualCategoryId)} className="accent-[var(--accent-strong)]" />
           კატეგორიის ჩაკეტვა
         </label>
-        <label className="flex min-h-10 items-center gap-2 rounded-md border px-3 text-sm font-bold">
-          <input name="matchingLocked" type="checkbox" defaultChecked={product.matchingLocked} />
+        <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--brand)]">
+          <input name="matchingLocked" type="checkbox" defaultChecked={product.matchingLocked} className="accent-[var(--accent-strong)]" />
           matching-ის ჩაკეტვა
         </label>
-        <div className="flex flex-wrap gap-2">
-          <button className="h-10 rounded-md bg-[#11212a] px-3 font-bold text-white">შენახვა</button>
-          <button type="button" onClick={discoverOffers} className="h-10 rounded-md border px-3 font-bold text-[#05594c]">სხვა მაღაზიებში მოძებნა</button>
+        <div className="flex flex-wrap gap-2 md:col-span-2">
+          <button className={buttonClassName}>შენახვა</button>
+          <button type="button" onClick={discoverOffers} className={outlineButtonClassName}>
+            სხვა მაღაზიებში მოძებნა
+          </button>
           {suggestedCategory ? (
             <button
               type="button"
               onClick={() => updateProduct({ categoryId: suggestedCategory.id, categoryLocked: true }, "შემოთავაზებული კატეგორია დადასტურდა.")}
-              className="h-10 rounded-md border px-3 font-bold text-[#05594c]"
+              className={outlineButtonClassName}
             >
               შემოთავაზების დამტკიცება
             </button>
           ) : null}
         </div>
-        <div className="md:col-span-2">
-          {product.categoryConfidence != null ? <p className="text-xs font-bold text-[#53656e]">Confidence: {product.categoryConfidence}% · შემოთავაზება: {suggestedCategory?.nameKa ?? product.categorySuggestedSlug ?? "არ არის"}</p> : null}
-          {product.categoryReason ? <p className="text-xs leading-5 text-[#53656e]">{product.categoryReason}</p> : null}
+        <div className="grid gap-2 md:col-span-2">
+          {product.categoryConfidence != null ? (
+            <p className="text-xs font-bold text-[var(--muted)]">
+              Confidence: {product.categoryConfidence}% - შემოთავაზება: {suggestedCategory?.nameKa ?? product.categorySuggestedSlug ?? "არ არის"}
+            </p>
+          ) : null}
+          {product.categoryReason ? <p className="text-xs leading-5 text-[var(--muted)]">{product.categoryReason}</p> : null}
           <Status text={status} />
         </div>
       </form>
@@ -127,13 +157,21 @@ export function CategoryEditor({ categories }: { categories: CategoryView[] }) {
   }
 
   return (
-    <details className="rounded-lg border bg-white p-4">
-      <summary className="cursor-pointer text-lg font-black">კატეგორიის რედაქტირება</summary>
+    <details className="rounded-[1.15rem] border border-[#c8d7bd] bg-white/92 p-4 shadow-[0_12px_30px_rgba(18,19,15,0.07)]">
+      <summary className="cursor-pointer list-none text-lg font-black text-[var(--brand)] marker:hidden">
+        კატეგორიის რედაქტირება
+      </summary>
       <form onSubmit={submit} className="mt-3 grid gap-2">
-        <select name="id" required className="h-11 rounded-md border px-3">{categories.map((category) => <option key={category.id} value={category.id}>{category.nameKa}</option>)}</select>
-        <input name="nameKa" required placeholder="ქართული სახელი" className="h-11 rounded-md border px-3" />
-        <input name="nameEn" placeholder="English name" className="h-11 rounded-md border px-3" />
-        <button className="h-11 rounded-md bg-[#087d6b] font-bold text-white">შენახვა</button>
+        <select name="id" required className={inputClassName}>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.nameKa}
+            </option>
+          ))}
+        </select>
+        <input name="nameKa" required placeholder="ქართული სახელი" className={inputClassName} />
+        <input name="nameEn" placeholder="English name" className={inputClassName} />
+        <button className={buttonClassName}>შენახვა</button>
         <Status text={status} />
       </form>
     </details>

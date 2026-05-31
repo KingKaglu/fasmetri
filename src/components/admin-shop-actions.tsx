@@ -5,13 +5,49 @@ import { useState } from "react";
 
 export function AdminShopActions({ id, enabled, needsConfiguration }: { id: string; enabled: boolean; needsConfiguration: boolean }) {
   const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState<"toggle" | "scrape" | null>(null);
+
   async function toggle() {
-    const response = await fetch(`/api/admin/shops/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled: !enabled }) });
-    setMessage(response.ok ? "მაღაზია განახლდა. გვერდი განაახლე სტატუსისთვის." : "განახლება ვერ შესრულდა.");
+    setBusy("toggle");
+    const response = await fetch(`/api/admin/shops/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ enabled: !enabled }),
+    });
+    setMessage(response.ok ? "მაღაზია განახლდა. სტატუსის სანახავად გვერდი განაახლე." : "განახლება ვერ შესრულდა.");
+    setBusy(null);
   }
+
   async function scrape() {
+    setBusy("scrape");
     const response = await fetch(`/api/admin/scrape/${id}`, { method: "POST" });
     setMessage(response.ok ? "სკრეპის გაშვება მიღებულია." : "სკრეპის გაშვება ვერ შესრულდა.");
+    setBusy(null);
   }
-  return <div className="flex flex-wrap items-center gap-2"><button type="button" onClick={toggle} className="inline-flex h-10 items-center gap-2 rounded-md border px-3 font-bold"><Power className="size-4" /> {enabled ? "გამორთვა" : "ჩართვა"}</button><button type="button" disabled={needsConfiguration} onClick={scrape} className="inline-flex h-10 items-center gap-2 rounded-md bg-[#087d6b] px-3 font-bold text-white disabled:cursor-not-allowed disabled:bg-[#9bb3ae]"><Play className="size-4" /> გაშვება</button>{message ? <span className="text-xs text-[#53656e]">{message}</span> : null}</div>;
+
+  return (
+    <div className="grid gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={busy !== null}
+          className="inline-flex h-11 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--brand)] hover:border-[#151713] disabled:cursor-wait disabled:opacity-70"
+        >
+          <Power className="size-4" />
+          {busy === "toggle" ? "მუშავდება..." : enabled ? "გამორთვა" : "ჩართვა"}
+        </button>
+        <button
+          type="button"
+          disabled={needsConfiguration || busy !== null}
+          onClick={scrape}
+          className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#151713] px-3 text-sm font-black text-white shadow-[0_12px_24px_rgba(18,19,15,0.16)] hover:bg-black disabled:cursor-not-allowed disabled:bg-[#9bb3ae]"
+        >
+          <Play className="size-4 text-[var(--accent)]" />
+          {busy === "scrape" ? "იშვება..." : "გაშვება"}
+        </button>
+      </div>
+      {message ? <p className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{message}</p> : null}
+    </div>
+  );
 }

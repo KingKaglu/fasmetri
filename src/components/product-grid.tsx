@@ -20,6 +20,6 @@ export function ProductGrid({
   emptyAction?: string;
 }) {
   if (!products.length) return <EmptyState href={resetHref} title={emptyTitle} description={emptyDescription} action={emptyAction} />;
-  const gridClassName = density === "compact" ? "product-grid-dense gap-3" : "product-grid-catalog gap-4";
+  const gridClassName = density === "compact" ? "product-grid-dense" : "product-grid-catalog";
   return <div className={`${gridClassName} grid min-w-0 items-start`}>{products.map((product, index) => <ProductCard key={product.id} product={product} deal={deal} imagePriority={index < 4} />)}</div>;
 }

@@ -44,23 +44,21 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
 
   return (
     <>
-      {/* Page header band */}
-      <section className="hero-band-dark">
-        <div className="shell flex flex-col gap-3 py-7 sm:py-9 md:flex-row md:items-center md:justify-between">
+      <section className="hero-frame shell mt-4">
+        <div className="relative z-10 flex flex-col gap-3 p-5 sm:p-7 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl">
-            <p className="eyebrow text-[#84cc16] inline-flex items-center gap-1.5">
+            <p className="eyebrow inline-flex items-center gap-1.5 text-[var(--accent)]">
               <Flame className="size-3.5" /> დღის საუკეთესო ფასდაკლებები
             </p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">აქციები</h1>
-            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-300">
-              პირველ რიგში ჩანს ის აქციები, სადაც ფასის შედარებას რეალური აზრი აქვს —
-              ტელეფონები, ლეპტოპები, დიდი ტექნიკა.
+            <h1 className="mt-2 text-4xl font-black text-white sm:text-5xl">აქციები</h1>
+            <p className="mt-2 max-w-xl text-sm font-bold leading-6 text-white/68">
+              აქ ჩანს შეთავაზებები, სადაც ფასის შედარებას რეალური აზრი აქვს: ტელეფონები, ლეპტოპები და მოთხოვნადი ტექნიკა.
             </p>
           </div>
-          <div className="flex items-center gap-3 rounded-md border border-white/15 bg-white/5 px-4 py-3">
-            <BadgePercent className="size-5 text-[#84cc16]" />
+          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/8 px-4 py-3">
+            <BadgePercent className="size-5 text-[var(--accent)]" />
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-300">ამ გვერდზე</p>
+              <p className="text-[11px] font-black uppercase text-white/58">ამ გვერდზე</p>
               <p className="text-2xl font-black leading-none text-white">{products.length}</p>
             </div>
           </div>
@@ -68,7 +66,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
       </section>
 
       <section className="shell py-6 sm:py-8">
-        <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
           <aside className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
             <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts />
           </aside>

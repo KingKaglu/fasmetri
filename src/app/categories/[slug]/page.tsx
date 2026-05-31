@@ -82,13 +82,13 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   return (
     <section className="shell py-6 sm:py-9">
       <TrackView event="category_view" signature={`category_view:${category.slug}`} params={{ category: category.slug }} />
-      <div className="mb-5 border-b border-[#e2e8f0] pb-4">
-        <p className="eyebrow text-[#65a30d]">კატეგორია</p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{category.nameKa}</h1>
-        <p className="mt-1.5 text-sm leading-6 text-[#64748b]">
-          <span className="font-bold text-[#0f172a]">{category.productCount ?? products.length}</span> პროდუქტი
+      <div className="mb-5 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_10px_26px_rgba(18,19,15,0.06)]">
+        <p className="eyebrow text-[var(--accent-strong)]">კატეგორია</p>
+        <h1 className="mt-1 text-3xl font-black text-[var(--brand)] sm:text-4xl">{category.nameKa}</h1>
+        <p className="mt-2 text-sm font-bold leading-6 text-[var(--muted)]">
+          <span className="font-black text-[var(--brand)]">{category.productCount ?? products.length}</span> პროდუქტი
           {" · "}
-          <span className="font-bold text-[#0f172a]">{category.dealCount ?? 0}</span> ფასდაკლება
+          <span className="font-black text-[var(--brand)]">{category.dealCount ?? 0}</span> ფასდაკლება
         </p>
       </div>
       <div className="mb-4 lg:hidden">
@@ -96,7 +96,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} variant="drawer" />
         </MobileFilterDrawer>
       </div>
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <div className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} />
         </div>

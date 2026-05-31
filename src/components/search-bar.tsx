@@ -4,20 +4,22 @@ export function SearchBar({ defaultValue = "", large = false }: { defaultValue?:
   return (
     <form
       action="/search"
-      className="flex w-full overflow-hidden rounded-md border border-[#0f172a] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]"
+      className="flex w-full overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_18px_45px_rgba(18,19,15,0.16)] ring-1 ring-black/5"
     >
-      <label className="flex min-w-0 flex-1 items-center gap-2 px-3.5">
-        <Search className="size-4 shrink-0 text-[#64748b]" />
+      <label className="flex min-w-0 flex-1 items-center gap-2 px-3 min-[380px]:gap-3 min-[380px]:px-4">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--brand)]">
+          <Search className="size-4" />
+        </span>
         <input
           name="q"
           defaultValue={defaultValue}
-          placeholder="მოძებნე iPhone 17, MacBook, Galaxy S26..."
-          className={`${large ? "h-12 text-[15px]" : "h-11 text-sm"} w-full bg-transparent font-medium text-[#0f172a] outline-none placeholder:text-[#94a3b8]`}
+          placeholder="მოძებნე iPhone, MacBook, Galaxy..."
+          className={`${large ? "h-14 text-base" : "h-12 text-sm"} w-full bg-transparent font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]`}
         />
       </label>
       <button
         type="submit"
-        className={`${large ? "h-12 px-7 text-sm" : "h-11 px-5 text-sm"} shrink-0 bg-[#84cc16] font-black text-[#1a2e05] hover:bg-[#65a30d] hover:text-white`}
+        className={`${large ? "h-14 px-4 text-sm min-[380px]:px-7" : "h-12 px-3 text-sm min-[380px]:px-5"} shrink-0 bg-[var(--accent)] font-black text-[var(--accent-ink)] hover:bg-[#d7ff73]`}
       >
         ძებნა
       </button>
