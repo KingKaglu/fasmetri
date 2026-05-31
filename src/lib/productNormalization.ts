@@ -104,6 +104,9 @@ function explicitBrand(brand: string | null | undefined, signal: string) {
   if (/\bnothing\s+phone\b/.test(signal)) return "nothing";
   if (/\boneplus\b/.test(signal)) return "oneplus";
   if (/\bmotorola\b|\bmoto\b|\brazr\b/.test(signal)) return "motorola";
+  // HP-exclusive laptop family names imply the brand even when the title omits "HP"
+  // (e.g. "ZBook 8 G1i 14 Mobile Workstation").
+  if (/\b(elitebook|probook|zbook|omnibook|spectre|envy|omen|victus|pavilion)\b/.test(signal)) return "hp";
   return KNOWN_PRODUCT_BRANDS.find((candidate) => containsWord(signal, candidate));
 }
 
@@ -181,7 +184,7 @@ function modelFamily(signal: string) {
   // e.g. "EliteBook 8 G1i 14"; capture series + G-generation + screen size so
   // 14" and 16" builds of the same line stay distinct products. Code-bearing HP
   // families (Victus/OmniBook/Pavilion) are intentionally left to the SKU path.
-  const hpBusiness = signal.match(/\bhp\s+(elitebook|probook|zbook)\b\s*(ultra|x|\d{1,4})?\s*(flip|x360)?\s*(g\d{1,2}[a-z]?)?\s*(\d{2})?/);
+  const hpBusiness = signal.match(/\b(?:hp\s+)?(elitebook|probook|zbook)\b\s*(ultra|x|\d{1,4})?\s*(flip|x360)?\s*(g\d{1,2}[a-z]?)?\s*(\d{2})?/);
   if (hpBusiness) {
     return compactModel(`hp_${hpBusiness[1]}`, [hpBusiness[2], hpBusiness[3], hpBusiness[4], hpBusiness[5]].filter(Boolean).join("_") || "base");
   }
