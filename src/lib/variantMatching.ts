@@ -39,10 +39,15 @@ export function buildParentKey(identity: ProductIdentity) {
   }
 
   if (identity.productType === "laptop") {
-    if (!identity.brand || !identity.model) return undefined;
+    if (!identity.brand) return undefined;
     if (isMacBook(identity)) {
+      if (!identity.model) return undefined;
       return key([identity.brand, identity.model, identity.screenSize, identity.cpu, identity.ram, identity.storage]);
     }
+    // A laptop SKU / model code (e.g. "c1yh1ea", "8d452es") uniquely identifies
+    // the exact configuration, so accept it in place of a parsed marketing model
+    // name — store titles frequently omit the family name (Victus, EliteBook, …).
+    if (!identity.model && !identity.modelCode && !identity.sku) return undefined;
     return key([identity.brand, identity.model, identity.modelCode ?? identity.sku, identity.cpu, identity.ram, identity.storage]);
   }
 
