@@ -10,7 +10,7 @@ import { CatalogPager } from "@/components/catalog-pager";
 import { TrackView } from "@/components/track-view";
 import { isExcludedPublicQuery } from "@/config/productCuration";
 
-export const metadata: Metadata = { title: "პროდუქტის ძიება" };
+export const metadata: Metadata = { title: "პროდუქტის ძებნა" };
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
@@ -20,7 +20,11 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
   const params = await searchParams;
   const filters = readFilters(params);
   const hasSearchIntent = Boolean(filters.q || filters.category || filters.shop || filters.dealsOnly || filters.minPrice || filters.maxPrice || filters.minDiscount || filters.availability);
-  const [products, categories, shops] = await Promise.all([hasSearchIntent ? listPublicProducts({ ...filters, pageSize: productPageSize }) : Promise.resolve([]), listPublicCategories(), listPublicShops()]);
+  const [products, categories, shops] = await Promise.all([
+    hasSearchIntent ? listPublicProducts({ ...filters, pageSize: productPageSize }) : Promise.resolve([]),
+    listPublicCategories(),
+    listPublicShops(),
+  ]);
   const headline = filters.q ? `"${filters.q}"` : "მოძებნე პროდუქტი";
 
   return (
@@ -32,27 +36,31 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
           params={{ search_term: filters.q, category: filters.category, results_count: products.length }}
         />
       ) : null}
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
         <aside className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
           <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} />
         </aside>
         <div className="min-w-0">
-          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#e2e8f0] pb-4">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_10px_26px_rgba(18,19,15,0.06)]">
             <div className="min-w-0 max-w-3xl">
-              <p className="eyebrow text-[#65a30d]">ფასების შედარება</p>
-              <h1 className="mt-1 break-words text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{headline}</h1>
-              <p className="mt-1.5 text-sm leading-6 text-[#64748b]">ფილტრებით სწრაფად შეადარე ფასი, მაღაზია, ფასდაკლება და მარაგი.</p>
+              <p className="eyebrow text-[var(--accent-strong)]">ფასების შედარება</p>
+              <h1 className="mt-1 break-words text-3xl font-black text-[var(--brand)] sm:text-4xl">{headline}</h1>
+              <p className="mt-2 text-sm font-bold leading-6 text-[var(--muted)]">
+                ფილტრებით სწრაფად შეადარე ფასი, მაღაზია, ფასდაკლება და მარაგი.
+              </p>
             </div>
             <Link
               href="/deals"
-              className="inline-flex h-10 w-fit shrink-0 items-center gap-1.5 rounded-md border border-[#e2e8f0] bg-white px-4 text-sm font-bold text-[#0f172a] hover:border-[#0f172a]"
+              className="inline-flex h-10 w-fit shrink-0 items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black"
             >
-              <BadgePercent className="size-4 text-[#65a30d]" />
+              <BadgePercent className="size-4 text-[var(--accent)]" />
               აქციები
             </Link>
           </div>
 
-          <div className="mb-4 max-w-3xl"><SearchBar defaultValue={filters.q} /></div>
+          <div className="mb-4 max-w-3xl">
+            <SearchBar defaultValue={filters.q} />
+          </div>
 
           <div className="mb-4 lg:hidden">
             <MobileFilterDrawer>
@@ -60,10 +68,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
             </MobileFilterDrawer>
           </div>
 
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[#e2e8f0] bg-white px-3 py-2 text-sm">
-            <p className="font-bold text-[#0f172a]">ამ გვერდზე <span className="font-black text-[#65a30d]">{products.length}</span> შედეგი</p>
-            <p className="text-xs font-semibold text-[#64748b]">ბოლო განახლება ბარათებზე ჩანს</p>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/70 bg-white/85 px-4 py-3 text-sm shadow-[0_8px_20px_rgba(18,19,15,0.05)]">
+            <p className="font-black text-[var(--brand)]">
+              ამ გვერდზე <span className="text-[var(--accent-strong)]">{products.length}</span> შედეგი
+            </p>
+            <p className="text-xs font-bold text-[var(--muted)]">ბოლო განახლება ბარათებზე ჩანს</p>
           </div>
+
           {hasSearchIntent ? (
             <>
               <ProductGrid

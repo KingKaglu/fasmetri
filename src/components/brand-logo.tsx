@@ -1,20 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export function BrandLogo({ compact = false }: { compact?: boolean }) {
+export function BrandLogo({ compact = false, tone = "dark" }: { compact?: boolean; tone?: "dark" | "light" }) {
+  const light = tone === "light";
   if (compact) {
     return (
       <Link href="/" className="group inline-flex min-w-fit items-center gap-2.5" aria-label="ფასმეტრი მთავარი გვერდი">
-        <span className="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-md bg-[#0f172a]">
-          <span className="absolute bottom-1.5 left-1.5 h-3 w-1.5 rounded-sm bg-[#84cc16]" />
-          <span className="absolute bottom-1.5 left-[1.05rem] h-4 w-1.5 rounded-sm bg-white" />
-          <span className="absolute bottom-1.5 right-1.5 h-5 w-1.5 rounded-sm bg-[#84cc16]" />
+        <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl shadow-[0_10px_24px_rgba(18,19,15,0.18)] ${light ? "bg-white" : "bg-[var(--brand)]"}`}>
+          <span className="absolute bottom-2 left-2 h-3 w-1.5 rounded-full bg-[var(--accent)]" />
+          <span className={`absolute bottom-2 left-[1.08rem] h-[1.125rem] w-1.5 rounded-full ${light ? "bg-[var(--brand)]" : "bg-white"}`} />
+          <span className="absolute bottom-2 right-2 h-[1.375rem] w-1.5 rounded-full bg-[var(--aqua)]" />
         </span>
         <span className="flex flex-col leading-none">
-          <span className="whitespace-nowrap text-[1.15rem] font-black tracking-tight text-[#0f172a] sm:text-[1.2rem]">
+          <span className={`whitespace-nowrap text-[1.18rem] font-black sm:text-[1.25rem] ${light ? "text-white" : "text-[var(--brand)]"}`}>
             ფასმეტრი
           </span>
-          <span className="mt-0.5 hidden whitespace-nowrap text-[0.625rem] font-bold uppercase tracking-[0.12em] text-[#64748b] sm:block">
+          <span className={`mt-1 hidden whitespace-nowrap text-[0.62rem] font-black uppercase sm:block ${light ? "text-white/50" : "text-[var(--muted)]"}`}>
             ფასების შედარება
           </span>
         </span>

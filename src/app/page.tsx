@@ -3,10 +3,12 @@ import { Metadata } from "next";
 import {
   ArrowRight,
   ArrowUpRight,
+  BadgePercent,
   Laptop,
   Search,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Store,
   TrendingDown,
 } from "lucide-react";
@@ -31,18 +33,19 @@ import {
 import { compareDealPriority, filterCuratedProducts, PRIORITY_CATEGORIES } from "@/config/productCuration";
 
 export const metadata: Metadata = {
-  title: "ფასმეტრი — შეადარე მობილურებისა და ლეპტოპების ფასები",
+  title: "ფასმეტრი — შეადარე ფასები ქართულ ონლაინ მაღაზიებში",
   description:
-    "შეადარე მობილურებისა და ლეპტოპების ფასები ქართულ ონლაინ მაღაზიებში. იპოვე სად ღირს სასურველი მოდელი ყველაზე იაფად და გადაამოწმე ფასი მაღაზიის ოფიციალურ გვერდზე.",
+    "შეადარე მობილურებისა და ლეპტოპების ფასები ქართულ ონლაინ მაღაზიებში. იპოვე საუკეთესო შეთავაზება და ყიდვამდე გადაამოწმე ფასი ოფიციალურ გვერდზე.",
   alternates: { canonical: "/" },
 };
-// Daily-refreshed catalog → serve the homepage from the CDN (ISR) and
-// revalidate every 10 minutes instead of re-querying Supabase per request.
+
 export const revalidate = 600;
 
-const CATEGORIES = [
-  { href: "/mobiles", label: "ტელეფონები", icon: Smartphone },
-  { href: "/laptops", label: "ლეპტოპები",  icon: Laptop },
+const quickCategories = [
+  { href: "/categories/mobiles", label: "ტელეფონები", icon: Smartphone },
+  { href: "/categories/laptops", label: "ლეპტოპები", icon: Laptop },
+  { href: "/deals", label: "აქციები", icon: BadgePercent },
+  { href: "/search", label: "ძებნა", icon: Search },
 ];
 
 export default async function Home() {
@@ -59,82 +62,77 @@ export default async function Home() {
     discoveryCandidates.filter((p) => p.offers.some((o) => o.discountPercent > 0)).sort(compareDealPriority),
   );
   const trending = selectHomeDiscovery(discoveryCandidates);
+  const heroProduct = discounts[0] ?? trending[0];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-
-      {/* ─── CATEGORY RAIL ──────────────────────────────── */}
-      <section className="border-b border-[#e2e8f0] bg-white">
-        <div className="shell">
-          <div className="category-rail flex gap-1 overflow-x-auto py-2 md:gap-1.5 md:py-3">
-            {CATEGORIES.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="group flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-[12px] font-bold text-[#0f172a] hover:bg-[#0f172a] hover:text-white md:text-[13px]"
-              >
-                <Icon className="size-4 shrink-0" />
-                <span className="whitespace-nowrap">{label}</span>
-              </Link>
-            ))}
-          </div>
+    <div className="min-h-screen">
+      <section className="shell pt-4 sm:pt-6">
+        <div className="category-rail flex w-full min-w-0 gap-2 overflow-x-auto pb-3">
+          {quickCategories.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/70 bg-white/85 px-3.5 py-2 text-xs font-black text-[var(--brand)] shadow-[0_8px_20px_rgba(18,19,15,0.05)] hover:-translate-y-0.5 hover:bg-[var(--accent-soft)]"
+            >
+              <Icon className="size-4" />
+              {label}
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* ─── HERO STRIP ─────────────────────────────────── */}
-      <section className="hero-band-dark">
-        <div className="shell flex flex-col gap-4 py-7 sm:py-10 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-2xl">
-            <p className="eyebrow text-[#84cc16]">ფასმეტრი · {stats.shops} მაღაზია</p>
-            <h1 className="mt-2 text-3xl font-black leading-[1.1] tracking-tight text-white sm:text-4xl xl:text-[2.75rem]">
-              შეადარე მობილურებისა და ლეპტოპების ფასები საქართველოში
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
-              ნახე სად ღირს შენთვის სასურველი მოდელი ყველაზე იაფად. ფასები და ხელმისაწვდომობა
-              გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
+      <section className="shell pb-8">
+        <div className="hero-frame grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.72fr)] lg:p-8">
+          <div className="relative z-10 flex min-w-0 flex-col justify-center py-4">
+            <p className="eyebrow inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[var(--accent)]">
+              <Sparkles className="size-3.5" />
+              ფასების ცოცხალი შედარება
             </p>
-            <div className="mt-4 max-w-xl">
+            <h1 className="mt-4 max-w-3xl text-4xl font-black leading-[1.02] text-white sm:text-5xl lg:text-6xl">
+              იპოვე რეალური ფასი, სანამ იყიდი.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/74 sm:text-base">
+              ფასმეტრი აერთიანებს ქართულ ონლაინ მაღაზიებს ერთ სუფთა კატალოგში, რომ სწრაფად დაინახო სად არის უკეთესი ფასი, აქცია და მარაგი.
+            </p>
+            <div className="mt-6 max-w-2xl">
               <SearchBar large />
             </div>
+            <div className="mt-6 grid max-w-2xl gap-2 min-[360px]:grid-cols-3">
+              <HeroStat label="მაღაზია" value={stats.shops} />
+              <HeroStat label="პროდუქტი" value={stats.products} />
+              <HeroStat label="აქცია" value={stats.deals} />
+            </div>
           </div>
-          <div className="flex flex-wrap items-stretch gap-2">
-            <Link
-              href="/deals"
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-[#84cc16] px-5 text-sm font-black text-[#1a2e05] hover:bg-[#a3e635]"
-            >
-              დღის აქციები
-              <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              href="/categories"
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-white/20 bg-white/5 px-5 text-sm font-bold text-white hover:bg-white/10"
-            >
-              ყველა კატეგორია
-            </Link>
+
+          <div className="relative z-10">
+            {heroProduct ? (
+              <HeroProduct product={heroProduct} />
+            ) : (
+              <div className="glass-panel grid min-h-[22rem] place-items-center rounded-3xl p-6 text-center">
+                <div>
+                  <Search className="mx-auto size-8 text-[var(--accent)]" />
+                  <p className="mt-3 text-lg font-black text-white">კატალოგი იტვირთება</p>
+                  <p className="mt-1 text-sm text-white/68">ახალი პროდუქტები მალე გამოჩნდება.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* ─── CATEGORY CARDS (MVP: phones + laptops) ─────── */}
       {categories.length ? (
-        <section className="shell pt-8 sm:pt-10">
+        <section className="shell py-4 sm:py-6">
+          <SectionBar eyebrow="კატეგორიები" title="დაიწყე ყველაზე მოთხოვნადიდან" href="/categories" action="ყველა კატეგორია" />
           <div className="grid gap-3 sm:grid-cols-2">
-            {categories.map((category) => (
+            {categories.slice(0, 2).map((category) => (
               <CategoryCard key={category.id} category={category} />
             ))}
           </div>
         </section>
       ) : null}
 
-      {/* ─── DEALS ─────────────────────────────────────── */}
       <section className="shell pt-8 sm:pt-10">
-        <SectionBar
-          eyebrow="დღის TOP შეთავაზებები"
-          title="დაიჭირე საუკეთესო ფასი"
-          href="/deals"
-          action="ყველა აქცია"
-          dealCount={stats.deals ?? null}
-        />
+        <SectionBar eyebrow="დღის ფასი" title="აქციები, რომლებსაც შემოწმება ღირს" href="/deals" action="ყველა აქცია" dealCount={stats.deals ?? null} />
         {discounts.length ? (
           <div className="grid gap-3 lg:grid-cols-12">
             <div className="lg:col-span-4">
@@ -155,19 +153,13 @@ export default async function Home() {
             density="compact"
             resetHref="/deals"
             emptyTitle="აქციები მალე გამოჩნდება"
-            emptyDescription="ფასმეტრი პირველ რიგში მაღალმოთხოვნად პროდუქტებზე ახალ ფასდაკლებებს აჩვენებს."
+            emptyDescription="ფასმეტრი ახალი ფასდაკლებების დამატებისთანავე აჩვენებს საუკეთესო შეთავაზებებს."
           />
         )}
       </section>
 
-      {/* ─── TRENDING ──────────────────────────────────── */}
       <section className="shell pt-10 sm:pt-12">
-        <SectionBar
-          eyebrow="პოპულარული"
-          title="ყველაზე მოთხოვნადი პროდუქტები"
-          href="/search?sort=priority"
-          action="ყველა"
-        />
+        <SectionBar eyebrow="პოპულარული" title="პროდუქტები, რომლებსაც ხშირად ადარებენ" href="/search?sort=priority" action="ყველა" />
         <div className="hidden lg:block">
           {trending.length ? (
             <ProductMarquee products={trending} />
@@ -180,47 +172,37 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ─── TRUST STRIP ───────────────────────────────── */}
-      <section className="mt-12 border-y border-[#e2e8f0] bg-white">
-        <div className="shell grid gap-0 divide-y divide-[#e2e8f0] py-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <section className="mt-12 border-y border-[var(--line)] bg-white/70">
+        <div className="shell grid gap-0 divide-y divide-[var(--line)] py-2 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <TrustItem
             icon={ShieldCheck}
-            title="ყოველდღიური განახლება"
-            description="ფასები მოწმდება ყოველდღე, რომ ხედავდე ნამდვილ ფასს."
+            title="ფასები რეგულარულად ახლდება"
+            description="კატალოგი ყოველდღიურად ამოწმებს ფასს, მარაგს და ფასდაკლებას."
           />
           <TrustItem
-            icon={Search}
-            title="ერთი ძებნა, ყველა მაღაზია"
-            description={`${stats.shops ?? "—"} ქართული მაღაზია, ერთი კატალოგი.`}
+            icon={Store}
+            title="ერთი ძებნა, ბევრი მაღაზია"
+            description={`${stats.shops ?? "რამდენიმე"} ქართული მაღაზია ერთ შედარებად კატალოგში.`}
           />
           <TrustItem
             icon={TrendingDown}
-            title="დაზოგე რეალურად"
-            description="აქცია მხოლოდ მაშინ, როცა ფასი ნამდვილად შემცირდა."
+            title="დაზოგე ზედმეტი ფიქრის გარეშე"
+            description="ყველაზე დაბალი ფასი და ფასდაკლება ბარათზევე ჩანს."
           />
         </div>
       </section>
 
-      {/* ─── SHOPS ─────────────────────────────────────── */}
-      <section className="shell pt-10 pb-12 sm:pt-12 sm:pb-16">
-        <SectionBar
-          eyebrow="მაღაზიები"
-          title="ჩვენი წყაროები"
-          href="/shops"
-          action="ყველა მაღაზია"
-        />
+      <section className="shell pb-12 pt-10 sm:pb-16 sm:pt-12">
+        <SectionBar eyebrow="წყაროები" title="მაღაზიები, რომლებსაც ვადარებთ" href="/shops" action="ყველა მაღაზია" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {activeShops.slice(0, 3).map((shop) => (
             <ShopCard key={shop.id} shop={shop} />
           ))}
         </div>
       </section>
-
     </div>
   );
 }
-
-/* ── helpers ──────────────────────────────────────────────── */
 
 function selectHomeDeals(products: Awaited<ReturnType<typeof listPublicProducts>>) {
   const featured = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, requireFeaturedComparison: true });
@@ -239,7 +221,14 @@ function uniqueProducts(products: Awaited<ReturnType<typeof listPublicProducts>>
   return [...new Map(products.map((p) => [p.id, p])).values()];
 }
 
-/* ── micro components ─────────────────────────────────────── */
+function HeroStat({ label, value }: { label: string; value: number | null | undefined }) {
+  return (
+    <div className="rounded-2xl border border-white/12 bg-white/8 p-3">
+      <p className="text-2xl font-black leading-none text-white">{(value ?? 0).toLocaleString()}</p>
+      <p className="mt-1 text-[11px] font-bold text-white/58">{label}</p>
+    </div>
+  );
+}
 
 function SectionBar({
   eyebrow,
@@ -255,21 +244,18 @@ function SectionBar({
   dealCount?: number | null;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-3 border-b border-[#e2e8f0] pb-3">
+    <div className="mb-5 flex items-end justify-between gap-3">
       <div>
-        <p className="eyebrow text-[#65a30d]">{eyebrow}</p>
-        <h2 className="mt-1 text-xl font-black tracking-tight text-[#0f172a] sm:text-2xl">{title}</h2>
+        <p className="eyebrow text-[var(--accent-strong)]">{eyebrow}</p>
+        <h2 className="mt-1 text-2xl font-black text-[var(--brand)] sm:text-3xl">{title}</h2>
       </div>
       <div className="flex shrink-0 items-center gap-3">
         {dealCount != null && (
-          <span className="hidden text-xs font-bold text-[#64748b] sm:inline">
+          <span className="hidden rounded-full bg-white px-3 py-1 text-xs font-black text-[var(--muted)] sm:inline">
             {dealCount.toLocaleString()} აქცია
           </span>
         )}
-        <Link
-          href={href}
-          className="inline-flex items-center gap-1 text-sm font-bold text-[#0f172a] hover:text-[#65a30d]"
-        >
+        <Link href={href} className="inline-flex h-10 items-center gap-1 rounded-full bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black">
           {action}
           <ArrowRight className="size-4" />
         </Link>
@@ -288,15 +274,75 @@ function TrustItem({
   description: string;
 }) {
   return (
-    <div className="flex items-start gap-3 px-1 py-3 sm:px-5">
-      <span className="grid size-9 shrink-0 place-items-center rounded-md bg-[#ecfccb] text-[#65a30d]">
+    <div className="flex items-start gap-3 px-1 py-4 sm:px-5">
+      <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--brand)]">
         <Icon className="size-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-black text-[#0f172a]">{title}</p>
-        <p className="mt-0.5 text-xs leading-5 text-[#64748b]">{description}</p>
+        <p className="text-sm font-black text-[var(--brand)]">{title}</p>
+        <p className="mt-0.5 text-xs leading-5 text-[var(--muted)]">{description}</p>
       </div>
     </div>
+  );
+}
+
+function HeroProduct({ product }: { product: ProductView }) {
+  const offer = product.offers[0];
+  if (!offer) return null;
+
+  const discount = Math.max(...product.offers.map((item) => item.discountPercent), 0);
+  const image = offer.imageUrl ?? product.imageUrl;
+  const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
+
+  return (
+    <article className="glass-panel group overflow-hidden rounded-3xl">
+      <Link href={`/products/${product.slug}`} className="relative block">
+        <ProductImage src={image} alt={product.name} priority tall />
+        <span className="absolute left-3 top-3 inline-flex rounded-full bg-[var(--accent)] px-3 py-1 text-[11px] font-black text-[var(--accent-ink)]">
+          რჩეული ფასი
+        </span>
+        {discount > 0 ? (
+          <span className="absolute right-3 top-3">
+            <DiscountBadge percent={discount} />
+          </span>
+        ) : null}
+      </Link>
+      <div className="grid gap-3 p-4">
+        <div className="flex items-center gap-2">
+          <ShopMark shop={offer.shop} size="sm" />
+          <span className="min-w-0 flex-1 truncate text-xs font-black text-white">{offer.shop.name}</span>
+          <AvailabilityBadge availability={offer.availability} />
+        </div>
+        <Link href={`/products/${product.slug}`} className="line-clamp-2 text-lg font-black leading-snug text-white hover:text-[var(--accent)]">
+          {product.name}
+        </Link>
+        <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} tone="light" />
+        <div className="flex items-center gap-2 text-xs font-bold text-white/64">
+          <Store className="size-3.5" />
+          <span>{shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : `${product.offerCount ?? product.offers.length} შეთავაზება`}</span>
+          <LastUpdatedText value={offer.lastSeenAt} className="ml-auto text-white/58" />
+        </div>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <Link href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-2xl bg-white px-4 text-sm font-black text-[var(--brand)] hover:bg-[var(--accent)]">
+            ფასის შედარება
+          </Link>
+          <ShopClickLink
+            offerId={offer.id}
+            productId={product.id}
+            productName={product.name}
+            category={product.category?.slug}
+            shopName={offer.shop.name}
+            price={offer.currentPrice}
+            sourceUrl={offer.url}
+            ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
+            title="მაღაზიაში ნახვა"
+            className="grid size-11 place-items-center rounded-2xl border border-white/20 bg-white/10 text-white hover:bg-white/18"
+          >
+            <ArrowUpRight className="size-4" />
+          </ShopClickLink>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -310,58 +356,50 @@ function FeaturedDeal({ product }: { product: ProductView }) {
   const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-md border border-[#0f172a] bg-white">
-      <Link href={`/products/${product.slug}`} className="relative block overflow-hidden border-b border-[#f1f5f9]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-[var(--brand)] bg-white shadow-[0_18px_42px_rgba(18,19,15,0.12)]">
+      <Link href={`/products/${product.slug}`} className="relative block overflow-hidden border-b border-[var(--line)]">
         <ProductImage src={image} alt={product.name} priority tall />
-        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-sm bg-[#0f172a] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-[#84cc16]">
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-[var(--brand)] px-3 py-1 text-[10px] font-black uppercase text-[var(--accent)]">
           დღის ლიდერი
         </span>
         {discount > 0 && (
-          <span className="absolute right-2 top-2">
+          <span className="absolute right-3 top-3">
             <DiscountBadge percent={discount} />
           </span>
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
+      <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-bold">
+          <span className="inline-flex min-w-0 items-center gap-2 text-[11px] font-black">
             <ShopMark shop={offer.shop} size="sm" />
-            <span className="truncate text-[#0f172a]">{offer.shop.name}</span>
+            <span className="truncate text-[var(--brand)]">{offer.shop.name}</span>
           </span>
           <AvailabilityBadge availability={offer.availability} />
         </div>
 
-        <Link
-          href={`/products/${product.slug}`}
-          className="line-clamp-2 text-sm font-bold leading-snug text-[#0f172a] hover:text-[#65a30d] sm:text-base"
-        >
+        <Link href={`/products/${product.slug}`} className="line-clamp-2 text-base font-black leading-snug text-[var(--brand)] hover:text-[var(--accent-strong)]">
           {product.name}
         </Link>
 
         <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} />
 
         {savings > 0 && (
-          <span className="inline-flex w-fit items-center gap-1 rounded-sm bg-[#ecfdf5] px-1.5 py-0.5 text-[11px] font-black text-[#15803d]">
+          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[var(--savings-soft)] px-2 py-1 text-[11px] font-black text-[var(--savings)]">
             <TrendingDown className="size-3" /> დაზოგე {formatGel(savings)}
           </span>
         )}
 
-        <div className="mt-auto flex items-center gap-1.5 border-t border-[#e2e8f0] pt-2 text-[11px] font-bold text-[#64748b]">
+        <div className="mt-auto flex items-center gap-1.5 border-t border-[var(--line)] pt-3 text-[11px] font-bold text-[var(--muted)]">
           <Store className="size-3 shrink-0" />
           <span className="min-w-0 truncate">
-            {shopCount > 1
-              ? <span className="font-black text-[#0f172a]">{shopCount} მაღაზია</span>
-              : `${product.offerCount ?? product.offers.length} შეთავაზება`}
+            {shopCount > 1 ? <span className="font-black text-[var(--brand)]">{shopCount} მაღაზია</span> : `${product.offerCount ?? product.offers.length} შეთავაზება`}
           </span>
           <LastUpdatedText value={offer.lastSeenAt} className="ml-auto shrink-0" />
         </div>
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Link
-            href={`/products/${product.slug}`}
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-[#0f172a] px-3 text-sm font-bold text-white hover:bg-black"
-          >
+          <Link href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-2xl bg-[var(--brand)] px-3 text-sm font-black text-white hover:bg-black">
             შეადარე ფასი
           </Link>
           <ShopClickLink
@@ -374,7 +412,7 @@ function FeaturedDeal({ product }: { product: ProductView }) {
             sourceUrl={offer.url}
             ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
             title="მაღაზიაში ნახვა"
-            className="grid h-10 w-10 place-items-center rounded-md border border-[#e2e8f0] bg-white text-[#0f172a] hover:border-[#84cc16] hover:bg-[#ecfccb]"
+            className="grid size-11 place-items-center rounded-2xl border border-[var(--line)] bg-white text-[var(--brand)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
           >
             <ArrowUpRight className="size-4" />
           </ShopClickLink>

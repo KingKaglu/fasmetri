@@ -17,27 +17,25 @@ export function MobileBottomNav() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 md:hidden">
-      {/* Sticky search bar above the tab bar */}
-      <div className="border-t border-[#e2e8f0] bg-white px-3 py-2">
-        <form action="/search" className="flex h-11 items-center overflow-hidden rounded-md border border-[#0f172a]">
-          <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
-            <Search className="size-4 shrink-0 text-[#64748b]" />
+      <div className="border-t border-[var(--line)] bg-white/95 px-3 py-2 backdrop-blur">
+        <form action="/search" className="flex h-11 items-center overflow-hidden rounded-2xl border border-[var(--brand)] bg-white">
+          <label className="flex min-w-0 flex-1 items-center gap-2 px-2 min-[380px]:px-3">
+            <Search className="size-4 shrink-0 text-[var(--muted)]" />
             <input
               name="q"
-              aria-label="პროდუქტის ძიება"
+              aria-label="პროდუქტის ძებნა"
               placeholder="მოძებნე პროდუქტი..."
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
+              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
             />
           </label>
-          <button className="h-full shrink-0 bg-[#84cc16] px-5 text-sm font-black text-[#1a2e05]">
+          <button className="h-full shrink-0 bg-[var(--accent)] px-3 text-sm font-black text-[var(--accent-ink)] min-[380px]:px-5">
             ძებნა
           </button>
         </form>
       </div>
 
-      {/* Tab bar */}
       <nav
-        className="border-t border-[#e2e8f0] bg-white px-2 pt-1.5"
+        className="border-t border-[var(--line)] bg-white/95 px-2 pt-1.5 backdrop-blur"
         style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}
       >
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
@@ -48,14 +46,11 @@ export function MobileBottomNav() {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`grid min-h-12 place-items-center rounded-md px-1 text-[10px] font-bold ${
-                  active ? "text-[#0f172a]" : "text-[#64748b] hover:text-[#0f172a]"
+                className={`grid min-h-12 place-items-center rounded-xl px-1 text-[10px] font-black ${
+                  active ? "bg-[var(--accent-soft)] text-[var(--brand)]" : "text-[var(--muted)] hover:text-[var(--brand)]"
                 }`}
               >
-                <Icon
-                  className={`mb-0.5 size-5 ${active ? "text-[#0f172a]" : "text-[#94a3b8]"}`}
-                  strokeWidth={active ? 2.5 : 2}
-                />
+                <Icon className={`mb-0.5 size-5 ${active ? "text-[var(--brand)]" : "text-[var(--muted)]"}`} strokeWidth={active ? 2.7 : 2.2} />
                 <span className="truncate">{label}</span>
               </Link>
             );

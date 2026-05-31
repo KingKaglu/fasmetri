@@ -1,17 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search, X } from "lucide-react";
+import { BadgePercent, Grid3X3, Menu, Search, Store, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 
 const links = [
-  ["/", "მთავარი"],
   ["/deals", "აქციები"],
   ["/categories", "კატეგორიები"],
   ["/shops", "მაღაზიები"],
-  ["/about", "ჩვენ შესახებ"],
+  ["/about", "როგორ მუშაობს"],
 ];
 
 export function SiteHeader() {
@@ -20,61 +19,71 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 site-header">
-      {/* Top thin navy strip — promo line */}
-      <div className="hidden bg-[#0f172a] text-white md:block">
-        <div className="shell flex h-8 items-center justify-between text-[11px] font-semibold">
-          <span className="text-slate-300">ფასები რეგულარულად მოწმდება — ყიდვამდე გადაამოწმე მაღაზიის საიტზე</span>
-          <div className="flex items-center gap-5 text-slate-300">
-            <Link href="/about" className="hover:text-white">ჩვენ შესახებ</Link>
+      <div className="hidden border-b border-white/10 bg-[var(--brand)] text-white md:block">
+        <div className="shell flex h-8 items-center justify-between text-[11px] font-bold">
+          <span className="text-white/72">ფასები რეგულარულად მოწმდება, ყიდვამდე საბოლოო ფასი მაღაზიის საიტზე გადაამოწმე</span>
+          <div className="flex items-center gap-5 text-white/72">
+            <Link href="/deals" className="inline-flex items-center gap-1 hover:text-white">
+              <BadgePercent className="size-3.5" /> დღის ფასდაკლებები
+            </Link>
             <Link href="/contact" className="hover:text-white">კონტაქტი</Link>
           </div>
         </div>
       </div>
 
-      {/* Main bar */}
       <div className="shell flex h-16 items-center gap-3 md:h-[4.5rem]">
-        <div className="mr-2">
-          <BrandLogo compact />
-        </div>
+        <BrandLogo compact />
 
-        {/* Desktop search */}
         <form
           action="/search"
-          className="hidden h-11 min-w-0 flex-1 items-center overflow-hidden rounded-md border border-[#0f172a] bg-white md:flex md:max-w-[36rem]"
+          className="ml-3 hidden h-11 min-w-0 flex-1 items-center overflow-hidden rounded-2xl border border-[var(--line)] bg-white/90 shadow-[0_10px_24px_rgba(18,19,15,0.06)] md:flex md:max-w-[38rem]"
         >
-          <label className="flex min-w-0 flex-1 items-center gap-2 px-3.5">
-            <Search className="size-4 shrink-0 text-[#64748b]" />
+          <label className="flex min-w-0 flex-1 items-center gap-2.5 px-3.5">
+            <Search className="size-4 shrink-0 text-[var(--muted)]" />
             <input
               name="q"
-              aria-label="პროდუქტის ძიება"
-              placeholder="მოძებნე iPhone 17, MacBook, ლეპტოპი..."
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#0f172a] outline-none placeholder:text-[#94a3b8]"
+              aria-label="პროდუქტის ძებნა"
+              placeholder="მოძებნე iPhone, MacBook, Galaxy..."
+              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
             />
           </label>
-          <button className="h-full shrink-0 bg-[#84cc16] px-5 text-sm font-black text-[#1a2e05] hover:bg-[#65a30d] hover:text-white">
+          <button className="h-full shrink-0 bg-[var(--brand)] px-5 text-sm font-black text-white hover:bg-black">
             ძებნა
           </button>
         </form>
 
-        {/* Desktop nav */}
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {links.map(([href, label]) => <NavLink key={href} href={href} label={label} pathname={pathname} />)}
         </nav>
 
-        {/* Mobile menu */}
+        <div className="ml-auto hidden items-center gap-2 md:flex lg:ml-2">
+          <Link
+            href="/search"
+            className="hidden h-10 items-center gap-2 rounded-xl border border-[var(--line)] bg-white/80 px-3 text-xs font-black text-[var(--brand)] hover:border-[var(--brand)] xl:inline-flex"
+          >
+            <Grid3X3 className="size-4" /> კატალოგი
+          </Link>
+          <Link
+            href="/shops"
+            className="hidden h-10 items-center gap-2 rounded-xl bg-[var(--accent)] px-3 text-xs font-black text-[var(--accent-ink)] hover:bg-[#d7ff73] xl:inline-flex"
+          >
+            <Store className="size-4" /> მაღაზიები
+          </Link>
+        </div>
+
         <button
           type="button"
           aria-label="მენიუ"
           title="მენიუ"
           onClick={() => setOpen((value) => !value)}
-          className="ml-auto grid size-10 place-items-center rounded-md border border-[#e2e8f0] bg-white text-[#0f172a] hover:border-[#0f172a] lg:hidden"
+          className="ml-auto grid size-10 place-items-center rounded-xl border border-[var(--line)] bg-white/85 text-[var(--brand)] hover:border-[var(--brand)] lg:hidden"
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
       {open ? (
-        <nav className="shell grid gap-1 border-t border-[#e2e8f0] py-3 lg:hidden">
+        <nav className="shell grid gap-1 border-t border-[var(--line)] py-3 lg:hidden">
           {links.map(([href, label]) => (
             <NavLink key={href} href={href} label={label} pathname={pathname} mobile onClick={() => setOpen(false)} />
           ))}
@@ -104,13 +113,11 @@ function NavLink({
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       className={`${
-        mobile
-          ? "px-3 py-2.5 text-sm"
-          : "px-3 py-2 text-[13px]"
-      } rounded-md font-bold ${
+        mobile ? "px-3 py-2.5 text-sm" : "px-3 py-2 text-[13px]"
+      } rounded-xl font-black ${
         active
-          ? "bg-[#0f172a] text-white"
-          : "text-[#0f172a] hover:bg-[#f1f5f9]"
+          ? "bg-[var(--brand)] text-white shadow-[0_10px_22px_rgba(18,19,15,0.12)]"
+          : "text-[var(--brand)] hover:bg-white"
       }`}
     >
       {label}

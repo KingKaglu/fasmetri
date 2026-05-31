@@ -1,40 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #f7f8f4;
+  --foreground: #12130f;
   --surface: #ffffff;
-  --surface-soft: #f8fafc;
-  --surface-mute: #f1f5f9;
-  --line: #e2e8f0;
-  --line-strong: #cbd5e1;
-  --muted: #64748b;
-  --muted-strong: #475569;
+  --surface-soft: #f1f4ec;
+  --surface-mute: #e8eee0;
+  --surface-ink: #151713;
+  --line: #dde4d4;
+  --line-strong: #bdc9b2;
+  --muted: #697260;
+  --muted-strong: #4b5445;
 
-  /* New brand: deep navy + lime accent */
-  --brand: #0f172a;
-  --brand-soft: #1e293b;
-  --brand-ink: #0f172a;
-  --accent: #84cc16;
-  --accent-strong: #65a30d;
-  --accent-soft: #ecfccb;
-  --accent-ink: #1a2e05;
+  --brand: #151713;
+  --brand-soft: #242820;
+  --brand-ink: #ffffff;
+  --accent: #bbf451;
+  --accent-strong: #7fc21d;
+  --accent-soft: #effbd7;
+  --accent-ink: #19240c;
+  --aqua: #10bfd0;
+  --aqua-soft: #ddf9fb;
 
-  --price: #0f172a;
-  --price-deal: #b91c1c;
-  --savings: #15803d;
-  --savings-soft: #ecfdf5;
+  --price: #11130f;
+  --price-deal: #d9412f;
+  --savings: #1c8b43;
+  --savings-soft: #e6f8ed;
+  --danger: #d9412f;
+  --warn: #a45a12;
+  --warn-soft: #fff3df;
 
-  --danger: #dc2626;
-  --warn: #c2410c;
-  --warn-soft: #fff7ed;
+  --radius-card: 0.75rem;
+  --radius-control: 0.75rem;
+  --radius-chip: 999px;
 
-  --radius-card: 0.5rem;
-  --radius-control: 0.5rem;
-  --radius-chip: 0.25rem;
-
-  --shadow-card: 0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-card-hover: 0 1px 0 rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 1px 0 rgba(18, 19, 15, 0.06), 0 12px 30px rgba(18, 19, 15, 0.08);
+  --shadow-card-hover: 0 1px 0 rgba(18, 19, 15, 0.08), 0 22px 54px rgba(18, 19, 15, 0.14);
 }
 
 @theme inline {
@@ -44,13 +45,17 @@
 
 html {
   overflow-x: hidden;
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
+  min-width: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(187, 244, 81, 0.18), transparent 26rem),
+    linear-gradient(180deg, #fbfcf7 0%, var(--background) 24rem);
   color: var(--foreground);
   font-family: "Inter", "Noto Sans Georgian", "Segoe UI", Arial, Helvetica, sans-serif;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -65,106 +70,106 @@ button,
 input,
 select,
 textarea {
-  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 :is(a, button, input, select, textarea):focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
+  outline: 2px solid var(--aqua);
+  outline-offset: 3px;
 }
 
 .shell {
   margin-inline: auto;
-  width: min(100% - 2rem, 86rem);
+  width: min(100% - 2rem, 88rem);
 }
 
 @media (max-width: 640px) {
   .shell {
-    width: min(calc(100vw - 1rem), 86rem);
+    width: min(calc(100vw - 0.75rem), 88rem);
   }
 }
 
-/* ──────────────────────────── Surfaces ──────────────────────────── */
+@media (max-width: 340px) {
+  .shell {
+    width: min(calc(100vw - 0.5rem), 88rem);
+  }
+}
 
 .surface-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(221, 228, 212, 0.9);
   border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-card);
 }
 
 .surface-flat {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(221, 228, 212, 0.95);
   border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .surface-mute {
+  border-radius: var(--radius-card);
   background: var(--surface-mute);
-  border-radius: var(--radius-card);
 }
 
-.brand-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+.glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(18px);
 }
-
-/* ──────────────────────────── Header ──────────────────────────── */
 
 .site-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(221, 228, 212, 0.82);
+  background: rgba(247, 248, 244, 0.88);
+  backdrop-filter: blur(18px);
 }
-
-.header-rule {
-  background: var(--brand);
-  color: #fff;
-}
-
-/* ──────────────────────────── Buttons / Chips ──────────────────────────── */
 
 .btn-primary {
+  border-radius: var(--radius-control);
   background: var(--brand);
   color: #fff;
-  font-weight: 700;
-  border-radius: var(--radius-control);
+  font-weight: 800;
 }
 .btn-primary:hover {
+  transform: translateY(-1px);
   background: #000;
+  box-shadow: 0 14px 28px rgba(18, 19, 15, 0.16);
 }
 
 .btn-accent {
+  border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--accent-ink);
-  font-weight: 800;
-  border-radius: var(--radius-control);
+  font-weight: 900;
 }
 .btn-accent:hover {
-  background: var(--accent-strong);
-  color: #fff;
+  transform: translateY(-1px);
+  background: #d7ff73;
+  box-shadow: 0 14px 28px rgba(127, 194, 29, 0.22);
 }
 
 .btn-outline {
-  background: var(--surface);
-  color: var(--brand);
   border: 1px solid var(--line);
-  font-weight: 700;
   border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--brand);
+  font-weight: 800;
 }
 .btn-outline:hover {
   border-color: var(--brand);
+  transform: translateY(-1px);
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.125rem 0.4rem;
-  font-size: 0.6875rem;
-  font-weight: 800;
   border-radius: var(--radius-chip);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 900;
   line-height: 1;
 }
 
@@ -179,9 +184,9 @@ textarea {
 }
 
 .chip-savings {
+  border: 1px solid #bfeecf;
   background: var(--savings-soft);
   color: var(--savings);
-  border: 1px solid #bbf7d0;
 }
 
 .chip-muted {
@@ -189,56 +194,58 @@ textarea {
   color: var(--muted-strong);
 }
 
-/* ──────────────────────────── Filters ──────────────────────────── */
-
-.filter-control {
-  min-height: 2.5rem;
-  width: 100%;
-  border-radius: var(--radius-control);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding-inline: 0.625rem;
-  font-weight: 600;
-}
-
+.filter-control,
 .contact-control {
   min-height: 2.75rem;
   width: 100%;
   border-radius: var(--radius-control);
   border: 1px solid var(--line);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.9);
   padding-inline: 0.75rem;
-  color: var(--muted);
+  font-weight: 700;
 }
 
-/* ──────────────────────────── Section dividers ──────────────────────────── */
+.filter-control:focus,
+.contact-control:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(16, 191, 208, 0.14);
+  outline: none;
+}
 
 .section-rule {
-  background: var(--line);
   height: 1px;
+  background: var(--line);
 }
 
 .eyebrow {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted-strong);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-/* ──────────────────────────── Hero ──────────────────────────── */
-
-.hero-band {
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
-
-.hero-band-dark {
-  background: var(--brand);
+.hero-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, rgba(21, 23, 19, 0.97), rgba(31, 37, 27, 0.96)),
+    radial-gradient(circle at 78% 18%, rgba(187, 244, 81, 0.24), transparent 22rem);
   color: #fff;
 }
 
-/* ──────────────────────────── Product marquee (kept) ──────────────────────────── */
+.hero-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(90deg, #000, transparent 84%);
+  pointer-events: none;
+}
 
 .product-marquee {
   overflow: hidden;
@@ -269,42 +276,38 @@ textarea {
   width: 14rem;
 }
 
-/* ──────────────────────────── Mobile bottom dock ──────────────────────────── */
-
 .mobile-bottom-safe {
   padding-bottom: max(8.25rem, calc(env(safe-area-inset-bottom) + 8rem));
 }
 
-/* ──────────────────────────── Product grids ──────────────────────────── */
-
-.product-grid-dense {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+.product-grid-dense,
+.product-grid-catalog {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
 }
 
-.product-grid-catalog {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+@media (min-width: 380px) {
+  .product-grid-dense,
+  .product-grid-catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
 }
 
 @media (min-width: 540px) {
-  .product-grid-catalog {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.625rem;
-  }
+  .product-grid-catalog,
   .product-grid-dense {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
   }
 }
 
 @media (min-width: 768px) {
   .product-grid-dense {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
   }
   .product-grid-catalog {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
   }
 }
 
@@ -318,9 +321,7 @@ textarea {
 }
 
 @media (min-width: 1280px) {
-  .product-grid-dense {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
+  .product-grid-dense,
   .product-grid-catalog {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
@@ -328,32 +329,30 @@ textarea {
 
 @keyframes product-marquee-left {
   from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
-/* Bottom dock (search + tab bar) is md:hidden — pad content so it's not obscured */
 @media (max-width: 767px) {
   main {
     padding-bottom: max(8.25rem, calc(env(safe-area-inset-bottom) + 8rem));
   }
 }
 
-/* ──────────────────────────── Category rail ──────────────────────────── */
-
 .category-rail {
+  max-width: 100%;
+  overflow-x: auto;
+  contain: layout paint;
+  overscroll-behavior-inline: contain;
   scrollbar-width: none;
 }
 .category-rail::-webkit-scrollbar {
   display: none;
 }
 
-/* ──────────────────────────── Price emphasis ──────────────────────────── */
-
 .price-now {
   color: var(--price);
-  font-weight: 900;
+  font-weight: 950;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 
 .price-now-deal {
@@ -362,7 +361,7 @@ textarea {
 
 .price-old {
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: line-through;
   font-variant-numeric: tabular-nums;
 }
