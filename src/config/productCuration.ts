@@ -429,9 +429,23 @@ function isPublicOffer(offer: OfferView) {
     offer.currentPrice > 0 &&
     Number.isFinite(offer.currentPrice) &&
     isRealProductOfferUrl(offer.url) &&
+    !isOutletOfferUrl(offer.url) &&
     offer.matchStatus === "CONFIRMED" &&
     offer.verificationStatus === "CONFIRMED" &&
     (offer.matchConfidence == null || offer.matchConfidence >= 90);
+}
+
+// EE (and similar) outlet / open-box listings live under an `/autleti/` path.
+// They are a different condition (used/returned/display) and must not be
+// compared against new-product prices, so they are excluded from the public
+// catalog — otherwise a cheaper outlet unit would masquerade as the shop's
+// new price. See the EE outlet special case in CLAUDE.md.
+function isOutletOfferUrl(value: string) {
+  try {
+    return /\/autleti(\/|$)/i.test(new URL(value).pathname);
+  } catch {
+    return false;
+  }
 }
 
 // An offer is only shown publicly if its URL points to a real product page.
