@@ -34,8 +34,10 @@ export function buildParentKey(identity: ProductIdentity) {
   if (identity.productType === "mobile_phone" || identity.productType === "tablet") {
     if (!identity.brand || !identity.model || !identity.storage) return undefined;
     const ram = phoneRamBelongsInParentKey(identity) ? identity.ram : undefined;
-    const sim = identity.simType === "esim_only" ? "esim_only" : undefined;
-    return key([identity.brand, identity.model, ram, identity.storage, sim]);
+    // e-SIM-only labelling is descriptive (most new flagships ship eSIM-only),
+    // not a separate purchasable variant — folding it into the key split single
+    // models into duplicate products, so it is intentionally excluded.
+    return key([identity.brand, identity.model, ram, identity.storage]);
   }
 
   if (identity.productType === "laptop") {

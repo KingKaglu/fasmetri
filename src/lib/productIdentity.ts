@@ -122,8 +122,8 @@ export function buildCanonicalProductKey(identity: Omit<ProductIdentity, "canoni
   if (identity.productType === "mobile_phone" || identity.productType === "tablet") {
     if (!brand || !model || !identity.storage) return undefined;
     const ram = ramBelongsInPhoneKey(identity) ? identity.ram : undefined;
-    const sim = identity.simType === "esim_only" ? "esim_only" : undefined;
-    return key([brand, model, ram, identity.storage, identity.color, sim]);
+    // e-SIM-only labelling is descriptive, not a separate variant (see buildParentKey).
+    return key([brand, model, ram, identity.storage, identity.color]);
   }
   if (identity.productType === "laptop") {
     if (!brand) return undefined;
