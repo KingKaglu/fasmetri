@@ -147,6 +147,13 @@ function modelFamily(signal: string) {
   }
   const xiaomiRedmiStyle = signal.match(/\bxiaomi\s*(14c)\b/);
   if (xiaomiRedmiStyle) return compactModel("redmi", xiaomiRedmiStyle[1]);
+
+  if (/\biphone\s+air\b/.test(signal)) return "iphone_air";
+  const redmagic = signal.match(/\bredmagic\s*(\d+)\s*(air|pro)?/);
+  if (redmagic) return compactModel("nubia_redmagic", redmagic[1], redmagic[2]);
+  const realmeNote = signal.match(/\brealme\s+note\s+(\d+[a-z]?)/);
+  if (realmeNote) return compactModel("realme_note", realmeNote[1]);
+
   const genericPhone = signal.match(/\b(xiaomi|vivo|realme|oppo|zte|nubia|hmd)\s*([a-z]?\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|lite|max))?\b/);
   if (genericPhone) return compactModel(genericPhone[1], genericPhone[2], genericPhone[3]);
 

@@ -685,6 +685,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "ტელეფონი",
     ],
     negativeKeywords: [
+      "finewoven", "wallet", "polishing cloth", "polishing", "band ", "bullets", "smarttag", "smart tag", "galaxy fit", "fit 3", "combo box", "borofone", "hoco", "honor choice", "pencil", "ef-z", "ef-p", "ef-o", "gp-f",
       "case",
       "cover",
       "screen protector",
