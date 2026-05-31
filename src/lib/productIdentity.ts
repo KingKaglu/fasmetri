@@ -126,11 +126,13 @@ export function buildCanonicalProductKey(identity: Omit<ProductIdentity, "canoni
     return key([brand, model, ram, identity.storage, identity.color, sim]);
   }
   if (identity.productType === "laptop") {
-    if (!brand || !model) return undefined;
+    if (!brand) return undefined;
+    // Laptop SKU / model code uniquely identifies the configuration, so it can
+    // stand in for a missing marketing model name.
     if (identity.modelCode || identity.sku) {
       return key([brand, model, identity.modelCode ?? identity.sku, identity.cpu, identity.ram, identity.storage, identity.color]);
     }
-    if (identity.cpu && identity.ram && identity.storage) {
+    if (model && identity.cpu && identity.ram && identity.storage) {
       return key([brand, model, identity.cpu, identity.ram, identity.storage, identity.color]);
     }
     return undefined;
