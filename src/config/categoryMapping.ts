@@ -576,7 +576,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "msi creator",
       "msi vector",
     ],
-    negativeKeywords: ["laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag"],
+    negativeKeywords: ["laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station"],
     contextKeywords: ["portable computer", "leptopebi", "laptop"],
     shopKeywords: ["laptop", "leptop"],
     titleWeight: 90,
