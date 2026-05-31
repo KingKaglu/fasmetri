@@ -176,6 +176,16 @@ function modelFamily(signal: string) {
   const hpOmnibook = signal.match(/\bhp\s*omnibook\s*([a-z0-9]+)?\s*(flip|x360)?\s*(\d{2})?/);
   if (hpOmnibook) return compactModel("hp_omnibook", [hpOmnibook[1], hpOmnibook[2], hpOmnibook[3]].filter(Boolean).join("_") || "base");
 
+  // HP business laptop families that carry no separate SKU in the store title
+  // (EliteBook/ProBook/ZBook). The title reads "<family> <series> G<gen> <screen>"
+  // e.g. "EliteBook 8 G1i 14"; capture series + G-generation + screen size so
+  // 14" and 16" builds of the same line stay distinct products. Code-bearing HP
+  // families (Victus/OmniBook/Pavilion) are intentionally left to the SKU path.
+  const hpBusiness = signal.match(/\bhp\s+(elitebook|probook|zbook)\b\s*(ultra|x|\d{1,4})?\s*(g\d{1,2}[a-z]?)?\s*(\d{2})?/);
+  if (hpBusiness) {
+    return compactModel(`hp_${hpBusiness[1]}`, [hpBusiness[2], hpBusiness[3], hpBusiness[4]].filter(Boolean).join("_") || "base");
+  }
+
   const msiLaptop = signal.match(/\bmsi\s*(modern|katana|sword|thin|prestige|stealth|raider|cyborg)\s*([a-z0-9]+)?/);
   if (msiLaptop) return compactModel("msi", msiLaptop[1], msiLaptop[2]);
 
