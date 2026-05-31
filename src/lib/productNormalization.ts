@@ -115,12 +115,18 @@ function modelFamily(signal: string) {
     if (pattern.test(signal)) return alias;
   }
 
-  const iphone = signal.match(/\biphone\s*(\d{1,2})(?:\s*(pro max|pro|plus|mini|se|air))?\b/);
+  // iPhone "<n>e" budget models (16e) — the trailing letter is part of the model.
+  const iphone = signal.match(/\biphone\s*(\d{1,2}e?)(?:\s*(pro max|pro|plus|mini|se|air))?\b/);
   if (iphone) return compactModel("iphone", iphone[1], iphone[2]);
 
-  const galaxy = signal.match(/\b(?:samsung\s*)?galaxy\s*(s|z|a)\s*-?(\d{1,3})(?:\s*(ultra|fe|plus|flip|fold))?\b/);
+  // Galaxy foldables read "Z Fold N" / "Z Flip N" (form factor before the number).
+  const galaxyFold = signal.match(/\b(?:samsung\s*)?galaxy\s*z\s*(fold|flip)\s*-?(\d{1,2})/);
+  if (galaxyFold) return `galaxy_z_${galaxyFold[1]}_${galaxyFold[2]}`;
+
+  // A trailing letter (A05S vs A05) is part of the model, so allow it after the number.
+  const galaxy = signal.match(/\b(?:samsung\s*)?galaxy\s*(s|z|a)\s*-?(\d{1,3}[a-z]?)(?:\s*(ultra|fe|plus|flip|fold))?\b/);
   if (galaxy) return compactModel("galaxy", `${galaxy[1]}${galaxy[2]}`, galaxy[3]);
-  const samsung = signal.match(/\bsamsung\s*(s|z|a)\s*-?(\d{1,3})(?:\s*(ultra|fe|plus|flip|fold))?\b/);
+  const samsung = signal.match(/\bsamsung\s*(s|z|a)\s*-?(\d{1,3}[a-z]?)(?:\s*(ultra|fe|plus|flip|fold))?\b/);
   if (samsung) return compactModel("galaxy", `${samsung[1]}${samsung[2]}`, samsung[3]);
 
   const pixel = signal.match(/\bpixel\s*(\d{1,2})(?:\s*(pro xl|pro|a))?\b/);
@@ -149,6 +155,10 @@ function modelFamily(signal: string) {
 
   const nothing = signal.match(/\bnothing\s*phone\s*([a-z]?\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|lite|max))?\b/);
   if (nothing) return compactModel("nothing_phone", nothing[1], nothing[2]);
+
+  // Motorola RAZR foldables named by form factor ("RAZR Fold") rather than a number.
+  const razrFold = signal.match(/\b(?:motorola\s*)?razr\s*(fold|flip)\b/);
+  if (razrFold) return compactModel("motorola_razr", razrFold[1]);
 
   const motorola = signal.match(/\b(?:motorola\s*)?(moto|razr|edge|signature)\s*([a-z]?\d+[a-z0-9]*)(?:\s*(power|fusion|pro|ultra|plus|fe|lite|max))?\b/);
   if (motorola) return compactModel(`motorola_${motorola[1]}`, motorola[2], motorola[3]);
