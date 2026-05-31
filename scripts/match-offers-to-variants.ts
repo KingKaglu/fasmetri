@@ -251,12 +251,23 @@ async function findOrCreateLegacyVariantProduct(raw: RawOfferForVariant, identit
     return db.product.update({ where: { id: existing.id }, data });
   }
 
-  return db.product.create({
-    data: {
-      ...data,
-      slug: stableSlug(raw.originalTitle, identity.canonicalVariantKey),
-    } as Prisma.ProductUncheckedCreateInput,
-  });
+  const baseSlug = stableSlug(raw.originalTitle, identity.canonicalVariantKey);
+  try {
+    return await db.product.create({
+      data: { ...data, slug: baseSlug } as Prisma.ProductUncheckedCreateInput,
+    });
+  } catch (error) {
+    // Two distinct variants (different canonical keys) can slugify to the same
+    // string, which would drop one on the unique(slug) constraint. Disambiguate
+    // with a short hash of the unique canonical variant key so both survive.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const suffix = createHash("sha1").update(identity.canonicalVariantKey).digest("hex").slice(0, 6);
+      return db.product.create({
+        data: { ...data, slug: `${baseSlug}-${suffix}` } as Prisma.ProductUncheckedCreateInput,
+      });
+    }
+    throw error;
+  }
 }
 
 async function markReview(rawOfferId: string, message: string) {
