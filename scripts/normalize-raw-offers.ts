@@ -22,7 +22,7 @@ async function main() {
             { normalizedTitle: { contains: options.q.toLocaleLowerCase(), mode: "insensitive" } },
           ]
         : undefined,
-      rawCategory: options.category ? { contains: options.category, mode: "insensitive" } : undefined,
+      categorySlug: options.category ? options.category : undefined,
       status: { notIn: ["EXCLUDED", "UNABLE_TO_FETCH"] },
     },
     include: { shop: { select: { slug: true } } },

@@ -169,7 +169,7 @@ function modelFamily(signal: string) {
   if (appleWatch) return "apple_watch";
 
   // Apple laptops
-  const macbook = signal.match(/\bmacbook\s*(air|pro)\s*(\d{2})?/);
+  const macbook = signal.match(/\bmacbook\s*(air|pro|neo)\s*(\d{2})?/);
   if (macbook) return `macbook_${macbook[1]}_${macbook[2] ?? "any"}`;
 
   // Laptop model families
@@ -181,9 +181,9 @@ function modelFamily(signal: string) {
   // e.g. "EliteBook 8 G1i 14"; capture series + G-generation + screen size so
   // 14" and 16" builds of the same line stay distinct products. Code-bearing HP
   // families (Victus/OmniBook/Pavilion) are intentionally left to the SKU path.
-  const hpBusiness = signal.match(/\bhp\s+(elitebook|probook|zbook)\b\s*(ultra|x|\d{1,4})?\s*(g\d{1,2}[a-z]?)?\s*(\d{2})?/);
+  const hpBusiness = signal.match(/\bhp\s+(elitebook|probook|zbook)\b\s*(ultra|x|\d{1,4})?\s*(flip|x360)?\s*(g\d{1,2}[a-z]?)?\s*(\d{2})?/);
   if (hpBusiness) {
-    return compactModel(`hp_${hpBusiness[1]}`, [hpBusiness[2], hpBusiness[3], hpBusiness[4]].filter(Boolean).join("_") || "base");
+    return compactModel(`hp_${hpBusiness[1]}`, [hpBusiness[2], hpBusiness[3], hpBusiness[4], hpBusiness[5]].filter(Boolean).join("_") || "base");
   }
 
   const msiLaptop = signal.match(/\bmsi\s*(modern|katana|sword|thin|prestige|stealth|raider|cyborg)\s*([a-z0-9]+)?/);
