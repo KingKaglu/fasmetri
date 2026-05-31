@@ -138,14 +138,15 @@ async function main() {
       const oldPrice = raw.rawOldPrice == null ? undefined : Number(raw.rawOldPrice);
       const changed = existing ? Number(existing.currentPrice) !== price : true;
 
-      const offer = await db.productOffer.upsert({
+      let offerExternalId: string | null = raw.externalId;
+      const upsertOffer = () => db.productOffer.upsert({
         where: { shopId_url: { shopId: raw.shopId, url: raw.originalUrl } },
         update: {
           productId: product.id,
           parentProductId: parent.id,
           variantId: variant.id,
           rawOfferId: raw.id,
-          externalId: raw.externalId,
+          externalId: offerExternalId,
           title: raw.originalTitle,
           canonicalKey: identity.canonicalVariantKey,
           productIdentity: jsonValue(identity),
@@ -166,7 +167,7 @@ async function main() {
           parentProductId: parent.id,
           variantId: variant.id,
           rawOfferId: raw.id,
-          externalId: raw.externalId,
+          externalId: offerExternalId,
           url: raw.originalUrl,
           title: raw.originalTitle,
           canonicalKey: identity.canonicalVariantKey,
@@ -182,6 +183,26 @@ async function main() {
           lastPriceChangedAt: new Date(),
         },
       });
+
+      let offer: Awaited<ReturnType<typeof upsertOffer>>;
+      try {
+        offer = await upsertOffer();
+      } catch (error) {
+        // Another offer in this shop already owns raw.externalId (e.g. an outlet
+        // and a new listing reuse the same store product id). Drop the duplicate
+        // id rather than losing this offer to unique(shopId, externalId).
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002" &&
+          offerExternalId !== null &&
+          String((error.meta as { target?: unknown } | undefined)?.target ?? "").includes("externalId")
+        ) {
+          offerExternalId = null;
+          offer = await upsertOffer();
+        } else {
+          throw error;
+        }
+      }
 
       if (changed) {
         await db.priceHistory.create({ data: { offerId: offer.id, price, oldPrice } });
