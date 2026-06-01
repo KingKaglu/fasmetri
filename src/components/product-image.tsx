@@ -10,8 +10,13 @@ function wsrvLoader({ src, width, quality }: ImageLoaderProps) {
 
 export function ProductImage({ src, alt, priority = false, tall = false }: { src?: string | null; alt: string; priority?: boolean; tall?: boolean }) {
   const [failed, setFailed] = useState(false);
+  const [direct, setDirect] = useState(false);
   const showImage = Boolean(src) && !failed;
   const isExternalImage = Boolean(src && /^https?:\/\//i.test(src));
+  // Some store CDNs (e.g. pcshop.ge / WordPress) block the wsrv.nl image proxy,
+  // which returns 400 and would leave the card photoless. Fall back to loading
+  // the original image directly before showing the placeholder.
+  const useWsrv = isExternalImage && !direct;
   const shape = tall ? "h-full min-h-[16rem]" : "aspect-square";
 
   return (
@@ -19,15 +24,16 @@ export function ProductImage({ src, alt, priority = false, tall = false }: { src
       <div className="absolute inset-x-4 bottom-5 h-8 rounded-full bg-black/8 blur-xl" />
       {showImage ? (
         <Image
+          key={useWsrv ? "wsrv" : "direct"}
           src={src!}
           alt={alt}
           fill
           sizes={tall ? "(max-width: 1024px) 90vw, 520px" : "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 240px"}
           priority={priority}
           loading={priority ? undefined : "lazy"}
-          loader={isExternalImage ? wsrvLoader : undefined}
-          unoptimized={!isExternalImage}
-          onError={() => setFailed(true)}
+          loader={useWsrv ? wsrvLoader : undefined}
+          unoptimized={!useWsrv}
+          onError={() => (useWsrv ? setDirect(true) : setFailed(true))}
           className="object-contain p-3 transition duration-300 group-hover:scale-[1.05]"
         />
       ) : (
