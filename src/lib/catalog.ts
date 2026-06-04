@@ -29,14 +29,20 @@ export type ProductFilters = {
   candidateLimit?: number;
   page?: number;
   pageSize?: number;
+  paginate?: boolean;
 };
 
 const availabilityValues = new Set(Object.values(OfferAvailability));
 const DEFAULT_PAGE_SIZE = 120;
 const MAX_PAGE_SIZE = 200;
+const confirmedPublicOfferWhere = {
+  matchStatus: "CONFIRMED",
+  verificationStatus: "CONFIRMED",
+} satisfies Prisma.ProductOfferWhereInput;
 const publicOfferWhere = {
   shop: { enabled: true },
   currentPrice: { gt: 0 },
+  ...confirmedPublicOfferWhere,
 } satisfies Prisma.ProductOfferWhereInput;
 
 function numberValue(value: unknown) {
@@ -139,9 +145,9 @@ function productView(product: ProductRecord | ProductSummaryRecord): ProductView
 }
 
 function normalizedCategoryView(product: Pick<ProductRecord | ProductSummaryRecord, "category" | "categorySuggestedSlug" | "categoryNeedsReview">) {
-  if (product.categorySuggestedSlug && !product.categoryNeedsReview) {
+  if (isPublicCategorySlug(product.categorySuggestedSlug) && !product.categoryNeedsReview) {
     const taxonomyCategory = PUBLIC_CATEGORY_TAXONOMY[product.categorySuggestedSlug as keyof typeof PUBLIC_CATEGORY_TAXONOMY];
-    if (taxonomyCategory?.public) {
+    if (taxonomyCategory) {
       return {
         id: product.categorySuggestedSlug,
         slug: product.categorySuggestedSlug,
@@ -175,7 +181,7 @@ function fixtureFilter(filters: ProductFilters) {
 
   if (filters.publicSafe) products = publicProducts(products);
   const visibleProducts = filters.q ? rankSearchResults(products, filters.q, filters.sort) : sortProducts(products, filters.sort);
-  return slicePage(visibleProducts, filters.page, filters.pageSize);
+  return filters.paginate === false ? visibleProducts : slicePage(visibleProducts, filters.page, filters.pageSize);
 }
 
 function sortProducts(products: ProductView[], sort = "lowest") {
@@ -234,6 +240,7 @@ export async function listProducts(filters: ProductFilters = {}) {
   if (!prisma) return fixtureFilter(filters);
 
   try {
+    const shouldPaginate = filters.paginate !== false;
     const currentPage = normalizePage(filters.page);
     const size = normalizePageSize(filters.pageSize);
     const searchTerms = productSearchWhereTerms(filters.q);
@@ -248,13 +255,15 @@ export async function listProducts(filters: ProductFilters = {}) {
         lte: filters.maxPrice,
       },
       discountPercent: { gte: filters.dealsOnly ? Math.max(filters.minDiscount ?? 0, 1) : filters.minDiscount },
+      matchStatus: filters.publicSafe ? "CONFIRMED" : undefined,
+      verificationStatus: filters.publicSafe ? "CONFIRMED" : undefined,
       availability:
         filters.availability && availabilityValues.has(filters.availability as OfferAvailability)
           ? (filters.availability as OfferAvailability)
           : undefined,
     };
     const extraProductFilters = [
-      searchTerms.length ? searchWhere(searchTerms) : undefined,
+      searchTerms.length ? searchWhere(searchTerms, filters.publicSafe ? offerWhere : undefined) : undefined,
       categoryWhere(filters),
     ].filter((filter): filter is Prisma.ProductWhereInput => Boolean(filter && Object.keys(filter).length));
     const products = await prisma.product.findMany({
@@ -284,13 +293,36 @@ export async function listProducts(filters: ProductFilters = {}) {
     const views = products.map(productView);
     const safeProducts = filters.publicSafe ? publicProducts(views) : views;
     const visibleProducts = filters.q ? rankSearchResults(safeProducts, filters.q, filters.sort) : sortProducts(safeProducts, filters.sort);
-    return filters.publicSafe ? slicePage(visibleProducts, currentPage, size) : visibleProducts;
+    const pageResult = filters.publicSafe && shouldPaginate ? slicePage(visibleProducts, currentPage, size) : visibleProducts;
+    return filters.publicSafe ? pageResult.map(slimPublicView) : pageResult;
   } catch {
     return fixtureFilter(filters);
   }
 }
 
-function searchWhere(terms: string[]): Prisma.ProductWhereInput {
+// Public listings (grid + match-count) are memoized with unstable_cache, which
+// rejects payloads over 2MB and throws an unhandledRejection. The heavy identity
+// and category-matching fields are only needed for the dedup/scoring above, not
+// for rendering, so strip them from the returned/cached result — this keeps the
+// full unpaged catalog well under the limit and trims the streamed HTML.
+function slimPublicView(view: ProductView): ProductView {
+  return {
+    ...view,
+    productIdentity: undefined,
+    canonicalKey: null,
+    categoryReason: null,
+    categoryMatchedRules: undefined,
+    categorySourceSignals: undefined,
+    offers: view.offers.map((offer) => ({
+      ...offer,
+      productIdentity: undefined,
+      canonicalKey: null,
+      history: undefined,
+    })),
+  };
+}
+
+function searchWhere(terms: string[], offerScope?: Prisma.ProductOfferWhereInput): Prisma.ProductWhereInput {
   const termFilters = terms.map((term): Prisma.ProductWhereInput => ({
     OR: [
       { name: { contains: term, mode: "insensitive" } },
@@ -302,12 +334,16 @@ function searchWhere(terms: string[]): Prisma.ProductWhereInput {
       { category: { is: { slug: { contains: term, mode: "insensitive" } } } },
       { category: { is: { nameKa: { contains: term, mode: "insensitive" } } } },
       { category: { is: { nameEn: { contains: term, mode: "insensitive" } } } },
-      { offers: { some: { title: { contains: term, mode: "insensitive" } } } },
-      { offers: { some: { canonicalKey: { contains: term, mode: "insensitive" } } } },
+      { offers: { some: offerSearchWhere({ title: { contains: term, mode: "insensitive" } }, offerScope) } },
+      { offers: { some: offerSearchWhere({ canonicalKey: { contains: term, mode: "insensitive" } }, offerScope) } },
     ],
   }));
 
   return { OR: termFilters };
+}
+
+function offerSearchWhere(termWhere: Prisma.ProductOfferWhereInput, offerScope?: Prisma.ProductOfferWhereInput) {
+  return offerScope ? { AND: [offerScope, termWhere] } : termWhere;
 }
 
 function categoryWhere(filters: ProductFilters): Prisma.ProductWhereInput {
@@ -394,6 +430,7 @@ function publicListingKey(filters: ProductFilters): string {
     filters.dealsOnly ? 1 : 0,
     filters.page ?? 1,
     filters.pageSize ?? "",
+    filters.paginate === false ? 0 : 1,
   ]);
 }
 
@@ -401,7 +438,18 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v1", publicListingKey(filters)],
+    ["public-products-v3", publicListingKey(filters)],
+    { revalidate: 300, tags: ["catalog"] },
+  );
+  return cached();
+}
+
+export async function listPublicProductMatches(filters: ProductFilters = {}) {
+  const unpagedFilters = { ...filters, page: undefined, paginate: false };
+  const scoped = { ...unpagedFilters, publicSafe: true } as const;
+  const cached = unstable_cache(
+    () => listProducts(scoped),
+    ["public-product-matches-v1", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -425,7 +473,7 @@ function productIdentifiers(identifier: string) {
 // Cross-request cache: category list + per-category counts change only when the
 // catalog is re-scraped. Uncached, loadCategories runs an unbounded
 // "all discounted products" scan on every category/deals render.
-const cachedCategories = unstable_cache(loadCategories, ["categories-v1"], {
+const cachedCategories = unstable_cache(loadCategories, ["categories-v3"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -484,7 +532,7 @@ export async function listPublicCategories() {
 // for public pages those counts are discarded and replaced by the cached
 // summary anyway. Caching keeps that scan off the per-request path of every
 // category/product/deals render.
-const cachedShops = unstable_cache(loadShops, ["shops-v1"], {
+const cachedShops = unstable_cache(loadShops, ["shops-v3"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -616,7 +664,7 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 // out into a single scan per revalidation window.
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
-  ["public-catalog-summary-v1"],
+  ["public-catalog-summary-v3"],
   { revalidate: 600, tags: ["catalog"] },
 );
 
