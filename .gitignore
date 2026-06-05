@@ -30,6 +30,12 @@ yarn-error.log*
 .tmp*
 .codex-logs/
 .codex-qa/
+reports/zoommer-phones-sync*.json
+reports/zoommer-laptops-sync*.json
+reports/ee-phones-sync*.json
+data/zoommer-phones/
+data/zoommer-laptops/
+data/ee-phones/
 
 # env files
 .env*

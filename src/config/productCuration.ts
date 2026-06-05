@@ -4,37 +4,9 @@ import { normalizeProductName } from "@/lib/matching";
 import { readProductIdentity } from "@/lib/productIdentity";
 import { explainMatchDecision } from "@/lib/productMatching";
 
-export const PRIORITY_CATEGORIES = [
-  "mobiles",
-  "tablets",
-  "phone-accessories",
-  "laptops",
-  "monitors",
-  "computers",
-  "televisions",
-  "audio",
-  "wearables",
-  "gaming",
-  "refrigerators",
-  "washing-machines",
-  "home-appliances",
-  "small-appliances",
-  "air-conditioners",
-  "photo-video",
-] as const;
+export const PRIORITY_CATEGORIES = ["mobiles", "laptops"] as const;
 
-export const SECONDARY_CATEGORIES = [
-  "tablet-accessories",
-  "auto-accessories",
-  "computer-accessories",
-  "cables-adapters",
-  "beauty",
-  "furniture",
-  "home-garden",
-  "kids",
-  "pets",
-  "tech",
-] as const;
+export const SECONDARY_CATEGORIES = [] as const;
 
 export const EXCLUDED_PUBLIC_CATEGORIES = ["adult", "18+", "erotic", "test", "demo", "internal"] as const;
 
@@ -45,7 +17,6 @@ export const EXCLUDED_KEYWORDS = [
   "",
   "erotic",
   "adult",
-  "18+",
   "dildo",
   "vibrator",
   "sex toy",
@@ -154,31 +125,12 @@ const highDemandTerms = [
   "",
 ];
 
-const technologyCategorySet = new Set<string>([
-  ...PRIORITY_CATEGORIES,
-  "tech",
-  "auto-accessories",
-]);
+const technologyCategorySet = new Set<string>(PRIORITY_CATEGORIES);
 
 const excludedCategorySet = new Set<string>(EXCLUDED_PUBLIC_CATEGORIES);
 const priorityCategorySet = new Set<string>(PRIORITY_CATEGORIES);
 const secondaryCategorySet = new Set<string>(SECONDARY_CATEGORIES);
-const featuredComparisonCategorySet = new Set<string>([
-  "mobiles",
-  "tablets",
-  "laptops",
-  "monitors",
-  "computers",
-  "televisions",
-  "audio",
-  "wearables",
-  "gaming",
-  "refrigerators",
-  "washing-machines",
-  "home-appliances",
-  "small-appliances",
-  "air-conditioners",
-]);
+const featuredComparisonCategorySet = new Set<string>(PRIORITY_CATEGORIES);
 const purchaseDecisionTerms = [
   "iphone",
   "galaxy",
@@ -265,28 +217,30 @@ export function isTechnologyCategory(slug?: string | null) {
   return Boolean(slug && technologyCategorySet.has(slug));
 }
 
-export function publicOffers(offers: OfferView[]) {
+export function publicOffers(offers: OfferView[], product?: Pick<ProductView, "name">) {
   const sorted = offers.filter((offer) => isPublicOffer(offer)).sort((left, right) => left.currentPrice - right.currentPrice);
   // A price comparison shows one price per shop. When the same shop has several
-  // offers attached to a product (duplicate scrapes, or near-identical SKUs like
-  // "with charger" matched together), keep only that shop's cheapest so the page
-  // never presents the same store twice as if it were a real cross-store deal.
-  const seenShops = new Set<string>();
-  const deduped: OfferView[] = [];
+  // offers attached to a product, prefer that shop's exact-title offer. This
+  // prevents a near-match from becoming the displayed price only because it is
+  // cheaper than the product's own SKU.
+  const productTitle = product ? comparableTitle(product.name) : "";
+  const byShop = new Map<string, OfferView[]>();
   for (const offer of sorted) {
-    if (seenShops.has(offer.shop.id)) continue;
-    seenShops.add(offer.shop.id);
-    deduped.push(offer);
+    const group = byShop.get(offer.shop.id) ?? [];
+    group.push(offer);
+    byShop.set(offer.shop.id, group);
   }
-  return deduped;
+  return [...byShop.values()]
+    .map((shopOffers) => shopOffers.find((offer) => productTitle && comparableTitle(offer.title) === productTitle) ?? shopOffers[0])
+    .sort((left, right) => left.currentPrice - right.currentPrice);
 }
 
 export function toPublicProduct(product: ProductView): ProductView | null {
   if (product.isPublic === false || product.needsReview || product.archivedAt || product.categoryNeedsReview) return null;
-  // Public MVP scope: only phones + laptops are ever shown publicly.
+  // Public catalog scope is controlled by PUBLIC_CATEGORY_SLUGS.
   if (!isPublicCategorySlug(product.category?.slug)) return null;
   if (isExcludedPublicCategory(product.category) || hasExcludedKeyword(product.name)) return null;
-  const offers = publicOffers(product.offers);
+  const offers = publicOffers(product.offers, product);
   if (!offers.length) return null;
   return { ...product, offers, offerCount: offers.length };
 }
@@ -420,8 +374,13 @@ function dealScore(product: ProductView) {
 }
 
 function hasExcludedKeyword(value: string) {
+  if (hasAdultAgeMarker(value)) return true;
   const normalized = normalizeSignal(value);
   return EXCLUDED_KEYWORDS.some((keyword) => keyword && normalized.includes(normalizeSignal(keyword)));
+}
+
+function hasAdultAgeMarker(value: string) {
+  return /(^|[^\dA-Za-z])18\s*\+(?=$|[^\dA-Za-z])/i.test(value);
 }
 
 function isPublicOffer(offer: OfferView) {
@@ -433,6 +392,10 @@ function isPublicOffer(offer: OfferView) {
     offer.matchStatus === "CONFIRMED" &&
     offer.verificationStatus === "CONFIRMED" &&
     (offer.matchConfidence == null || offer.matchConfidence >= 90);
+}
+
+function comparableTitle(value: string) {
+  return normalizeSignal(value).replace(/&(?:amp;)+/g, "&").replace(/\s+/g, " ").trim();
 }
 
 // EE (and similar) outlet / open-box listings live under an `/autleti/` path.

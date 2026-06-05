@@ -1,0 +1,45 @@
+name: Zoommer laptops sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Sync mode"
+        required: true
+        default: "prices"
+        type: choice
+        options:
+          - prices
+          - full
+  schedule:
+    - cron: "0 */3 * * *"
+    - cron: "20 2 * * *"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+      SCRAPER_USER_AGENT: "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Ensure sync columns exist
+        run: npx prisma db execute --file prisma/migrations/20260605000000_zoommer_phone_sync_state/migration.sql
+
+      - name: Price sync
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'prices' || github.event_name == 'schedule' && github.event.schedule == '0 */3 * * *' }}
+        run: npm run sync:zoommer:laptops
+
+      - name: Full detail sync
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' || github.event_name == 'schedule' && github.event.schedule == '20 2 * * *' }}
+        run: npm run scrape:zoommer:laptops:full
