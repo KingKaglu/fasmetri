@@ -440,7 +440,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v5", publicListingKey(filters)],
+    ["public-products-v6", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -451,7 +451,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v3", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v4", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -475,7 +475,7 @@ function productIdentifiers(identifier: string) {
 // Cross-request cache: category list + per-category counts change only when the
 // catalog is re-scraped. Uncached, loadCategories runs an unbounded
 // "all discounted products" scan on every category/deals render.
-const cachedCategories = unstable_cache(loadCategories, ["categories-v5"], {
+const cachedCategories = unstable_cache(loadCategories, ["categories-v6"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -666,7 +666,7 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 // out into a single scan per revalidation window.
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
-  ["public-catalog-summary-v5"],
+  ["public-catalog-summary-v6"],
   { revalidate: 600, tags: ["catalog"] },
 );
 
