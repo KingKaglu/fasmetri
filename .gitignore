@@ -33,9 +33,11 @@ yarn-error.log*
 reports/zoommer-phones-sync*.json
 reports/zoommer-laptops-sync*.json
 reports/ee-phones-sync*.json
+reports/ee-laptops-sync*.json
 data/zoommer-phones/
 data/zoommer-laptops/
 data/ee-phones/
+data/ee-laptops/
 
 # env files
 .env*
