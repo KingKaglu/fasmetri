@@ -72,7 +72,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   });
   const offerDetails = product.offers.map((offer) => ({
     offer,
-    attributes: extractProductAttributes({ title: offer.title, categorySlug: product.category?.slug }),
+    attributes: attributesWithIdentity(
+      extractProductAttributes({ title: offer.title, categorySlug: product.category?.slug }),
+      offer.productIdentity ?? product.productIdentity,
+    ),
     match: explainMatchDecision(
       productIdentity,
       readProductIdentity(offer.productIdentity) ?? extractProductIdentity({ title: offer.title, categorySlug: product.category?.slug }),
@@ -330,6 +333,53 @@ function attributeLabels(attributes: ProductAttributes) {
     attributes.color ? `Color: ${attributes.color}` : null,
     attributes.capacity ? `Capacity: ${attributes.capacity}` : null,
   ].filter((label): label is string => Boolean(label));
+}
+
+function attributesWithIdentity(attributes: ProductAttributes, identity: unknown): ProductAttributes {
+  const specs = identitySpecs(identity);
+  return {
+    ...attributes,
+    ram: attributes.ram.length ? attributes.ram : memoryLabels(specs.ramGb),
+    storage: attributes.storage.length ? attributes.storage : memoryLabels(specs.storageGb),
+    screenSize: attributes.screenSize ?? specs.screenSize,
+    sim: attributes.sim ?? specs.simType,
+    os: attributes.os ?? specs.operatingSystem,
+    color: attributes.color ?? specs.color,
+  };
+}
+
+function identitySpecs(identity: unknown) {
+  const record = objectRecord(identity);
+  const specs = objectRecord(record.specs);
+  return {
+    storageGb: numberSpec(specs.storageGb ?? record.storageGb),
+    ramGb: numberSpec(specs.ramGb ?? record.ramGb),
+    screenSize: stringSpec(specs.screenSize ?? record.screenSize),
+    simType: stringSpec(specs.simType ?? record.simType),
+    operatingSystem: stringSpec(specs.operatingSystem ?? record.operatingSystem),
+    color: stringSpec(specs.color ?? record.color),
+  };
+}
+
+function memoryLabels(gb?: number) {
+  if (gb == null || !Number.isFinite(gb) || gb <= 0) return [];
+  if (gb < 1) return [`${Math.round(gb * 1024)}MB`];
+  return [`${Number.isInteger(gb) ? gb : Number(gb.toFixed(1))}GB`];
+}
+
+function objectRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function stringSpec(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function numberSpec(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function offerPriceSummary(product: { offers: Array<{ currentPrice: number; shop: { id: string } }> }) {
