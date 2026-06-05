@@ -440,7 +440,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v6", publicListingKey(filters)],
+    ["public-products-v7", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -451,7 +451,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v4", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v5", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();

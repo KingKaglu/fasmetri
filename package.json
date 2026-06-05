@@ -47,6 +47,10 @@
     "sync:ee:phones": "tsx scripts/ee-phones.ts --mode=prices --promote",
     "validate:ee:phones": "tsx scripts/ee-phones.ts --mode=validate",
     "import:ee:phones": "tsx scripts/ee-phones.ts --mode=promote",
+    "scrape:ee:laptops:full": "tsx scripts/ee-laptops.ts --mode=full --promote",
+    "sync:ee:laptops": "tsx scripts/ee-laptops.ts --mode=prices --promote",
+    "validate:ee:laptops": "tsx scripts/ee-laptops.ts --mode=validate",
+    "import:ee:laptops": "tsx scripts/ee-laptops.ts --mode=promote",
     "store-category-coverage": "tsx scripts/store-category-coverage.ts"
   },
   "dependencies": {
