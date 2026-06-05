@@ -243,7 +243,7 @@ export async function runZoommerPhoneSync(options: ZoommerPhoneSyncOptions): Pro
   return withSyncLock(async () => {
     const snapshot =
       options.rawFile || options.mode === "validate" || options.mode === "promote"
-        ? readSnapshot(options.rawFile)
+        ? normalizeSnapshot(readSnapshot(options.rawFile))
         : await scrapeSnapshot(options);
 
     if (!snapshot.rawFile) {
@@ -1011,25 +1011,25 @@ function normalizePhoneSpecs(input: {
   const spec = (names: string[]) => specValue(input.rawSpecValues, names);
   const title = input.title;
   const brand = normalizeBrand(
-    spec(["Brand"]) ??
+    spec(["Brand", "ბრენდი"]) ??
       stringValue(input.share?.brandName) ??
       stringValue(input.detailProduct?.brandName) ??
       stringValue(input.listing?.brandName) ??
       stringValue(input.listing?.categoryName) ??
       extractBrand(title),
   );
-  const color = spec(["Color"]) ?? extractColorFromTitle(title);
-  const simType = spec(["SIM card"]) ?? detectSimType(title);
-  const internalMemory = spec(["Internal memory", "Internal Memory"]);
-  const ram = spec(["RAM"]);
-  const screenSize = spec(["Screen size", "Screen Size"]);
-  const refreshRate = spec(["Refresh rate", "Refresh Rate"]);
-  const battery = spec(["Battery"]);
-  const chargingSpeed = spec(["Charging Speed", "Charging speed"]);
-  const mainCamera = spec(["Main camera", " Main camera"]);
-  const selfieCamera = spec(["Front camera", " Front camera"]);
-  const system = [spec(["System"]), spec(["System Version"])].filter(Boolean).join(" ").trim() || undefined;
-  const releaseYear = parseInteger(spec(["Release date", "Release Date"]));
+  const color = spec(["Color", "ფერი"]) ?? extractColorFromTitle(title);
+  const simType = spec(["SIM card", "SIM ბარათი"]) ?? detectSimType(title);
+  const internalMemory = spec(["Internal memory", "Internal Memory", "შიდა მეხსიერება"]);
+  const ram = spec(["RAM", "ოპერატიული მეხსიერება"]);
+  const screenSize = spec(["Screen size", "Screen Size", "ეკრანის ზომა"]);
+  const refreshRate = spec(["Refresh rate", "Refresh Rate", "განახლების სიხშირე"]);
+  const battery = spec(["Battery", "ელემენტი"]);
+  const chargingSpeed = spec(["Charging Speed", "Charging speed", "დამუხტვის სიჩქარე"]);
+  const mainCamera = spec(["Main camera", " Main camera", "ძირითადი კამერა"]);
+  const selfieCamera = spec(["Front camera", " Front camera", "წინა კამერა"]);
+  const system = [spec(["System", "სისტემა"]), spec(["System Version", "სისტემის ვერსია"])].filter(Boolean).join(" ").trim() || undefined;
+  const releaseYear = parseInteger(spec(["Release date", "Release Date", "გამოშვების თარიღი"]));
 
   return {
     brand,
@@ -1043,23 +1043,70 @@ function normalizePhoneSpecs(input: {
     esimSupport: detectEsim(title, simType, spec(["E-SIM", "eSIM"])),
     fiveGSupport: detect5g(title, spec(["5G"])),
     screenSize,
-    screenType: spec(["Screen type", "Screen Type"]),
+    screenType: spec(["Screen type", "Screen Type", "ეკრანის ტიპი"]),
     refreshRateHz: parseInteger(refreshRate),
-    chipset: spec(["Chipset"]),
+    chipset: spec(["Chipset", "ჩიპსეტი"]),
     mainCamera,
     selfieCamera,
     batteryMah: parseInteger(battery),
     chargingWatts: parseInteger(chargingSpeed),
     operatingSystem: system,
-    memoryStandard: spec(["Memory standard", "Memory Standard"]),
-    microSdSlot: booleanSpec(spec(["Micro SD Slot", "MicroSD Slot"])),
-    stereoSpeaker: booleanSpec(spec(["Stereo Speaker"])),
-    chargingInterface: spec(["Charging Interface"]),
-    wirelessCharging: booleanSpec(spec(["Wireless Charging"])),
-    ipProtection: spec(["IP Protection"]),
+    memoryStandard: spec(["Memory standard", "Memory Standard", "მეხსიერების სტანდარტი"]),
+    microSdSlot: booleanSpec(spec(["Micro SD Slot", "MicroSD Slot", "Micro SD სლოტი"])),
+    stereoSpeaker: booleanSpec(spec(["Stereo Speaker", "სტერეო სპიკერი"])),
+    chargingInterface: spec(["Charging Interface", "დასამუხტი პორტი"]),
+    wirelessCharging: booleanSpec(spec(["Wireless Charging", "უსადენო დამუხტვა"])),
+    ipProtection: spec(["IP Protection", "IP დაცვა"]),
     warranty: spec(["Warranty"]),
     releaseYear,
   };
+}
+
+function normalizeSnapshot(snapshot: ZoommerPhonesSnapshot): ZoommerPhonesSnapshot {
+  return {
+    ...snapshot,
+    products: snapshot.products.map((product) => ({
+      ...product,
+      normalizedSpecs: mergeDefinedPhoneSpecs(
+        product.normalizedSpecs,
+        normalizePhoneSpecs({
+          title: product.originalTitle,
+          listing: product.rawListingData,
+          rawSpecValues: specValuesFromRawSpecs(product.rawSpecs),
+        }),
+      ),
+    })),
+  };
+}
+
+function mergeDefinedPhoneSpecs(base: NormalizedPhoneSpecs, supplement: NormalizedPhoneSpecs): NormalizedPhoneSpecs {
+  const merged: NormalizedPhoneSpecs = { ...base };
+  for (const [key, value] of Object.entries(supplement) as Array<[keyof NormalizedPhoneSpecs, NormalizedPhoneSpecs[keyof NormalizedPhoneSpecs]]>) {
+    if (value !== undefined && value !== null && value !== "") {
+      (merged as Record<keyof NormalizedPhoneSpecs, NormalizedPhoneSpecs[keyof NormalizedPhoneSpecs]>)[key] = value;
+    }
+  }
+  return merged;
+}
+
+function specValuesFromRawSpecs(rawSpecs: JsonRecord) {
+  const flattened = Array.isArray(rawSpecs.flattened) ? rawSpecs.flattened : [];
+  const values: ZoommerSpecValue[] = [];
+  for (const value of flattened) {
+    const record = asRecord(value);
+    const groupName = stringValue(record.groupName);
+    const specificationName = stringValue(record.specificationName);
+    const specificationMeaning = stringValue(record.specificationMeaning);
+    if (!specificationName || !specificationMeaning) continue;
+    values.push({
+      groupName: groupName ?? "",
+      specificationName,
+      specificationMeaning,
+      isColor: Boolean(record.isColor),
+      colorValue: stringValue(record.colorValue),
+    });
+  }
+  return values;
 }
 
 function flattenSpecValues(product: JsonRecord): ZoommerSpecValue[] {
@@ -1106,7 +1153,7 @@ function specValue(values: ZoommerSpecValue[], names: string[]) {
 }
 
 function normalizeSpecKey(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
 function allImageUrls(product: JsonRecord, share: JsonRecord, fallback?: string) {
@@ -1226,7 +1273,10 @@ function normalizeStorageGb(value?: string) {
   const tb = value.match(/\b(\d+(?:\.\d+)?)\s*tb\b/i);
   if (tb) return Math.round(Number(tb[1]) * 1024);
   const gb = [...value.matchAll(/\b(\d{2,4})\s*gb\b/gi)].map((match) => Number(match[1])).filter((amount) => amount >= 16);
-  return gb.length ? Math.max(...gb) : undefined;
+  if (gb.length) return Math.max(...gb);
+  const mb = value.match(/\b(\d+(?:\.\d+)?)\s*mb\b/i);
+  if (mb) return Number((Number(mb[1]) / 1024).toFixed(4));
+  return undefined;
 }
 
 function normalizeRamGb(value?: string) {
@@ -1236,7 +1286,9 @@ function normalizeRamGb(value?: string) {
   const ram = value.match(/\b(\d{1,2})\s*gb\s*ram\b/i) ?? value.match(/\bram\s*(\d{1,2})\s*gb\b/i);
   if (ram) return Number(ram[1]);
   const plain = value.match(/\b(\d{1,2})\s*gb\b/i);
-  return plain ? Number(plain[1]) : undefined;
+  if (plain) return Number(plain[1]);
+  const mb = value.match(/\b(\d+(?:\.\d+)?)\s*mb\b/i);
+  return mb ? Number((Number(mb[1]) / 1024).toFixed(4)) : undefined;
 }
 
 function normalizeBrand(value?: string) {
@@ -1341,8 +1393,8 @@ function detect5g(title: string, specValueText?: string) {
 
 function booleanSpec(value?: string) {
   if (!value) return undefined;
-  if (/^(yes|true|available|has)$/i.test(value.trim())) return true;
-  if (/^(no|false|none|not available)$/i.test(value.trim())) return false;
+  if (/^(yes|true|available|has|კი|დიახ)$/i.test(value.trim())) return true;
+  if (/^(no|false|none|not available|არა)$/i.test(value.trim())) return false;
   return undefined;
 }
 
