@@ -236,13 +236,22 @@ model ProductOffer {
   extractedIdentityJson Json?
   lastCheckedAt        DateTime?
   currentPrice         Decimal                     @db.Decimal(12, 2)
+  previousSeenPrice    Decimal?                    @db.Decimal(12, 2)
   oldPrice             Decimal?                    @db.Decimal(12, 2)
   currency             String                      @default("GEL")
+  discountAmount       Decimal?                    @db.Decimal(12, 2)
   discountPercent      Int                         @default(0)
+  isOnSale             Boolean                     @default(false)
+  saleDetectedAt       DateTime?
   availability         OfferAvailability           @default(UNKNOWN)
   imageUrl             String?
+  firstSeenAt          DateTime                    @default(now())
   lastSeenAt           DateTime                    @default(now())
   lastPriceChangedAt   DateTime?
+  isActive             Boolean                     @default(true)
+  missedSyncCount      Int                         @default(0)
+  possiblyInactiveAt   DateTime?
+  inactiveAt           DateTime?
   histories            PriceHistory[]
   clickEvents          ClickEvent[]
   matchCandidates      OfferMatchCandidate[]
@@ -259,6 +268,8 @@ model ProductOffer {
   @@index([variantId, currentPrice])
   @@index([canonicalKey])
   @@index([matchStatus, matchConfidence])
+  @@index([isActive, lastSeenAt])
+  @@index([missedSyncCount])
 }
 
 model RawOffer {
@@ -453,6 +464,7 @@ model PriceHistory {
   offer      ProductOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
   price      Decimal      @db.Decimal(12, 2)
   oldPrice   Decimal?     @db.Decimal(12, 2)
+  availability OfferAvailability @default(UNKNOWN)
   capturedAt DateTime     @default(now())
 
   @@index([offerId, capturedAt])
