@@ -16,6 +16,14 @@ const publicOfferWhere = {
 
 async function main() {
   const options = parseBatchOptions("audit-public-catalog", { limit: 200 });
+  // This script demotes offers and un-publishes products, and its legacy
+  // explainMatchDecision scoring is not calibrated for safe-matcher catalogs
+  // (it flags identical-title single-store offers at confidence 89). Destructive
+  // catalog operations must default to dry-run; pass --apply to write.
+  if (!process.argv.includes("--apply")) {
+    options.dryRun = true;
+    console.log("audit-public-catalog: dry-run (pass --apply to write changes)");
+  }
   const id = checkpointId("audit-public-catalog", options);
   const products = await db.product.findMany({
     where: {
