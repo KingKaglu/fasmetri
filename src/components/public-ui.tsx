@@ -1,17 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, ArrowRight, Clock3, PackageSearch, ShieldCheck, Store } from "lucide-react";
-import { Availability, ShopView } from "@/lib/catalog-types";
+import { AlertCircle, ArrowRight, Clock3, Info, PackageSearch, ShieldCheck, Store } from "lucide-react";
+import { Availability, OfferView, ShopView } from "@/lib/catalog-types";
 import { formatGel, formatRelativeUpdated, formatUpdated } from "@/lib/format";
 export { ProductImage } from "@/components/product-image";
 
-export function AvailabilityBadge({ availability }: { availability: Availability }) {
+export function hasRealDiscount(offer: Pick<OfferView, "currentPrice" | "oldPrice" | "discountPercent">) {
+  return Boolean(offer.oldPrice && offer.oldPrice > offer.currentPrice && offer.discountPercent > 0);
+}
+
+export function realDiscountPercent(offer: Pick<OfferView, "currentPrice" | "oldPrice" | "discountPercent">) {
+  return hasRealDiscount(offer) ? offer.discountPercent : 0;
+}
+
+export function AvailabilityBadge({ availability, hideUnknown = false }: { availability: Availability; hideUnknown?: boolean }) {
+  if (hideUnknown && availability === "UNKNOWN") return null;
   const meta =
     availability === "IN_STOCK"
       ? { label: "მარაგშია", className: "border-[#bfeecf] bg-[var(--savings-soft)] text-[var(--savings)]" }
       : availability === "OUT_OF_STOCK"
         ? { label: "ამოიწურა", className: "border-[var(--line)] bg-[var(--surface-soft)] text-[var(--muted)]" }
-        : { label: "მოწმდება", className: "border-[#ffdca6] bg-[var(--warn-soft)] text-[var(--warn)]" };
+        : { label: "მარაგი მოწმდება", className: "border-[#ffdca6] bg-[var(--warn-soft)] text-[var(--warn)]" };
 
   return (
     <span className={`inline-flex h-6 items-center rounded-full border px-2 text-[10px] font-black ${meta.className}`}>
@@ -44,12 +53,13 @@ export function PriceDisplay({
 }) {
   const priceClass = tone === "light" ? "text-white" : deal ? "price-now-deal" : "price-now";
   const oldPriceClass = tone === "light" ? "text-white/50" : "price-old";
+  const validOldPrice = oldPrice && oldPrice > price ? oldPrice : null;
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
       <strong className={`${strong ? "text-3xl sm:text-4xl" : "text-lg sm:text-xl"} ${priceClass} leading-none`}>
         {formatGel(price)}
       </strong>
-      {oldPrice ? <span className={`${oldPriceClass} text-xs font-bold line-through sm:text-sm`}>{formatGel(oldPrice)}</span> : null}
+      {validOldPrice ? <span className={`${oldPriceClass} text-xs font-bold line-through sm:text-sm`}>{formatGel(validOldPrice)}</span> : null}
     </div>
   );
 }
@@ -185,6 +195,17 @@ export function TrustNote({ compact = false }: { compact?: boolean }) {
       </p>
       <p className="mt-1.5 text-sm leading-5 text-[var(--muted)]">
         ყიდვამდე საბოლოო ფასი ყოველთვის გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
+      </p>
+    </div>
+  );
+}
+
+export function PriceDisclaimer({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={`rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] ${compact ? "px-3 py-2" : "px-4 py-3"}`}>
+      <p className="flex gap-2 text-xs font-bold leading-5 text-[var(--muted-strong)]">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-[var(--accent-strong)]" />
+        ფასები შეიძლება შეიცვალოს. საბოლოო ფასი გადაამოწმე მაღაზიის ვებსაიტზე.
       </p>
     </div>
   );

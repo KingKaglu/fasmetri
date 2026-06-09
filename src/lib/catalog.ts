@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { OfferAvailability, Prisma } from "@prisma/client";
 import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
-import { CategoryView, OfferView, ProductView, ScrapeRunView, ShopView } from "@/lib/catalog-types";
+import { CategoryView, OfferView, ProductView, PUBLIC_OFFER_MATCH_STATUSES, ScrapeRunView, ShopView } from "@/lib/catalog-types";
 import { categoryFixtures, productFixtures, scrapeRunFixtures, shopFixtures } from "@/lib/fixtures";
 import {
   compareDealPriority,
@@ -36,7 +36,7 @@ const availabilityValues = new Set(Object.values(OfferAvailability));
 const DEFAULT_PAGE_SIZE = 120;
 const MAX_PAGE_SIZE = 200;
 const confirmedPublicOfferWhere = {
-  matchStatus: "CONFIRMED",
+  matchStatus: { in: [...PUBLIC_OFFER_MATCH_STATUSES] },
   verificationStatus: "CONFIRMED",
 } satisfies Prisma.ProductOfferWhereInput;
 const publicOfferWhere = {
@@ -257,7 +257,7 @@ export async function listProducts(filters: ProductFilters = {}) {
         lte: filters.maxPrice,
       },
       discountPercent: { gte: filters.dealsOnly ? Math.max(filters.minDiscount ?? 0, 1) : filters.minDiscount },
-      matchStatus: filters.publicSafe ? "CONFIRMED" : undefined,
+      matchStatus: filters.publicSafe ? { in: [...PUBLIC_OFFER_MATCH_STATUSES] } : undefined,
       verificationStatus: filters.publicSafe ? "CONFIRMED" : undefined,
       availability:
         filters.availability && availabilityValues.has(filters.availability as OfferAvailability)

@@ -9,6 +9,13 @@ export type ProductAttributeInput = {
   model?: string | null;
   categorySlug?: string | null;
   breadcrumbs?: Array<string | null | undefined> | string | null;
+  storeName?: string | null;
+  storeProductUrl?: string | null;
+  imageUrl?: string | null;
+  price?: number | null;
+  oldPrice?: number | null;
+  discount?: number | null;
+  stockStatus?: string | null;
 };
 
 export type ProductAttributes = {
@@ -32,6 +39,7 @@ export type ProductAttributes = {
   capacity?: string;
   compatibleDevice?: string;
   typeTokens: string[];
+  imageFingerprint?: string;
 };
 
 export function normalizeProductTitle(title: string) {
@@ -63,11 +71,12 @@ export function removeNoiseWords(title: string) {
 export function extractProductAttributes(input: ProductAttributeInput): ProductAttributes {
   const normalizedTitle = normalizeProductTitle(input.title);
   const cleanTitle = removeNoiseWords(input.title);
+  const extractionSignal = normalizeProductTitle([input.title, input.brand, input.model, input.description].filter(Boolean).join(" "));
   const signal = normalizeProductTitle(
     [input.title, input.brand, input.model, input.description, ...breadcrumbsOf(input.breadcrumbs)].filter(Boolean).join(" "),
   );
   const brand = explicitBrand(input.brand, signal);
-  const family = modelFamily(signal);
+  const family = modelFamily(extractionSignal) ?? modelFamily(signal);
 
   return {
     normalizedTitle,
@@ -76,20 +85,21 @@ export function extractProductAttributes(input: ProductAttributeInput): ProductA
     brand,
     modelFamily: family,
     productLine: productLineFor(brand, family),
-    variant: variantValue(family, signal),
-    modelCodes: modelCodes(signal),
-    skuCodes: skuCodes(signal),
-    cpu: cpuValue(signal),
-    gpu: gpuValue(signal),
-    ram: memoryValues(signal, "ram"),
-    storage: memoryValues(signal, "storage"),
-    screenSize: screenSize(signal),
-    sim: simType(signal),
-    color: colorValue(signal),
-    os: osValue(signal),
-    capacity: capacityValue(signal),
-    compatibleDevice: compatibleDevice(signal),
+    variant: variantValue(family, extractionSignal),
+    modelCodes: modelCodes(extractionSignal).filter((code) => !isModelFamilyCode(code, family)),
+    skuCodes: skuCodes(extractionSignal).filter((code) => !isModelFamilyCode(code, family)),
+    cpu: cpuValue(extractionSignal),
+    gpu: gpuValue(extractionSignal),
+    ram: memoryValues(extractionSignal, "ram"),
+    storage: memoryValues(extractionSignal, "storage"),
+    screenSize: screenSize(extractionSignal),
+    sim: simType(extractionSignal),
+    color: colorValue(extractionSignal),
+    os: osValue(extractionSignal),
+    capacity: capacityValue(extractionSignal),
+    compatibleDevice: compatibleDevice(extractionSignal),
     typeTokens: matchingTokens(cleanTitle).slice(0, 20),
+    imageFingerprint: imageFingerprint(input.imageUrl),
   };
 }
 
@@ -154,8 +164,21 @@ function modelFamily(signal: string) {
   const realmeNote = signal.match(/\brealme\s+note\s+(\d+[a-z]?)/);
   if (realmeNote) return compactModel("realme_note", realmeNote[1]);
 
-  const genericPhone = signal.match(/\b(xiaomi|vivo|realme|oppo|zte|nubia|hmd)\s*([a-z]?\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|lite|max))?\b/);
-  if (genericPhone) return compactModel(genericPhone[1], genericPhone[2], genericPhone[3]);
+  const xiaomiNote = signal.match(/\bxiaomi\s+note\s*(\d+[a-z]?)(?:\s*(pro plus|pro|ultra|max|plus|s|nfc))?\b/);
+  if (xiaomiNote) return compactModel("redmi_note", xiaomiNote[1], xiaomiNote[2]);
+
+  const sigmaPhone = signal.match(/\bsigma\s+(x[-\s]*style|comfort)\s*([a-z0-9]+)(?:\s+([a-z0-9]+))?\b/);
+  if (sigmaPhone) return compactModel("sigma", [sigmaPhone[1], sigmaPhone[2], sigmaPhone[3]].filter(Boolean).join("_"));
+
+  const genericPhone = signal.match(
+    /\b(xiaomi|vivo|realme|oppo|zte|nubia|hmd|nokia|oukitel|sigma)\s*-?\s*([a-z]{0,3})\s*-?\s*(\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|lite|max))?\b/,
+  );
+  if (genericPhone) return compactModel(genericPhone[1], `${genericPhone[2]}${genericPhone[3]}`, genericPhone[4]);
+
+  if (/\b(?:nokia\s+)?hmd\s+barbie\b/.test(signal)) return "hmd_barbie";
+
+  const oneplusNord = signal.match(/\boneplus\s+nord\s*(ce)?\s*([a-z]?\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|lite|max))?\b/);
+  if (oneplusNord) return compactModel("oneplus_nord", [oneplusNord[1], oneplusNord[2]].filter(Boolean).join("_"), oneplusNord[3]);
 
   const oneplus = signal.match(/\boneplus\s*(nord)?\s*([a-z]?\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|lite|max))?\b/);
   if (oneplus) return compactModel("oneplus", [oneplus[1], oneplus[2]].filter(Boolean).join("_"), oneplus[3]);
@@ -189,6 +212,9 @@ function modelFamily(signal: string) {
   if (appleWatch) return "apple_watch";
 
   // Apple laptops
+  const macbookNeo = signal.match(/\bmacbook\s+neo\s*(\d{2})\s+(a\d{1,2}(?:\s*(?:pro|max|ultra))?)\b/);
+  if (macbookNeo) return compactModel("macbook_neo", [macbookNeo[1], macbookNeo[2]?.replace(/\s+/g, "_")].filter(Boolean).join("_"));
+
   const macbook = signal.match(/\bmacbook\s*(air|pro|neo)\s*(\d{2})?/);
   if (macbook) return `macbook_${macbook[1]}_${macbook[2] ?? "any"}`;
 
@@ -206,14 +232,29 @@ function modelFamily(signal: string) {
     return compactModel(`hp_${hpBusiness[1]}`, [hpBusiness[2], hpBusiness[3], hpBusiness[4], hpBusiness[5]].filter(Boolean).join("_") || "base");
   }
 
-  const msiLaptop = signal.match(/\bmsi\s*(modern|katana|sword|thin|prestige|stealth|raider|cyborg)\s*([a-z0-9]+)?/);
+  const msiLaptop = signal.match(/\bmsi\s*(modern|katana|sword|thin|prestige|stealth|raider|cyborg|vector|crosshair|pulse|bravo|titan)\s*([a-z0-9]+)?/);
   if (msiLaptop) return compactModel("msi", msiLaptop[1], msiLaptop[2]);
+
+  const lenovoIdeaPadSlim = signal.match(/\blenovo\s+ideapad\s+slim\s+(\d+)\s+([a-z0-9]{5,})\b/);
+  if (lenovoIdeaPadSlim) return compactModel("lenovo_ideapad_slim", [lenovoIdeaPadSlim[1], lenovoIdeaPadSlim[2]].join("_"));
+
+  const lenovoThink = signal.match(/\blenovo\s+(thinkpad|thinkbook)\s+([a-z]?\d{1,2})\s+(?:gen\s*)?g?(\d{1,2})(?:\s+([a-z]{2,4}))?\b/);
+  if (lenovoThink) return compactModel(`lenovo_${lenovoThink[1]}`, [lenovoThink[2], `g${lenovoThink[3]}`, lenovoThink[4]].filter(Boolean).join("_"));
+
+  const lenovoLegion = signal.match(/\blenovo\s+legion\s+(pro\s+)?(\d+)\s+([a-z0-9]{5,})\b/);
+  if (lenovoLegion) return compactModel(`lenovo_legion${lenovoLegion[1] ? "_pro" : ""}`, [lenovoLegion[2], lenovoLegion[3]].join("_"));
 
   const lenovo = signal.match(/\blenovo\s*(thinkpad|ideapad|legion|yoga|thinkbook|loq)\s*([a-z0-9]+)?/);
   if (lenovo) return compactModel(`lenovo_${lenovo[1]}`, lenovo[2]);
 
   const dell = signal.match(/\bdell\s*(inspiron|vostro|latitude|xps|g\d+|precision)\s*(\d+)?/);
   if (dell) return compactModel(`dell_${dell[1]}`, dell[2]);
+
+  const dellPro = signal.match(/\bdell\s+pro\s+(?:\d{2}\s+)?(?:essential\s+)?([a-z]{2}\d{4,}[a-z0-9]*)\b/);
+  if (dellPro) return compactModel("dell_pro", dellPro[1]);
+
+  const dellNumeric = signal.match(/\bdell\s*(1[3-7])\s+([a-z]{2}\d{3,}[a-z0-9]*)\b/);
+  if (dellNumeric) return compactModel("dell", [dellNumeric[1], dellNumeric[2]].join("_"));
 
   const asus = signal.match(/\basus\s*(tuf|vivobook|zenbook|rog|expertbook|proart)\s*([a-z0-9]+)?/);
   if (asus) return compactModel(`asus_${asus[1]}`, asus[2]);
@@ -293,9 +334,9 @@ function modelCodes(signal: string) {
         /[a-z]/.test(token) &&
         /\d/.test(token) &&
         !/^\d+(gb|tb|w|hz|mah)$/.test(token) &&
-        !/^\d+(gb|tb)\/\d+(gb|tb)$/.test(token) &&
+        !/^\d+(gb|tb)?\/\d+(gb|tb)?$/.test(token) &&
         !/^(rtx|gtx)\d+/.test(token) &&
-        !/^(i[3579]-?\d+|m\d(?:pro|max|ultra)?)$/.test(token) &&
+        !/^(i[3579]-?\d{3,5}[a-z]{0,2}|ryzen[3579]?[-_]?\d{3,5}[a-z]{0,2}|\d{3,5}[a-z]{0,2}|m\d(?:pro|max|ultra)?)$/.test(token) &&
         !/^\d-\d{3,5}[a-z]{0,2}$/.test(token) &&
         !/^core[-_]?\d[-_]?\d{3,5}[a-z]{0,2}$/.test(token) &&
         (!/^\w+\d+$/.test(token) || /[_/-]/.test(token)),
@@ -303,20 +344,43 @@ function modelCodes(signal: string) {
   );
 }
 
+function isModelFamilyCode(code: string, family?: string) {
+  if (!family) return false;
+  const normalizedCode = code.replace(/[-\s/]+/g, "_");
+  return normalizedCode === family || family.startsWith(`${normalizedCode}_`) || normalizedCode.startsWith(`${family}_`);
+}
+
 function skuCodes(signal: string) {
   return unique(
     [...signal.matchAll(/\b([a-z0-9]{2,}(?:[_/-][a-z0-9]{1,}){1,})\b/g)]
       .map((match) => match[1].replace(/\//g, "_"))
-      .filter((token) => /[a-z]/.test(token) && /\d/.test(token) && !/^i[3579][_-]\d+/.test(token)),
+      .filter((token) =>
+        /[a-z]/.test(token) &&
+        /\d/.test(token) &&
+        !/^i[3579][_-]\d+/.test(token) &&
+        !/^ryzen[3579]?[_-]?\d+/.test(token) &&
+        !/^\d+gb?[_-]\d+gb?$/.test(token),
+      ),
   );
 }
 
 function memoryValues(signal: string, kind: "ram" | "storage") {
   const values = new Set<string>();
+  const phoneLike = /\b(?:iphone|galaxy|xiaomi|redmi|poco|honor|realme|vivo|oppo|oneplus|nothing\s+phone|motorola|moto|nokia|hmd|pixel|zte|nubia|oukitel)\b/.test(signal);
 
-  for (const match of signal.matchAll(/\b(\d{1,2})\s*\/\s*(\d{2,4})(?:gb)?\b/g)) {
+  for (const match of signal.matchAll(/\b(\d{1,2})(?:gb)?\s*\/\s*(\d{1,4})(gb|tb)?\b/g)) {
+    const storageUnit = match[3] ?? "gb";
     if (kind === "ram") values.add(`${Number(match[1])}gb`);
-    if (kind === "storage") values.add(`${Number(match[2])}gb`);
+    if (kind === "storage") values.add(`${Number(match[2])}${storageUnit}`);
+  }
+
+  for (const match of signal.matchAll(/\b(\d{1,2})(?:gb)?\s*-\s*(\d{2,4})(?:gb)?\b/g)) {
+    const first = Number(match[1]);
+    const second = Number(match[2]);
+    if (!isCommonMemoryAmount(first) || !isCommonStorageAmount(second)) continue;
+    if (!phoneLike && second < 64) continue;
+    if (kind === "ram" && first <= 64) values.add(`${first}gb`);
+    if (kind === "storage" && second >= 16) values.add(`${second}gb`);
   }
 
   const entries = [...signal.matchAll(/\b(\d{1,4})(gb|tb)\b/g)].map((match) => ({
@@ -327,19 +391,33 @@ function memoryValues(signal: string, kind: "ram" | "storage") {
   }));
 
   for (const entry of entries) {
-    const around = signal.slice(Math.max(0, entry.index - 18), entry.index + entry.value.length + 18);
-    const explicitRam = /\bram\b|ოპერატიულ/.test(around);
-    const explicitStorage = /\bstorage\b|\bssd\b|\bhdd\b|\brom\b|მეხსიერ/.test(around);
+    const before = signal.slice(Math.max(0, entry.index - 34), entry.index);
+    const after = signal.slice(entry.index + entry.value.length, entry.index + entry.value.length + 16);
+    const around = `${before}${entry.value}${after}`;
+    const explicitRam = /^\s*(ram|ოპერატიულ)/.test(after) || /\b(ram|ოპერატიულ)\s*$/.test(before);
+    const explicitStorage = /^\s*(storage|ssd|hdd|rom|მეხსიერ)/.test(after) || /\b(storage|ssd|hdd|rom|მეხსიერ)\s*$/.test(before);
+    const gpuMemory = /\b(rtx|gtx|geforce|radeon|arc|nvidia|graphics)\b[\s\w-]*\d{3,4}(?:\s*ti)?\s*$/i.test(before);
+    if (gpuMemory && !explicitRam && !explicitStorage) continue;
     const laterStorage = entries.some((later) => later.index > entry.index && (later.unit === "tb" || later.amount >= 64));
-    if (kind === "ram" && entry.unit === "gb" && entry.amount <= 64 && (explicitRam || (!explicitStorage && entry.amount <= 48 && laterStorage))) {
+    const laterPhoneStorage = phoneLike && entries.some((later) => later.index > entry.index && later.unit === "gb" && later.amount >= 16);
+    const lastPhoneStorage = phoneLike && !entries.some((later) => later.index > entry.index) && entry.unit === "gb" && entry.amount >= 16;
+    if (kind === "ram" && entry.unit === "gb" && entry.amount <= 64 && (explicitRam || (!explicitStorage && entry.amount <= 48 && (laterStorage || laterPhoneStorage)))) {
       values.add(entry.value);
     }
-    if (kind === "storage" && ((explicitStorage && !explicitRam) || entry.unit === "tb" || entry.amount >= 64)) {
+    if (kind === "storage" && ((explicitStorage && !explicitRam) || entry.unit === "tb" || entry.amount >= 64 || (!explicitRam && lastPhoneStorage))) {
       values.add(entry.value);
     }
   }
 
   return [...values].sort();
+}
+
+function isCommonMemoryAmount(value: number) {
+  return [2, 3, 4, 6, 8, 12, 16, 18, 24, 32, 36, 48, 64].includes(value);
+}
+
+function isCommonStorageAmount(value: number) {
+  return [16, 32, 64, 128, 256, 512, 1024, 2048, 4096].includes(value);
 }
 
 function cpuValue(signal: string) {
@@ -351,6 +429,8 @@ function cpuValue(signal: string) {
   if (intelCoreWord) return `intel_${intelCoreWord[1] ? "ultra_" : "core_"}${intelCoreWord[2]}_${intelCoreWord[3]}`;
   const intel = signal.match(/\b(i[3579])[- ]?(\d{3,5}[a-z]{0,2})\b/);
   if (intel) return `intel_${intel[1]}_${intel[2]}`;
+  const ryzenAi = signal.match(/\bryzen\s*ai\s*([3579])[- ]?(\d{3,5}[a-z]{0,2})\b/);
+  if (ryzenAi) return `ryzen_ai_${ryzenAi[1]}_${ryzenAi[2]}`;
   const ryzen = signal.match(/\bryzen\s*([3579])[- ]?(\d{3,5}[a-z]{0,2})\b/);
   if (ryzen) return `ryzen_${ryzen[1]}_${ryzen[2]}`;
   return undefined;
@@ -361,7 +441,7 @@ function gpuValue(signal: string) {
 }
 
 function screenSize(signal: string) {
-  const size = signal.match(/\b(\d{1,3}(?:\.\d)?)\s*(?:inch|inches|")\b/)?.[1];
+  const size = signal.match(/\b(\d{1,3}(?:\.\d)?)\s*(?:inch|inches|in|")(?=\s|$)/)?.[1];
   if (size) return `${size}in`;
   // Watch sizes (38–49 mm)
   const mm = signal.match(/\b([34]\d)\s*mm\b/)?.[1];
@@ -380,7 +460,7 @@ function osValue(signal: string) {
   if (/\bubuntu\b/.test(signal)) return "ubuntu";
   if (/\bfree\s*dos\b|\bfreedos\b/.test(signal)) return "freedos";
   if (/\bwindows\s*11\s*pro\b/.test(signal)) return "windows_11_pro";
-  if (/\bwindows\s*11\b/.test(signal)) return "windows_11";
+  if (/\bwindows\s*11\b|\bwin\s*11\b/.test(signal)) return "windows_11";
   if (/\bmacos\b/.test(signal)) return "macos";
   return undefined;
 }
@@ -397,6 +477,25 @@ function compatibleDevice(signal: string) {
   const galaxy = signal.match(/\b(?:for\s+)?(?:samsung\s*)?(galaxy\s*[a-z]\d{1,3}(?:\s*ultra|\s*plus)?)\s*(?:case|cover|glass|protector)\b/)?.[1] ??
     signal.match(/\b(?:case|cover|glass|protector|privacy)\s*(?:for\s+)?(?:samsung\s*)?(galaxy\s*[a-z]\d{1,3}(?:\s*ultra|\s*plus)?)\b/)?.[1];
   return galaxy ? underscore(galaxy) : undefined;
+}
+
+function imageFingerprint(imageUrl?: string | null) {
+  if (!imageUrl) return undefined;
+  try {
+    const url = new URL(imageUrl);
+    const fileName = url.pathname
+      .split("/")
+      .filter(Boolean)
+      .at(-1)
+      ?.toLowerCase()
+      .replace(/\.(jpg|jpeg|png|webp|gif|avif)$/i, "")
+      .replace(/[-_](\d{2,4}x\d{2,4}|thumb|thumbnail|small|medium|large|original)$/i, "")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+    return fileName && fileName.length >= 8 ? `${url.hostname.toLowerCase()}:${fileName}` : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function colorValue(signal: string) {

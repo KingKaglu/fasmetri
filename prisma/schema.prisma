@@ -75,25 +75,26 @@ enum OfferVerificationStatus {
 }
 
 model Shop {
-  id                 String                      @id @default(cuid())
-  slug               String                      @unique
-  name               String
-  baseUrl            String
-  logoUrl            String?
-  enabled            Boolean                     @default(false)
-  reliabilityLabel   String?
-  needsConfiguration Boolean                     @default(true)
-  lastScrapedAt      DateTime?
-  offers             ProductOffer[]
-  rawOffers          RawOffer[]
-  scrapeRuns         ScrapeRun[]
-  storeVerifications ProductStoreVerification[]
-  offerEvidence      OfferVerificationEvidence[]
-  possibleMatches    PossibleProductMatch[]
-  lastIngestedAt     DateTime?
-  ingestionStatus    String                      @default("NOT_STARTED")
-  createdAt          DateTime                    @default(now())
-  updatedAt          DateTime                    @updatedAt
+  id                  String                      @id @default(cuid())
+  slug                String                      @unique
+  name                String
+  baseUrl             String
+  logoUrl             String?
+  enabled             Boolean                     @default(false)
+  reliabilityLabel    String?
+  needsConfiguration  Boolean                     @default(true)
+  lastScrapedAt       DateTime?
+  offers              ProductOffer[]
+  rawOffers           RawOffer[]
+  scrapeRuns          ScrapeRun[]
+  storeVerifications  ProductStoreVerification[]
+  offerEvidence       OfferVerificationEvidence[]
+  possibleMatches     PossibleProductMatch[]
+  safePossibleMatches PossibleMatch[]
+  lastIngestedAt      DateTime?
+  ingestionStatus     String                      @default("NOT_STARTED")
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 }
 
 model Category {
@@ -150,6 +151,7 @@ model Product {
   verifications               ProductVerification[]
   storeVerifications          ProductStoreVerification[]
   possibleMatches             PossibleProductMatch[]
+  canonicalProducts           CanonicalProduct[]
   createdAt                   DateTime                   @default(now())
   updatedAt                   DateTime                   @updatedAt
 
@@ -213,53 +215,59 @@ model ProductVariant {
 }
 
 model ProductOffer {
-  id                   String                      @id @default(cuid())
-  productId            String
-  product              Product                     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  parentProductId      String?
-  parentProduct        ParentProduct?              @relation(fields: [parentProductId], references: [id], onDelete: SetNull)
-  variantId            String?
-  variant              ProductVariant?             @relation(fields: [variantId], references: [id], onDelete: SetNull)
-  shopId               String
-  shop                 Shop                        @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  rawOfferId           String?                     @unique
-  rawOffer             RawOffer?                   @relation(fields: [rawOfferId], references: [id], onDelete: SetNull)
-  externalId           String?
-  url                  String
-  affiliateUrl         String?
-  title                String
-  canonicalKey         String?
-  productIdentity      Json?
-  matchStatus          String                      @default("UNVERIFIED")
-  matchConfidence      Int?
-  verificationStatus   OfferVerificationStatus     @default(CONFIRMED)
+  id                    String                      @id @default(cuid())
+  productId             String
+  product               Product                     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  parentProductId       String?
+  parentProduct         ParentProduct?              @relation(fields: [parentProductId], references: [id], onDelete: SetNull)
+  variantId             String?
+  variant               ProductVariant?             @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  shopId                String
+  shop                  Shop                        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  rawOfferId            String?                     @unique
+  rawOffer              RawOffer?                   @relation(fields: [rawOfferId], references: [id], onDelete: SetNull)
+  externalId            String?
+  url                   String
+  affiliateUrl          String?
+  title                 String
+  canonicalKey          String?
+  productIdentity       Json?
+  matchStatus           String                      @default("UNVERIFIED")
+  matchConfidence       Int?
+  verificationStatus    OfferVerificationStatus     @default(CONFIRMED)
   extractedIdentityJson Json?
-  lastCheckedAt        DateTime?
-  currentPrice         Decimal                     @db.Decimal(12, 2)
-  previousSeenPrice    Decimal?                    @db.Decimal(12, 2)
-  oldPrice             Decimal?                    @db.Decimal(12, 2)
-  currency             String                      @default("GEL")
-  discountAmount       Decimal?                    @db.Decimal(12, 2)
-  discountPercent      Int                         @default(0)
-  isOnSale             Boolean                     @default(false)
-  saleDetectedAt       DateTime?
-  availability         OfferAvailability           @default(UNKNOWN)
-  imageUrl             String?
-  firstSeenAt          DateTime                    @default(now())
-  lastSeenAt           DateTime                    @default(now())
-  lastPriceChangedAt   DateTime?
-  isActive             Boolean                     @default(true)
-  missedSyncCount      Int                         @default(0)
-  possiblyInactiveAt   DateTime?
-  inactiveAt           DateTime?
-  histories            PriceHistory[]
-  clickEvents          ClickEvent[]
-  matchCandidates      OfferMatchCandidate[]
-  verificationEvidence OfferVerificationEvidence[]
-  storeVerifications   ProductStoreVerification[]
-  possibleMatches      PossibleProductMatch[]
-  createdAt            DateTime                    @default(now())
-  updatedAt            DateTime                    @updatedAt
+  lastCheckedAt         DateTime?
+  currentPrice          Decimal                     @db.Decimal(12, 2)
+  previousSeenPrice     Decimal?                    @db.Decimal(12, 2)
+  oldPrice              Decimal?                    @db.Decimal(12, 2)
+  currency              String                      @default("GEL")
+  discountAmount        Decimal?                    @db.Decimal(12, 2)
+  discountPercent       Int                         @default(0)
+  isOnSale              Boolean                     @default(false)
+  saleDetectedAt        DateTime?
+  availability          OfferAvailability           @default(UNKNOWN)
+  imageUrl              String?
+  firstSeenAt           DateTime                    @default(now())
+  lastSeenAt            DateTime                    @default(now())
+  lastPriceChangedAt    DateTime?
+  isActive              Boolean                     @default(true)
+  missedSyncCount       Int                         @default(0)
+  possiblyInactiveAt    DateTime?
+  inactiveAt            DateTime?
+  histories             PriceHistory[]
+  clickEvents           ClickEvent[]
+  matchCandidates       OfferMatchCandidate[]
+  verificationEvidence  OfferVerificationEvidence[]
+  storeVerifications    ProductStoreVerification[]
+  possibleMatches       PossibleProductMatch[]
+  canonicalProductId    String?
+  canonicalProduct      CanonicalProduct?           @relation(fields: [canonicalProductId], references: [id], onDelete: SetNull)
+  confidence            Int?
+  reason                String?
+  matcherVersion        String?
+  matchedAt             DateTime?
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
 
   @@unique([shopId, url])
   @@unique([shopId, externalId])
@@ -268,6 +276,8 @@ model ProductOffer {
   @@index([variantId, currentPrice])
   @@index([canonicalKey])
   @@index([matchStatus, matchConfidence])
+  @@index([canonicalProductId])
+  @@index([matcherVersion, matchedAt])
   @@index([isActive, lastSeenAt])
   @@index([missedSyncCount])
 }
@@ -284,6 +294,7 @@ model RawOffer {
   variant             ProductVariant?        @relation(fields: [variantId], references: [id], onDelete: SetNull)
   productOffer        ProductOffer?
   possibleMatches     PossibleProductMatch[]
+  safePossibleMatches PossibleMatch[]
   externalId          String?
   originalTitle       String
   originalUrl         String
@@ -330,6 +341,32 @@ model RawOffer {
   @@index([storeKey])
 }
 
+model CanonicalProduct {
+  id              String          @id @default(cuid())
+  categorySlug    String
+  brand           String
+  familyKey       String
+  canonicalKey    String          @unique
+  title           String
+  normalizedTitle String
+  primaryImage    String?
+  specsJson       Json
+  productId       String?         @unique
+  product         Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  matcherVersion  String
+  firstMatchedAt  DateTime        @default(now())
+  lastMatchedAt   DateTime?
+  offers          ProductOffer[]
+  possibleMatches PossibleMatch[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([categorySlug, brand])
+  @@index([familyKey])
+  @@index([updatedAt])
+  @@map("canonical_products")
+}
+
 model OfferMatchCandidate {
   id         String       @id @default(cuid())
   productId  String
@@ -369,6 +406,32 @@ model PossibleProductMatch {
 
   @@index([status, confidence])
   @@index([productId, shopId])
+}
+
+model PossibleMatch {
+  id                 String            @id @default(cuid())
+  rawOfferId         String
+  rawOffer           RawOffer          @relation(fields: [rawOfferId], references: [id], onDelete: Cascade)
+  canonicalProductId String
+  canonicalProduct   CanonicalProduct  @relation(fields: [canonicalProductId], references: [id], onDelete: Cascade)
+  shopId             String
+  shop               Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  confidence         Int
+  reason             String
+  matcherVersion     String
+  rawTitle           String
+  candidateTitle     String
+  evidence           Json?
+  status             MatchReviewStatus @default(PENDING)
+  matchedAt          DateTime          @default(now())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@unique([rawOfferId, canonicalProductId, matcherVersion])
+  @@index([status, confidence])
+  @@index([rawOfferId])
+  @@index([canonicalProductId])
+  @@map("possible_matches")
 }
 
 model ProductVerification {
@@ -459,13 +522,13 @@ model ClickEvent {
 }
 
 model PriceHistory {
-  id         String       @id @default(cuid())
-  offerId    String
-  offer      ProductOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
-  price      Decimal      @db.Decimal(12, 2)
-  oldPrice   Decimal?     @db.Decimal(12, 2)
+  id           String            @id @default(cuid())
+  offerId      String
+  offer        ProductOffer      @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  price        Decimal           @db.Decimal(12, 2)
+  oldPrice     Decimal?          @db.Decimal(12, 2)
   availability OfferAvailability @default(UNKNOWN)
-  capturedAt DateTime     @default(now())
+  capturedAt   DateTime          @default(now())
 
   @@index([offerId, capturedAt])
 }

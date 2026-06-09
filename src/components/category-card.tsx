@@ -49,7 +49,7 @@ export function CategoryCard({ category, comingSoon = false }: { category: Categ
               : "border-[var(--line)] bg-white text-[var(--brand)]"
           }`}
         >
-          {comingSoon ? "მალე" : `${category.productCount ?? 0} პროდუქტი`}
+          {comingSoon ? "მალე" : `სულ ${(category.productCount ?? 0).toLocaleString()} უნიკალური პროდუქტი`}
         </span>
       </div>
       <div className="relative flex-1">
@@ -61,7 +61,7 @@ export function CategoryCard({ category, comingSoon = false }: { category: Categ
         </p>
       </div>
       <div className="relative flex items-center justify-between gap-2 border-t border-[var(--line)] pt-3 text-xs font-black">
-        <span className="text-[var(--muted)]">{category.dealCount ?? 0} აქცია</span>
+        <span className="text-[var(--muted)]">სულ {(category.dealCount ?? 0).toLocaleString()} აქტიური აქცია</span>
         <span className="inline-flex items-center gap-1 text-[var(--brand)] group-hover:text-[var(--accent-strong)]">
           გახსნა <ArrowRight className="size-3.5" />
         </span>

@@ -1,5 +1,5 @@
 export const AUTO_MATCH_CONFIDENCE = 90;
-export const REVIEW_MATCH_CONFIDENCE = 70;
+export const REVIEW_MATCH_CONFIDENCE = 75;
 
 export const STRICT_VARIANT_CATEGORY_SLUGS = new Set([
   "mobiles",
@@ -38,6 +38,8 @@ export const KNOWN_PRODUCT_BRANDS = [
   "nothing",
   "motorola",
   "nokia",
+  "oukitel",
+  "sigma",
   // Laptops & computers
   "lenovo",
   "hp",

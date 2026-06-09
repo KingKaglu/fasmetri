@@ -1,7 +1,9 @@
 import "./load-env";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/prisma";
+import { isPublicCategorySlug } from "../src/config/categoryMapping";
 import { categorizeProduct } from "../src/lib/categorizeProduct";
+import { explainMatchDecision } from "../src/lib/productMatching";
 import { normalizeProductTitle, removeNoiseWords } from "../src/lib/productNormalization";
 import { extractVariantIdentity } from "../src/lib/variantMatching";
 import { checkpointId, logProgress, parseBatchOptions, writeCheckpoint } from "./job-utils";
@@ -54,8 +56,21 @@ async function main() {
         model: raw.model ?? undefined,
         categorySlug: decision.publicCategorySlug,
         breadcrumbs: toStringArray(raw.breadcrumbs ?? raw.sourceBreadcrumbs),
+        imageUrl: raw.originalImageUrl ?? undefined,
+        price: raw.rawPrice == null ? undefined : Number(raw.rawPrice),
+        oldPrice: raw.rawOldPrice == null ? undefined : Number(raw.rawOldPrice),
+        discount: raw.rawDiscount,
+        stockStatus: raw.availability,
       });
-      if (decision.needsReview || !identity.canonicalParentKey || !identity.canonicalVariantKey) review += 1;
+      const publicCategory = isPublicCategorySlug(decision.publicCategorySlug);
+      const identityDecision = explainMatchDecision(identity, identity);
+      const needsReview =
+        decision.needsReview ||
+        !publicCategory ||
+        !identity.canonicalParentKey ||
+        !identity.canonicalVariantKey ||
+        identityDecision.status !== "CONFIRMED";
+      if (needsReview) review += 1;
 
       if (!options.dryRun) {
         await db.rawOffer.update({
@@ -67,10 +82,13 @@ async function main() {
             productIdentity: jsonValue(identity),
             categorySlug: decision.publicCategorySlug,
             categoryConfidence: decision.confidenceScore,
-            categoryNeedsReview: decision.needsReview || !identity.canonicalParentKey || !identity.canonicalVariantKey,
-            status: decision.needsReview || !identity.canonicalParentKey || !identity.canonicalVariantKey ? "NEEDS_REVIEW" : "NORMALIZED",
+            categoryNeedsReview: needsReview,
+            status: needsReview ? "NEEDS_REVIEW" : "NORMALIZED",
             processedAt: new Date(),
-            errorMessage: null,
+            errorMessage: needsReview
+              ? [...identityDecision.missingAttributes, ...identityDecision.hardMismatchReasons, ...identityDecision.reasons].join(" ") ||
+                "Normalized identity is not strong enough for automatic matching."
+              : null,
           },
         });
       }

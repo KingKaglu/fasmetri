@@ -56,7 +56,7 @@ export default async function AdminPage() {
         <AdminPanel title="საიტის კატეგორიები" description="ეს არის ის კატეგორიები, რომლებსაც public catalog იყენებს.">
           <div className="grid gap-2 p-3">
             {categories.slice(0, 10).map((category) => (
-              <Link key={category.id} href={`/categories/${category.slug}`} target="_blank" className="flex items-center justify-between gap-3 rounded-2xl border border-[#dbe5d3] bg-[#f8fbf4] p-3 hover:border-[#151713] hover:bg-white">
+              <Link key={category.id} href={`/categories/${category.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border border-[#dbe5d3] bg-[#f8fbf4] p-3 hover:border-[#151713] hover:bg-white">
                 <span className="min-w-0 truncate text-sm font-black text-[var(--brand)]">{category.nameKa}</span>
                 <AdminStatusPill tone="info">{category.slug}</AdminStatusPill>
               </Link>

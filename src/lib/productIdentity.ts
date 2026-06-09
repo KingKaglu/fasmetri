@@ -39,6 +39,7 @@ export type ProductIdentity = {
   capacity?: string;
   compatibleDevice?: string;
   productForm?: string;
+  imageFingerprint?: string;
   normalizedTitle: string;
   cleanTitle: string;
   canonicalKey?: string;
@@ -80,6 +81,7 @@ export function mergeProductIdentities(base: ProductIdentity, supplement: Produc
     capacity: base.capacity ?? supplement.capacity,
     compatibleDevice: base.compatibleDevice ?? supplement.compatibleDevice,
     productForm: base.productForm ?? supplement.productForm,
+    imageFingerprint: base.imageFingerprint ?? supplement.imageFingerprint,
     attributes: {
       ...base.attributes,
       brand: base.attributes.brand ?? supplement.attributes.brand,
@@ -98,6 +100,7 @@ export function mergeProductIdentities(base: ProductIdentity, supplement: Produc
       capacity: base.attributes.capacity ?? supplement.attributes.capacity,
       compatibleDevice: base.attributes.compatibleDevice ?? supplement.attributes.compatibleDevice,
       typeTokens: unique([...base.attributes.typeTokens, ...supplement.attributes.typeTokens]),
+      imageFingerprint: base.attributes.imageFingerprint ?? supplement.attributes.imageFingerprint,
     },
   };
   merged.canonicalKey = buildCanonicalProductKey(merged);
@@ -120,10 +123,11 @@ export function buildCanonicalProductKey(identity: Omit<ProductIdentity, "canoni
   const brand = identity.brand;
   const model = identity.model;
   if (identity.productType === "mobile_phone" || identity.productType === "tablet") {
-    if (!brand || !model || !identity.storage) return undefined;
+    const storage = identity.storage ?? (phoneCanUseModelCodeInsteadOfStorage(identity) ? identity.modelCode ?? "base" : undefined);
+    if (!brand || !model || !storage) return undefined;
     const ram = ramBelongsInPhoneKey(identity) ? identity.ram : undefined;
     // e-SIM-only labelling is descriptive, not a separate variant (see buildParentKey).
-    return key([brand, model, ram, identity.storage, identity.color]);
+    return key([brand, model, ram, storage, identity.color]);
   }
   if (identity.productType === "laptop") {
     if (!brand) return undefined;
@@ -188,6 +192,7 @@ function identityFromAttributes(attributes: ProductAttributes, productType: Prod
     capacity: attributes.capacity,
     compatibleDevice: attributes.compatibleDevice,
     productForm: productForm(attributes),
+    imageFingerprint: attributes.imageFingerprint,
     normalizedTitle: attributes.normalizedTitle,
     cleanTitle: attributes.cleanTitle,
     confidence: identityConfidence(attributes, productType),
@@ -214,7 +219,7 @@ function productTypeFor(attributes: ProductAttributes): ProductType {
   if (slug === "computers" || slug === "computer-accessories" || slug === "cables-adapters") return "computer";
   if (
     slug === "mobiles" ||
-    /^(iphone|galaxy|pixel|redmi|poco|honor|xiaomi|vivo|realme|oppo|zte|nubia|hmd|oneplus|nothing_phone|motorola)_/.test(
+    /^(iphone|galaxy|pixel|redmi|poco|honor|xiaomi|vivo|realme|oppo|zte|nubia|hmd|nokia|oneplus|nothing_phone|motorola|oukitel)_/.test(
       attributes.modelFamily ?? "",
     )
   )
@@ -260,6 +265,10 @@ function ramBelongsInPhoneKey(identity: Omit<ProductIdentity, "canonicalKey"> | 
   if (!identity.ram) return false;
   if (identity.brand === "apple" || identity.model?.startsWith("iphone_")) return false;
   return true;
+}
+
+function phoneCanUseModelCodeInsteadOfStorage(identity: Omit<ProductIdentity, "canonicalKey"> | ProductIdentity) {
+  return Boolean(identity.model && /^(hmd|nokia|oukitel|sigma)_/.test(identity.model));
 }
 
 function chooseStorage(values: string[]) {

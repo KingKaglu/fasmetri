@@ -29,13 +29,11 @@ const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
 const DEFAULT_STORES = ["zoommer", "ee", "pcshop"];
 const DEFAULT_CATEGORIES = ["mobiles", "laptops"];
 
-// Which categories each store actually carries. PCShop is a computer store with
-// no phones — without this guard its adapter returns the WHOLE catalog for the
-// unsupported "mobiles" category (thousands of non-phone URLs).
+// Which categories each store carries for public phone/laptop coverage.
 const STORE_CATEGORIES: Record<string, string[]> = {
   zoommer: ["mobiles", "laptops"],
   ee: ["mobiles", "laptops"],
-  pcshop: ["laptops"],
+  pcshop: ["mobiles", "laptops"],
 };
 const BLOCK_ABORT_THRESHOLD = 10; // consecutive 403/429 before aborting a category
 

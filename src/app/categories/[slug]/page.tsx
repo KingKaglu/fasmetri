@@ -1,7 +1,7 @@
 ﻿import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
-import { listCategories, listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
+import { listCategories, listPublicCategories, listPublicProductMatches, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { CategoryView } from "@/lib/catalog-types";
 import { ProductGrid } from "@/components/product-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
@@ -9,14 +9,14 @@ import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { TrackView } from "@/components/track-view";
 import { isCategoryAlias, resolvePublicCategorySlug } from "@/lib/categoryNormalization";
+import { cleanSlugParam, finiteNumberParam, firstParam, pageNumberParam, PUBLIC_LIST_PAGE_SIZE } from "@/lib/publicQueryParams";
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
-const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
-const productPageSize = 36;
 
 function fallbackPublicCategory(slug: string): CategoryView | null {
+  if (!isPublicCategorySlug(slug)) return null;
   const taxonomyCategory = PUBLIC_CATEGORY_TAXONOMY[slug as keyof typeof PUBLIC_CATEGORY_TAXONOMY];
-  if (!taxonomyCategory?.public) return null;
+  if (!taxonomyCategory) return null;
 
   return {
     id: slug,
@@ -47,8 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     ? {
         title: `${category.nameKa} ფასები და აქციები`,
         description: `${category.nameKa} კატეგორიის პროდუქტების ფასები და აქციები ქართულ ონლაინ მაღაზიებში.`,
-        // Clean public route is the canonical (/mobiles, /laptops).
-        alternates: { canonical: `/${category.slug}` },
+        alternates: { canonical: `/categories/${category.slug}` },
       }
     : { title: "კატეგორია" };
 }
@@ -57,27 +56,32 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const routeSlug = (await params).slug;
   const slug = resolvePublicCategorySlug(routeSlug);
   if (isCategoryAlias(routeSlug)) permanentRedirect(`/categories/${slug}`);
-  // Public MVP is phones + laptops only — every other category 404s.
+  // Only configured public categories render directly.
   if (!isPublicCategorySlug(slug)) notFound();
   const raw = await searchParams;
-  const page = Number(one(raw.page)) || 1;
+  const page = pageNumberParam(raw.page);
   const filters = {
     category: slug,
-    shop: one(raw.shop),
-    minPrice: one(raw.minPrice) ? Number(one(raw.minPrice)) : undefined,
-    maxPrice: one(raw.maxPrice) ? Number(one(raw.maxPrice)) : undefined,
-    minDiscount: one(raw.minDiscount) ? Number(one(raw.minDiscount)) : undefined,
-    availability: one(raw.availability),
-    dealsOnly: one(raw.dealsOnly) === "true",
-    sort: one(raw.sort),
+    shop: cleanSlugParam(raw.shop),
+    minPrice: finiteNumberParam(raw.minPrice),
+    maxPrice: finiteNumberParam(raw.maxPrice),
+    minDiscount: finiteNumberParam(raw.minDiscount, 100),
+    availability: cleanSlugParam(raw.availability),
+    dealsOnly: firstParam(raw.dealsOnly) === "true",
+    sort: cleanSlugParam(raw.sort),
     page,
   };
-  const [{ category, publicCategories: categories }, shops, products] = await Promise.all([
+  const countFilters = { ...filters, page: undefined };
+  const [{ category, publicCategories: categories }, shops, products, matchingProducts] = await Promise.all([
     resolveCategoryForPage(slug),
     listPublicShops(),
-    listPublicProducts({ ...filters, pageSize: productPageSize }),
+    listPublicProducts({ ...filters, pageSize: PUBLIC_LIST_PAGE_SIZE }),
+    listPublicProductMatches(countFilters),
   ]);
   if (!category) notFound();
+  if (page > 1 && products.length === 0) notFound();
+  const totalProductCount = matchingProducts.length;
+  const totalDealCount = matchingProducts.filter(hasActiveDeal).length;
 
   return (
     <section className="shell py-6 sm:py-9">
@@ -85,10 +89,19 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       <div className="mb-5 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_10px_26px_rgba(18,19,15,0.06)]">
         <p className="eyebrow text-[var(--accent-strong)]">კატეგორია</p>
         <h1 className="mt-1 text-3xl font-black text-[var(--brand)] sm:text-4xl">{category.nameKa}</h1>
-        <p className="mt-2 text-sm font-bold leading-6 text-[var(--muted)]">
-          <span className="font-black text-[var(--brand)]">{category.productCount ?? products.length}</span> პროდუქტი
-          {" · "}
-          <span className="font-black text-[var(--brand)]">{category.dealCount ?? 0}</span> ფასდაკლება
+        <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm font-bold leading-6 text-[var(--muted)]">
+          <span>
+            სულ <span className="font-black text-[var(--brand)]">{totalProductCount.toLocaleString()}</span> უნიკალური პროდუქტი
+          </span>
+          <span>
+            ამ გვერდზე ნაჩვენებია <span className="font-black text-[var(--brand)]">{products.length.toLocaleString()}</span> პროდუქტი
+          </span>
+          <span>
+            სულ <span className="font-black text-[var(--brand)]">{totalDealCount.toLocaleString()}</span> აქტიური აქცია
+          </span>
+        </p>
+        <p className="mt-1.5 max-w-2xl text-xs font-bold leading-5 text-[var(--muted)]">
+          ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
         </p>
       </div>
       <div className="mb-4 lg:hidden">
@@ -102,9 +115,13 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         </div>
         <div className="min-w-0">
           <ProductGrid products={products} resetHref={`/categories/${category.slug}`} emptyTitle="კატეგორიაში პროდუქტი ვერ მოიძებნა" emptyDescription="სცადე სხვა ფილტრები ან მოგვიანებით გადაამოწმე ახალი შეთავაზებები." />
-          <CatalogPager baseHref={`/categories/${category.slug}`} params={raw} page={page} hasNext={products.length === productPageSize} />
+          <CatalogPager baseHref={`/categories/${category.slug}`} params={raw} page={page} hasNext={products.length === PUBLIC_LIST_PAGE_SIZE} />
         </div>
       </div>
     </section>
   );
+}
+
+function hasActiveDeal(product: { offers: { discountPercent: number }[] }) {
+  return product.offers.some((offer) => offer.discountPercent > 0);
 }

@@ -65,6 +65,7 @@ function availability(value: unknown): "IN_STOCK" | "OUT_OF_STOCK" | "UNKNOWN" {
 // PCShop WooCommerce slugs are hyphenated product titles, e.g. /shop/lenovo-thinkpad-t14-gen5-...
 // Model names appear after the brand with a hyphen separator, so we match [-/]keyword, not \/keyword.
 const PCSHOP_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>> = {
+  mobiles:              /[-/](?:smartphone|iphone|galaxy-(?:a|s|z)|xiaomi|redmi|poco|honor|realme|nothing-phone|pixel|oneplus|motorola|hmd|vivo|oppo)/i,
   laptops:              /[-/](?:laptop|noutbuk|macbook|notebook|thinkpad|thinkbook|ideapad|legion|loq|yoga-(?:slim|pro|book|[0-9])|zenbook|vivobook|expertbook|proart|aspire|nitro|predator|swift|spin|travelmate|extensa|chromebook|elitebook|probook|zbook|omnibook|pavilion|spectre|envy|omen|victus|inspiron|xps|latitude|vostro|precision|alienware|gram|katana|vector|raider|stealth|sword|cyborg|crosshair|creator-(?:m|z|[0-9])|prestige|summit-e|galaxy-?book|matebook|surface-(?:laptop|book)|rog-|tuf-|strix|zephyrus)/i,
   monitors:             /[-/](?:monitor|display|lcd|led-display|curved|ultrawide|gaming-monitor)/i,
   computers:            /[-/](?:desktop-pc|mini-pc|all-in-one|nettop|beelink|minisforum|acemagic|intel-nuc|workstation|imac|mac-mini|mac-pro|elitedesk|prodesk|thinkcentre|thinkstation)/i,
@@ -78,15 +79,14 @@ const PCSHOP_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>
 };
 
 // PCShop's flat product sitemap has no category info, so slug-keyword filtering
-// is unreliable. For laptops we instead read the authoritative WooCommerce
-// "notebooks" category (paginated) to get the exact set of notebook products.
-async function listNotebookUrls(userAgent: string) {
+// is unreliable. Read authoritative WooCommerce category pages instead.
+async function listCategoryUrls(categoryPath: "notebooks" | "smartphones-tablets/smartphones", userAgent: string) {
   const urls = new Set<string>();
   for (let page = 1; page <= 40; page++) {
     const url =
       page === 1
-        ? "https://pcshop.ge/product-category/notebooks/"
-        : `https://pcshop.ge/product-category/notebooks/page/${page}/`;
+        ? `https://pcshop.ge/product-category/${categoryPath}/`
+        : `https://pcshop.ge/product-category/${categoryPath}/page/${page}/`;
     let html: string;
     try {
       const res = await fetch(url, { headers: { "user-agent": userAgent } });
@@ -108,9 +108,9 @@ async function listNotebookUrls(userAgent: string) {
 async function listProductUrls(categorySlug?: string) {
   const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
 
-  // Laptops: authoritative category-based discovery (complete + no false positives).
-  if (categorySlug === "laptops") {
-    const fromCategory = await listNotebookUrls(userAgent);
+  // Phones/laptops: authoritative category-based discovery (complete + no false positives).
+  if (categorySlug === "laptops" || categorySlug === "mobiles") {
+    const fromCategory = await listCategoryUrls(categorySlug === "laptops" ? "notebooks" : "smartphones-tablets/smartphones", userAgent);
     if (fromCategory.length > 0) return fromCategory;
     // fall through to sitemap+regex if the category page layout changes
   }

@@ -40,6 +40,10 @@ type EliteLdProduct = {
 
 const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
 const SITEMAP_BASE = "https://ee.ge/sitemap/products/";
+const LIVE_CATEGORY_URLS: Partial<Record<FasmetriCategorySlug, string>> = {
+  mobiles: "https://ee.ge/en/mobile-phone-c377t",
+  laptops: "https://ee.ge/noutbuqebi-c58t",
+};
 
 // Maps Fasmetri category slugs to EE's product sitemap slugs.
 // Each sitemap covers a set of products; multiple sitemaps may overlap.
@@ -88,6 +92,11 @@ const EE_CATEGORY_PATH_FILTERS: Partial<Record<FasmetriCategorySlug, RegExp>> = 
   other:                  /^\/(mobilurebi-da-chkviani-teqnika|en\/mobile-and-smart-tech|kompiuterebi-da-geimingi|en\/computers-and-gaming|televizorebi-da-audio-motsyobilobebi|foto-video-da-gartoba)\//i,
 };
 
+const EE_LAPTOP_URL_HINT =
+  /(?:notebook|laptop|macbook|thinkpad|thinkbook|ideapad|legion|loq|yoga|vivobook|zenbook|expertbook|probook|elitebook|zbook|omnibook|pavilion|omen|victus|aspire|nitro|predator|swift|travelmate|extensa|inspiron|latitude|vostro|xps|tuf|rog|katana|cyborg|prestige|modern|book-rs|matebook|surface)/i;
+const EE_LAPTOP_URL_EXCLUDE =
+  /(?:monitor|bag|case|sleeve|backpack|keyboard|mouse|cooler|stand|adapter|charger|dicota|legion-(?:r|y|k)\d)/i;
+
 function toNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value !== "string") return undefined;
@@ -105,6 +114,72 @@ function canonicalProductKey(rawUrl: string) {
 function productId(rawUrl: string) {
   const match = new URL(rawUrl).pathname.match(/-p(\d+)$/i);
   return match ? Number(match[1]) : 0;
+}
+
+function productUrlKey(rawUrl: string) {
+  const id = productId(rawUrl);
+  return id ? String(id) : canonicalProductKey(rawUrl);
+}
+
+function productLinksFromHtml(html: string, baseUrl: string) {
+  const urls = new Map<string, string>();
+  for (const match of html.matchAll(/href=["']([^"']+-p[0-9]+[^"']*)["']/gi)) {
+    const href = match[1];
+    try {
+      const url = new URL(href, baseUrl).toString();
+      urls.set(productUrlKey(url), url);
+    } catch {
+      // Ignore malformed or script-generated links.
+    }
+  }
+  return urls;
+}
+
+function maxPaginationPage(html: string) {
+  const beforeItemsPerPage = html.split(/Items per page|პროდუქტები თითო გვერდზე/i)[0] ?? html;
+  const explicitPages = [...beforeItemsPerPage.matchAll(/[?&]page=([0-9]{1,3})/gi)]
+    .map((match) => Number(match[1]))
+    .filter((value) => Number.isFinite(value) && value > 0 && value < 100);
+  if (explicitPages.length) return Math.max(...explicitPages);
+
+  const paginationTail = beforeItemsPerPage.slice(-3000);
+  const visiblePages = [...paginationTail.matchAll(/(?:>|page=)([0-9]{1,3})(?:<|&|["'])/gi)]
+    .map((match) => Number(match[1]))
+    .filter((value) => Number.isFinite(value) && value > 0 && value < 100);
+  return visiblePages.length ? Math.max(...visiblePages) : 1;
+}
+
+async function listLiveCategoryUrls(categorySlug?: string, userAgent = DEFAULT_USER_AGENT) {
+  const pageUrl = categorySlug ? LIVE_CATEGORY_URLS[categorySlug as FasmetriCategorySlug] : undefined;
+  if (!pageUrl) return null;
+
+  const fetchCategoryPage = async (page: number) => {
+    const url = page === 1 ? pageUrl : `${pageUrl}?page=${page}`;
+    const response = await fetch(url, {
+      headers: { "user-agent": userAgent, "accept-language": "ka,en" },
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const html = await response.text();
+    return { url, html };
+  };
+
+  try {
+    const first = await fetchCategoryPage(1);
+    const pages = maxPaginationPage(first.html);
+    const urls = new Map(productLinksFromHtml(first.html, first.url));
+    for (let page = 2; page <= pages; page += 1) {
+      const result = await fetchCategoryPage(page);
+      for (const [key, url] of productLinksFromHtml(result.html, result.url)) {
+        urls.set(key, url);
+      }
+    }
+    if (urls.size > 0) return [...urls.values()];
+  } catch (error) {
+    console.warn(`EE live category discovery failed for ${categorySlug}; falling back to sitemap:`, error instanceof Error ? error.message : error);
+  }
+
+  return null;
 }
 
 function isOutletPath(pathname: string): boolean {
@@ -163,6 +238,9 @@ function parseBrand(ldProduct: EliteLdProduct | null) {
 
 async function listProductUrls(categorySlug?: string) {
   const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
+  const liveUrls = await listLiveCategoryUrls(categorySlug, userAgent);
+  if (liveUrls?.length) return liveUrls;
+
   const sitemapSlugs = categorySlug
     ? EE_CATEGORY_SITEMAPS[categorySlug as FasmetriCategorySlug]
     : undefined;
@@ -214,7 +292,10 @@ async function listProductUrls(categorySlug?: string) {
   return [...deduped.values()]
     .filter((url) => {
       if (!pathFilter) return true;
-      return pathFilter.test(new URL(url).pathname);
+      const pathname = new URL(url).pathname;
+      if (!pathFilter.test(pathname)) return false;
+      if (categorySlug === "laptops") return EE_LAPTOP_URL_HINT.test(pathname) && !EE_LAPTOP_URL_EXCLUDE.test(pathname);
+      return true;
     })
     .sort((left, right) => productId(right) - productId(left));
 }
@@ -264,7 +345,7 @@ export const eeAdapter: ShopAdapter = {
   baseUrl: "https://ee.ge",
   enabledByDefault: false,
   needsConfiguration: false,
-  rateLimitMs: 5000,
+  rateLimitMs: 1000,
   maxProductsPerRun: 36,
   preferProductUrlsForCategory: true,
   listProductUrls,

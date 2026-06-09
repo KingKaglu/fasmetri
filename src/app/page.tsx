@@ -18,7 +18,6 @@ import { formatGel } from "@/lib/format";
 import { CategoryCard } from "@/components/category-card";
 import { ProductCard } from "@/components/product-card";
 import { ProductGrid } from "@/components/product-grid";
-import { ProductMarquee } from "@/components/product-marquee";
 import { SearchBar } from "@/components/search-bar";
 import { ShopCard } from "@/components/shop-card";
 import { ShopClickLink } from "@/components/shop-click-link";
@@ -29,8 +28,9 @@ import {
   PriceDisplay,
   ProductImage,
   ShopMark,
+  realDiscountPercent,
 } from "@/components/public-ui";
-import { compareDealPriority, filterCuratedProducts, PRIORITY_CATEGORIES } from "@/config/productCuration";
+import { compareDealPriority, compareProductPriority, filterCuratedProducts, PRIORITY_CATEGORIES } from "@/config/productCuration";
 
 export const metadata: Metadata = {
   title: "ფასმეტრი — შეადარე ფასები ქართულ ონლაინ მაღაზიებში",
@@ -48,6 +48,8 @@ const quickCategories = [
   { href: "/search", label: "ძებნა", icon: Search },
 ];
 
+type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
+
 export default async function Home() {
   const [discoveryCandidates, shops, stats, categories] = await Promise.all([
     listPublicProducts({ categorySlugs: PRIORITY_CATEGORIES, sort: "priority", pageSize: 200, candidateLimit: 240 }),
@@ -58,10 +60,9 @@ export default async function Home() {
   const activeShops = shops
     .filter((shop) => (shop.productCount ?? 0) > 0)
     .sort((a, b) => (b.productCount ?? 0) - (a.productCount ?? 0));
-  const discounts = selectHomeDeals(
-    discoveryCandidates.filter((p) => p.offers.some((o) => o.discountPercent > 0)).sort(compareDealPriority),
-  );
-  const trending = selectHomeDiscovery(discoveryCandidates);
+  const discounts = selectHomeDeals(discoveryCandidates);
+  const promotedKeys = new Set(discounts.flatMap(homepageDedupKeys));
+  const trending = selectFrequentlyCompared(discoveryCandidates, promotedKeys);
   const heroProduct = discounts[0] ?? trending[0];
 
   return (
@@ -99,9 +100,12 @@ export default async function Home() {
             </div>
             <div className="mt-6 grid max-w-2xl gap-2 min-[360px]:grid-cols-3">
               <HeroStat label="მაღაზია" value={stats.shops} />
-              <HeroStat label="პროდუქტი" value={stats.products} />
-              <HeroStat label="აქცია" value={stats.deals} />
+              <HeroStat label="უნიკალური პროდუქტი" value={stats.products} />
+              <HeroStat label="სულ აქტიური აქცია" value={stats.deals} />
             </div>
+            <p className="mt-3 max-w-2xl text-xs font-bold leading-5 text-white/58">
+              ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
+            </p>
           </div>
 
           <div className="relative z-10">
@@ -132,7 +136,7 @@ export default async function Home() {
       ) : null}
 
       <section className="shell pt-8 sm:pt-10">
-        <SectionBar eyebrow="დღის ფასი" title="აქციები, რომლებსაც შემოწმება ღირს" href="/deals" action="ყველა აქცია" dealCount={stats.deals ?? null} />
+        <SectionBar eyebrow="დღის ფასი" title="დღის საუკეთესო ფასები" href="/deals" action="ყველა აქცია" dealCount={stats.deals ?? null} />
         {discounts.length ? (
           <div className="grid gap-3 lg:grid-cols-12">
             <div className="lg:col-span-4">
@@ -140,7 +144,7 @@ export default async function Home() {
             </div>
             <div className="lg:col-span-8">
               <div className="product-grid-dense grid">
-                {discounts.slice(1, 7).map((product, index) => (
+                {discounts.slice(1, 6).map((product, index) => (
                   <ProductCard key={product.id} product={product} deal imagePriority={index < 2} />
                 ))}
               </div>
@@ -159,17 +163,8 @@ export default async function Home() {
       </section>
 
       <section className="shell pt-10 sm:pt-12">
-        <SectionBar eyebrow="პოპულარული" title="პროდუქტები, რომლებსაც ხშირად ადარებენ" href="/search?sort=priority" action="ყველა" />
-        <div className="hidden lg:block">
-          {trending.length ? (
-            <ProductMarquee products={trending} />
-          ) : (
-            <ProductGrid products={trending} density="compact" resetHref="/search" emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
-          )}
-        </div>
-        <div className="lg:hidden">
-          <ProductGrid products={trending} density="compact" resetHref="/search" emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
-        </div>
+        <SectionBar eyebrow="ხშირად შედარებული" title="პროდუქტები, რომლებსაც ხშირად ადარებენ" href="/search?sort=priority" action="ყველა" />
+        <ProductGrid products={trending} density="compact" resetHref="/search" emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
       </section>
 
       <section className="mt-12 border-y border-[var(--line)] bg-white/70">
@@ -204,21 +199,96 @@ export default async function Home() {
   );
 }
 
-function selectHomeDeals(products: Awaited<ReturnType<typeof listPublicProducts>>) {
-  const featured = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, requireFeaturedComparison: true });
-  const useful = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, inStockOnly: true });
-  return uniqueProducts([...featured, ...useful]).slice(0, 8);
+function selectHomeDeals(products: HomeProduct[]) {
+  const deals = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, inStockOnly: true })
+    .filter((product) => bestRealDiscount(product) > 0)
+    .sort((left, right) => bestRealDiscount(right) - bestRealDiscount(left) || compareDealPriority(left, right));
+
+  return dedupeHomepageProducts(deals).slice(0, 6);
 }
 
-function selectHomeDiscovery(products: Awaited<ReturnType<typeof listPublicProducts>>) {
-  const featured = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, requireFeaturedComparison: true });
-  const discovery = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, requireDiscoveryQuality: true });
-  const useful = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, inStockOnly: true });
-  return uniqueProducts([...featured, ...discovery, ...useful]).slice(0, 8);
+function selectFrequentlyCompared(products: HomeProduct[], promotedKeys: Set<string>) {
+  const multiStore = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, requireDiscoveryQuality: true })
+    .filter((product) => uniqueShopCount(product) >= 2)
+    .sort((left, right) => uniqueShopCount(right) - uniqueShopCount(left) || compareProductPriority(left, right));
+  const fallback = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, inStockOnly: true }).sort(compareProductPriority);
+  const uniqueProducts = dedupeHomepageProducts([...multiStore, ...fallback]);
+  const preferred = uniqueProducts.filter((product) => !homepageDedupKeys(product).some((key) => promotedKeys.has(key)));
+  const promotedFallback = uniqueProducts.filter((product) => homepageDedupKeys(product).some((key) => promotedKeys.has(key)));
+
+  return [...preferred, ...promotedFallback].slice(0, 8);
 }
 
-function uniqueProducts(products: Awaited<ReturnType<typeof listPublicProducts>>) {
-  return [...new Map(products.map((p) => [p.id, p])).values()];
+function dedupeHomepageProducts(products: HomeProduct[]) {
+  const seen = new Set<string>();
+  const unique: HomeProduct[] = [];
+
+  for (const product of products) {
+    const keys = homepageDedupKeys(product);
+    if (keys.some((key) => seen.has(key))) continue;
+    for (const key of keys) seen.add(key);
+    unique.push(product);
+  }
+
+  return unique;
+}
+
+function homepageDedupKeys(product: HomeProduct) {
+  const identity = objectRecord(product.productIdentity);
+  const keys = new Set<string>();
+  const add = (kind: string, value: unknown) => {
+    const normalized = normalizeHomeKey(value);
+    if (normalized) keys.add(`${kind}:${normalized}`);
+  };
+
+  add("id", product.id);
+  add("canonical-product", identityValue(identity, "canonicalProductId"));
+  add("slug", product.slug);
+  add("canonical-variant", identityValue(identity, "canonicalVariantKey") ?? identityValue(identity, "canonicalKey") ?? product.canonicalKey);
+
+  const identityParts = [
+    product.brand ?? identityValue(identity, "brand"),
+    product.model ?? identityValue(identity, "model"),
+    identityValue(identity, "ram"),
+    identityValue(identity, "storage"),
+    identityValue(identity, "color"),
+  ]
+    .map(normalizeHomeKey)
+    .filter(Boolean);
+  if (identityParts.length >= 3) keys.add(`identity:${identityParts.join("|")}`);
+
+  add("title", product.name);
+
+  return [...keys];
+}
+
+function bestRealDiscount(product: HomeProduct) {
+  return Math.max(0, ...product.offers.map((offer) => realDiscountPercent(offer)));
+}
+
+function uniqueShopCount(product: HomeProduct) {
+  return new Set(product.offers.map((offer) => offer.shop.id)).size;
+}
+
+function objectRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+function identityValue(identity: Record<string, unknown> | null, key: string) {
+  const value = identity?.[key];
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return undefined;
+}
+
+function normalizeHomeKey(value: unknown) {
+  if (typeof value !== "string" && typeof value !== "number") return "";
+  return String(value)
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^a-z0-9\u10a0-\u10ff\u1c90-\u1cbf]+/gi, " ")
+    .trim()
+    .replace(/\s+/g, " ");
 }
 
 function HeroStat({ label, value }: { label: string; value: number | null | undefined }) {
@@ -252,7 +322,7 @@ function SectionBar({
       <div className="flex shrink-0 items-center gap-3">
         {dealCount != null && (
           <span className="hidden rounded-full bg-white px-3 py-1 text-xs font-black text-[var(--muted)] sm:inline">
-            {dealCount.toLocaleString()} აქცია
+            სულ {dealCount.toLocaleString()} აქტიური აქცია
           </span>
         )}
         <Link href={href} className="inline-flex h-10 items-center gap-1 rounded-full bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black">
@@ -290,7 +360,7 @@ function HeroProduct({ product }: { product: ProductView }) {
   const offer = product.offers[0];
   if (!offer) return null;
 
-  const discount = Math.max(...product.offers.map((item) => item.discountPercent), 0);
+  const discount = realDiscountPercent(offer);
   const image = offer.imageUrl ?? product.imageUrl;
   const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
 
@@ -319,7 +389,7 @@ function HeroProduct({ product }: { product: ProductView }) {
         <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} tone="light" />
         <div className="flex items-center gap-2 text-xs font-bold text-white/64">
           <Store className="size-3.5" />
-          <span>{shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : `${product.offerCount ?? product.offers.length} შეთავაზება`}</span>
+          <span>{shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : `${product.offers.length} შეთავაზება`}</span>
           <LastUpdatedText value={offer.lastSeenAt} className="ml-auto text-white/58" />
         </div>
         <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -334,10 +404,11 @@ function HeroProduct({ product }: { product: ProductView }) {
             shopName={offer.shop.name}
             price={offer.currentPrice}
             sourceUrl={offer.url}
-            ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
-            title="მაღაზიაში ნახვა"
-            className="grid size-11 place-items-center rounded-2xl border border-white/20 bg-white/10 text-white hover:bg-white/18"
+            ariaLabel={`${offer.shop.name} შეთავაზების ნახვა`}
+            title="შეთავაზების ნახვა"
+            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 px-3 text-xs font-black text-white hover:bg-white/18"
           >
+            <span>შეთავაზების ნახვა</span>
             <ArrowUpRight className="size-4" />
           </ShopClickLink>
         </div>
@@ -350,7 +421,7 @@ function FeaturedDeal({ product }: { product: ProductView }) {
   const offer = product.offers[0];
   if (!offer) return null;
 
-  const discount = Math.max(...product.offers.map((item) => item.discountPercent), 0);
+  const discount = realDiscountPercent(offer);
   const image = offer.imageUrl ?? product.imageUrl;
   const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
   const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
@@ -393,14 +464,14 @@ function FeaturedDeal({ product }: { product: ProductView }) {
         <div className="mt-auto flex items-center gap-1.5 border-t border-[var(--line)] pt-3 text-[11px] font-bold text-[var(--muted)]">
           <Store className="size-3 shrink-0" />
           <span className="min-w-0 truncate">
-            {shopCount > 1 ? <span className="font-black text-[var(--brand)]">{shopCount} მაღაზია</span> : `${product.offerCount ?? product.offers.length} შეთავაზება`}
+            {shopCount > 1 ? <span className="font-black text-[var(--brand)]">{shopCount} მაღაზია</span> : `${product.offers.length} შეთავაზება`}
           </span>
           <LastUpdatedText value={offer.lastSeenAt} className="ml-auto shrink-0" />
         </div>
 
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <Link href={`/products/${product.slug}`} className="inline-flex h-11 items-center justify-center rounded-2xl bg-[var(--brand)] px-3 text-sm font-black text-white hover:bg-black">
-            შეადარე ფასი
+            ფასების შედარება
           </Link>
           <ShopClickLink
             offerId={offer.id}
@@ -410,10 +481,11 @@ function FeaturedDeal({ product }: { product: ProductView }) {
             shopName={offer.shop.name}
             price={offer.currentPrice}
             sourceUrl={offer.url}
-            ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
-            title="მაღაზიაში ნახვა"
-            className="grid size-11 place-items-center rounded-2xl border border-[var(--line)] bg-white text-[var(--brand)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+            ariaLabel={`${offer.shop.name} შეთავაზების ნახვა`}
+            title="შეთავაზების ნახვა"
+            className="btn-outline inline-flex h-11 items-center justify-center gap-1.5 px-3 text-xs"
           >
+            <span>შეთავაზების ნახვა</span>
             <ArrowUpRight className="size-4" />
           </ShopClickLink>
         </div>

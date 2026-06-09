@@ -1,10 +1,12 @@
 import { MetadataRoute } from "next";
-import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY } from "@/config/categoryMapping";
+import { PUBLIC_CATEGORY_SLUGS } from "@/config/categoryMapping";
+import { siteUrl } from "@/config/site";
+import { PUBLIC_OFFER_MATCH_STATUSES } from "@/lib/catalog-types";
 import { categoryFixtures, productFixtures, shopFixtures } from "@/lib/fixtures";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const base = siteUrl();
   const [products, categories, shops] = await Promise.all([listSitemapProducts(), listSitemapCategories(), listSitemapShops()]);
   return [
     "", "/search", "/deals", "/categories", "/shops", "/about", "/contact",
@@ -24,12 +26,19 @@ async function listSitemapProducts() {
         archivedAt: null,
         needsReview: false,
         categoryNeedsReview: false,
-        // Public MVP scope: phones + laptops only.
+        // Public catalog scope.
         OR: [
           { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
           { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
         ],
-        offers: { some: { shop: { enabled: true }, currentPrice: { gt: 0 } } },
+        offers: {
+          some: {
+            shop: { enabled: true },
+            currentPrice: { gt: 0 },
+            matchStatus: { in: [...PUBLIC_OFFER_MATCH_STATUSES] },
+            verificationStatus: "CONFIRMED",
+          },
+        },
       },
       orderBy: { updatedAt: "desc" },
       select: { slug: true },
@@ -41,11 +50,7 @@ async function listSitemapProducts() {
 }
 
 async function listSitemapCategories() {
-  const publicSlugs = new Set(
-    Object.entries(PUBLIC_CATEGORY_TAXONOMY)
-      .filter(([, category]) => category.public)
-      .map(([slug]) => slug),
-  );
+  const publicSlugs = new Set<string>(PUBLIC_CATEGORY_SLUGS);
 
   if (!prisma) return categoryFixtures.filter((category) => publicSlugs.has(category.slug));
 
@@ -61,14 +66,33 @@ async function listSitemapCategories() {
 }
 
 async function listSitemapShops() {
-  if (!prisma) return shopFixtures.filter((shop) => shop.enabled).map((shop) => ({ slug: shop.slug }));
+  if (!prisma) return shopFixtures.filter((shop) => shop.enabled && (shop.productCount ?? 0) > 0).map((shop) => ({ slug: shop.slug }));
 
   try {
     return await prisma.shop.findMany({
-      where: { enabled: true },
+      where: {
+        enabled: true,
+        offers: {
+          some: {
+            currentPrice: { gt: 0 },
+            matchStatus: { in: [...PUBLIC_OFFER_MATCH_STATUSES] },
+            verificationStatus: "CONFIRMED",
+            product: {
+              isPublic: true,
+              archivedAt: null,
+              needsReview: false,
+              categoryNeedsReview: false,
+              OR: [
+                { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
+                { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
+              ],
+            },
+          },
+        },
+      },
       select: { slug: true },
     });
   } catch {
-    return shopFixtures.filter((shop) => shop.enabled).map((shop) => ({ slug: shop.slug }));
+    return shopFixtures.filter((shop) => shop.enabled && (shop.productCount ?? 0) > 0).map((shop) => ({ slug: shop.slug }));
   }
 }
