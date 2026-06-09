@@ -341,7 +341,10 @@ function searchWhere(terms: string[], offerScope?: Prisma.ProductOfferWhereInput
     ],
   }));
 
-  return { OR: termFilters };
+  // Every term must match somewhere on the product (AND), otherwise a query
+  // like "iphone 15" floods the candidate set with every product containing
+  // a bare "15". rankSearchResults then enforces whole-token matching.
+  return { AND: termFilters };
 }
 
 function offerSearchWhere(termWhere: Prisma.ProductOfferWhereInput, offerScope?: Prisma.ProductOfferWhereInput) {
@@ -440,7 +443,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v7", publicListingKey(filters)],
+    ["public-products-v8", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -451,7 +454,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v5", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v6", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
