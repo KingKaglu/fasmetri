@@ -51,8 +51,17 @@ const quickCategories = [
 type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
 
 export default async function Home() {
-  const [discoveryCandidates, shops, stats, categories] = await Promise.all([
-    listPublicProducts({ categorySlugs: PRIORITY_CATEGORIES, sort: "priority", pageSize: 200, candidateLimit: 240 }),
+  // One pool per public category so the front page always mixes phones and
+  // laptops instead of whatever a single global sort happens to surface.
+  const [categoryDeals, categoryPopular, shops, stats, categories] = await Promise.all([
+    Promise.all(
+      PRIORITY_CATEGORIES.map((category) =>
+        listPublicProducts({ category, dealsOnly: true, sort: "discount", pageSize: 60 }),
+      ),
+    ),
+    Promise.all(
+      PRIORITY_CATEGORIES.map((category) => listPublicProducts({ category, sort: "priority", pageSize: 80 })),
+    ),
     listPublicShops(),
     getCatalogStats(),
     listPublicCategories(),
@@ -60,9 +69,9 @@ export default async function Home() {
   const activeShops = shops
     .filter((shop) => (shop.productCount ?? 0) > 0)
     .sort((a, b) => (b.productCount ?? 0) - (a.productCount ?? 0));
-  const discounts = selectHomeDeals(discoveryCandidates);
+  const discounts = selectHomeDeals(categoryDeals);
   const promotedKeys = new Set(discounts.flatMap(homepageDedupKeys));
-  const trending = selectFrequentlyCompared(discoveryCandidates, promotedKeys);
+  const trending = selectFrequentlyCompared(categoryPopular, promotedKeys);
   const heroProduct = discounts[0] ?? trending[0];
 
   return (
@@ -199,24 +208,77 @@ export default async function Home() {
   );
 }
 
-function selectHomeDeals(products: HomeProduct[]) {
-  const deals = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, inStockOnly: true })
-    .filter((product) => bestRealDiscount(product) > 0)
-    .sort((left, right) => bestRealDiscount(right) - bestRealDiscount(left) || compareDealPriority(left, right));
-
-  return dedupeHomepageProducts(deals).slice(0, 6);
+function selectHomeDeals(categoryPools: HomeProduct[][]) {
+  // Best real discounts per category, then interleaved so the section always
+  // shows top sales from every category and store that has any.
+  const rankedPools = categoryPools.map((pool) =>
+    filterCuratedProducts(pool, { requireImage: true, requireUsefulCategory: true, inStockOnly: true })
+      .filter((product) => bestRealDiscount(product) > 0)
+      .sort((left, right) => bestRealDiscount(right) - bestRealDiscount(left) || compareDealPriority(left, right)),
+  );
+  // Lead with the single strongest discount overall (featured card).
+  rankedPools.sort((left, right) => bestRealDiscount(right[0] ?? emptyDeal) - bestRealDiscount(left[0] ?? emptyDeal));
+  return interleaveBalanced(rankedPools, 6, 4);
 }
 
-function selectFrequentlyCompared(products: HomeProduct[], promotedKeys: Set<string>) {
-  const multiStore = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, requireDiscoveryQuality: true })
-    .filter((product) => uniqueShopCount(product) >= 2)
-    .sort((left, right) => uniqueShopCount(right) - uniqueShopCount(left) || compareProductPriority(left, right));
-  const fallback = filterCuratedProducts(products, { requireImage: true, requireUsefulCategory: true, inStockOnly: true }).sort(compareProductPriority);
-  const uniqueProducts = dedupeHomepageProducts([...multiStore, ...fallback]);
-  const preferred = uniqueProducts.filter((product) => !homepageDedupKeys(product).some((key) => promotedKeys.has(key)));
-  const promotedFallback = uniqueProducts.filter((product) => homepageDedupKeys(product).some((key) => promotedKeys.has(key)));
+const emptyDeal = { offers: [] } as unknown as HomeProduct;
 
-  return [...preferred, ...promotedFallback].slice(0, 8);
+function selectFrequentlyCompared(categoryPools: HomeProduct[][], promotedKeys: Set<string>) {
+  const rankedPools = categoryPools.map((pool) => {
+    const multiStore = filterCuratedProducts(pool, { requireImage: true, requireUsefulCategory: true, requireDiscoveryQuality: true })
+      .filter((product) => uniqueShopCount(product) >= 2)
+      .sort((left, right) => uniqueShopCount(right) - uniqueShopCount(left) || compareProductPriority(left, right));
+    const fallback = filterCuratedProducts(pool, { requireImage: true, requireUsefulCategory: true, inStockOnly: true }).sort(compareProductPriority);
+    const merged = dedupeHomepageProducts([...multiStore, ...fallback]);
+    const preferred = merged.filter((product) => !homepageDedupKeys(product).some((key) => promotedKeys.has(key)));
+    const promotedFallback = merged.filter((product) => homepageDedupKeys(product).some((key) => promotedKeys.has(key)));
+    return [...preferred, ...promotedFallback];
+  });
+  return interleaveBalanced(rankedPools, 8, 5);
+}
+
+// Round-robin across category pools with global dedupe and a per-shop cap so
+// one store cannot fill an entire section.
+function interleaveBalanced(pools: HomeProduct[][], total: number, maxPerShop: number) {
+  const queues = pools.map((pool) => [...pool]);
+  const result: HomeProduct[] = [];
+  const seen = new Set<string>();
+  const shopCounts = new Map<string, number>();
+
+  const take = (queue: HomeProduct[], relaxShopCap: boolean) => {
+    for (let index = 0; index < queue.length; index += 1) {
+      const product = queue[index];
+      const keys = homepageDedupKeys(product);
+      if (keys.some((key) => seen.has(key))) {
+        queue.splice(index, 1);
+        index -= 1;
+        continue;
+      }
+      const shopSlug = product.offers[0]?.shop.slug ?? "";
+      // Over the cap: leave it in the queue for the relaxed pass.
+      if (!relaxShopCap && (shopCounts.get(shopSlug) ?? 0) >= maxPerShop) continue;
+      queue.splice(index, 1);
+      for (const key of keys) seen.add(key);
+      shopCounts.set(shopSlug, (shopCounts.get(shopSlug) ?? 0) + 1);
+      result.push(product);
+      return true;
+    }
+    return false;
+  };
+
+  for (const relaxShopCap of [false, true]) {
+    let progressed = true;
+    while (result.length < total && progressed) {
+      progressed = false;
+      for (const queue of queues) {
+        if (result.length >= total) break;
+        if (take(queue, relaxShopCap)) progressed = true;
+      }
+    }
+    if (result.length >= total) break;
+  }
+
+  return result;
 }
 
 function dedupeHomepageProducts(products: HomeProduct[]) {

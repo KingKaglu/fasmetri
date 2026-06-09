@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { BadgePercent, Grid3X3, Menu, Search, Store, X } from "lucide-react";
+import { BadgePercent, Grid3X3, Menu, Store, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
+import { SearchBar } from "@/components/search-bar";
 
 const links = [
   ["/deals", "აქციები"],
@@ -34,24 +35,9 @@ export function SiteHeader() {
       <div className="shell flex h-16 items-center gap-3 md:h-[4.5rem]">
         <BrandLogo compact />
 
-        <form
-          action="/search"
-          className="ml-3 hidden h-11 min-w-0 flex-1 items-center overflow-hidden rounded-2xl border border-[var(--line)] bg-white/90 shadow-[0_10px_24px_rgba(18,19,15,0.06)] md:flex md:max-w-[38rem]"
-        >
-          <label className="flex min-w-0 flex-1 items-center gap-2.5 px-3.5">
-            <Search className="size-4 shrink-0 text-[var(--muted)]" />
-            <input
-              name="q"
-              aria-label="პროდუქტის ძებნა"
-              maxLength={140}
-              placeholder="მოძებნე iPhone, MacBook, Galaxy..."
-              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
-            />
-          </label>
-          <button className="h-full shrink-0 bg-[var(--brand)] px-5 text-sm font-black text-white hover:bg-black">
-            ძებნა
-          </button>
-        </form>
+        <div className="ml-3 hidden min-w-0 flex-1 md:block md:max-w-[38rem]">
+          <SearchBar variant="header" />
+        </div>
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {links.map(([href, label]) => <NavLink key={href} href={href} label={label} pathname={pathname} />)}
@@ -83,21 +69,9 @@ export function SiteHeader() {
         </button>
       </div>
 
-      <form action="/search" className="shell pb-3 md:hidden">
-        <label className="flex h-11 min-w-0 items-center gap-2 overflow-hidden rounded-xl border border-[var(--line)] bg-white px-3 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
-          <Search className="size-4 shrink-0 text-[var(--muted)]" />
-          <input
-            name="q"
-            aria-label="პროდუქტის ძებნა"
-            maxLength={140}
-            placeholder="მოძებნე iPhone, MacBook..."
-            className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
-          />
-          <button className="h-8 shrink-0 rounded-lg bg-[var(--brand)] px-3 text-xs font-black text-white">
-            ძებნა
-          </button>
-        </label>
-      </form>
+      <div className="shell pb-3 md:hidden">
+        <SearchBar variant="header" />
+      </div>
 
       {open ? (
         <nav className="shell grid gap-1 border-t border-[var(--line)] py-3 lg:hidden">
