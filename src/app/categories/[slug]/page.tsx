@@ -1,4 +1,5 @@
 ﻿import { Metadata } from "next";
+import { Search as SearchIcon } from "lucide-react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
 import { listCategories, listPublicCategories, listPublicProductMatches, listPublicProducts, listPublicShops } from "@/lib/catalog";
@@ -60,8 +61,10 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   if (!isPublicCategorySlug(slug)) notFound();
   const raw = await searchParams;
   const page = pageNumberParam(raw.page);
+  const q = firstParam(raw.q)?.trim().slice(0, 140) || undefined;
   const filters = {
     category: slug,
+    q,
     shop: cleanSlugParam(raw.shop),
     minPrice: finiteNumberParam(raw.minPrice),
     maxPrice: finiteNumberParam(raw.maxPrice),
@@ -114,6 +117,23 @@ export default async function CategoryPage({ params, searchParams }: { params: P
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} />
         </div>
         <div className="min-w-0">
+          <form action={`/categories/${category.slug}`} className="mb-4 flex h-11 min-w-0 items-center overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_8px_20px_rgba(18,19,15,0.06)]">
+            <SearchIcon className="ml-3.5 size-4 shrink-0 text-[var(--muted)]" />
+            <input
+              name="q"
+              defaultValue={q}
+              maxLength={140}
+              aria-label={`ძებნა კატეგორიაში ${category.nameKa}`}
+              placeholder={`მოძებნე ${category.nameKa}-ში...`}
+              className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
+            />
+            {q ? (
+              <a href={`/categories/${category.slug}`} className="mr-1 shrink-0 rounded-lg px-2 py-1 text-xs font-black text-[var(--muted)] hover:text-[var(--brand)]">
+                გასუფთავება
+              </a>
+            ) : null}
+            <button className="h-full shrink-0 bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black">ძებნა</button>
+          </form>
           <ProductGrid products={products} resetHref={`/categories/${category.slug}`} emptyTitle="კატეგორიაში პროდუქტი ვერ მოიძებნა" emptyDescription="სცადე სხვა ფილტრები ან მოგვიანებით გადაამოწმე ახალი შეთავაზებები." />
           <CatalogPager baseHref={`/categories/${category.slug}`} params={raw} page={page} hasNext={products.length === PUBLIC_LIST_PAGE_SIZE} />
         </div>

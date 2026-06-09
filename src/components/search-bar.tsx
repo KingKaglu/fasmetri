@@ -17,7 +17,15 @@ type Suggestion = {
 const DEBOUNCE_MS = 150;
 const MIN_QUERY_LENGTH = 2;
 
-export function SearchBar({ defaultValue = "", large = false }: { defaultValue?: string; large?: boolean }) {
+export function SearchBar({
+  defaultValue = "",
+  large = false,
+  variant = "hero",
+}: {
+  defaultValue?: string;
+  large?: boolean;
+  variant?: "hero" | "header";
+}) {
   const router = useRouter();
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -117,17 +125,27 @@ export function SearchBar({ defaultValue = "", large = false }: { defaultValue?:
     };
   }, []);
 
+  const isHeader = variant === "header";
+
   return (
     <form
       ref={rootRef}
       onSubmit={onSubmit}
       action="/search"
-      className="relative flex w-full overflow-visible rounded-2xl border border-white/70 bg-white shadow-[0_18px_45px_rgba(18,19,15,0.16)] ring-1 ring-black/5"
+      className={
+        isHeader
+          ? "relative flex h-11 w-full min-w-0 items-center overflow-visible rounded-2xl border border-[var(--line)] bg-white/90 shadow-[0_10px_24px_rgba(18,19,15,0.06)]"
+          : "relative flex w-full overflow-visible rounded-2xl border border-white/70 bg-white shadow-[0_18px_45px_rgba(18,19,15,0.16)] ring-1 ring-black/5"
+      }
     >
-      <label className="flex min-w-0 flex-1 items-center gap-2 px-3 min-[380px]:gap-3 min-[380px]:px-4">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--brand)]">
-          <Search className="size-4" />
-        </span>
+      <label className={isHeader ? "flex min-w-0 flex-1 items-center gap-2.5 px-3.5" : "flex min-w-0 flex-1 items-center gap-2 px-3 min-[380px]:gap-3 min-[380px]:px-4"}>
+        {isHeader ? (
+          <Search className="size-4 shrink-0 text-[var(--muted)]" />
+        ) : (
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--brand)]">
+            <Search className="size-4" />
+          </span>
+        )}
         <input
           name="q"
           value={query}
@@ -139,13 +157,18 @@ export function SearchBar({ defaultValue = "", large = false }: { defaultValue?:
           role="combobox"
           aria-expanded={open}
           aria-controls="search-suggestions"
-          placeholder="მოძებნე iPhone 15, MacBook Air..."
-          className={`${large ? "h-14 text-base" : "h-12 text-sm"} w-full bg-transparent font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]`}
+          aria-label="პროდუქტის ძებნა"
+          placeholder={isHeader ? "მოძებნე iPhone 15, MacBook..." : "მოძებნე iPhone 15, MacBook Air..."}
+          className={`${isHeader ? "h-11 text-sm" : large ? "h-14 text-base" : "h-12 text-sm"} w-full min-w-0 bg-transparent font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]`}
         />
       </label>
       <button
         type="submit"
-        className={`${large ? "h-14 px-4 text-sm min-[380px]:px-7" : "h-12 px-3 text-sm min-[380px]:px-5"} shrink-0 rounded-r-2xl bg-[var(--accent)] font-black text-[var(--accent-ink)] hover:bg-[#d7ff73]`}
+        className={
+          isHeader
+            ? "h-full shrink-0 rounded-r-2xl bg-[var(--brand)] px-5 text-sm font-black text-white hover:bg-black"
+            : `${large ? "h-14 px-4 text-sm min-[380px]:px-7" : "h-12 px-3 text-sm min-[380px]:px-5"} shrink-0 rounded-r-2xl bg-[var(--accent)] font-black text-[var(--accent-ink)] hover:bg-[#d7ff73]`
+        }
       >
         ძებნა
       </button>
