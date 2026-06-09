@@ -13,7 +13,8 @@ export function SearchBar({ defaultValue = "", large = false }: { defaultValue?:
         <input
           name="q"
           defaultValue={defaultValue}
-          placeholder="მოძებნე iPhone, MacBook, Galaxy..."
+          maxLength={140}
+          placeholder="მოძებნე iPhone, აიფონი, MacBook..."
           className={`${large ? "h-14 text-base" : "h-12 text-sm"} w-full bg-transparent font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]`}
         />
       </label>

@@ -1,5 +1,5 @@
 import { isPublicCategorySlug } from "@/config/categoryMapping";
-import { CategoryView, OfferView, ProductView } from "@/lib/catalog-types";
+import { CategoryView, OfferView, ProductView, isPublicMatchStatus } from "@/lib/catalog-types";
 import { normalizeProductName } from "@/lib/matching";
 import { readProductIdentity } from "@/lib/productIdentity";
 import { explainMatchDecision } from "@/lib/productMatching";
@@ -389,7 +389,7 @@ function isPublicOffer(offer: OfferView) {
     Number.isFinite(offer.currentPrice) &&
     isRealProductOfferUrl(offer.url) &&
     !isOutletOfferUrl(offer.url) &&
-    offer.matchStatus === "CONFIRMED" &&
+    isPublicMatchStatus(offer.matchStatus) &&
     offer.verificationStatus === "CONFIRMED" &&
     (offer.matchConfidence == null || offer.matchConfidence >= 90);
 }

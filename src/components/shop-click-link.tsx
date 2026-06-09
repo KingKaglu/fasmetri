@@ -35,7 +35,7 @@ export function ShopClickLink({
     <a
       href={`/api/out/${offerId}`}
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
       aria-label={ariaLabel}
       title={title}
       className={className}

@@ -6,6 +6,7 @@ import { categorizeProduct } from "@/lib/categorizeProduct";
 import { extractProductIdentity, mergeProductIdentities, readProductIdentity } from "@/lib/productIdentity";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 import { explainMatchDecision } from "@/lib/productMatching";
+import { isPublicCategorySlug } from "@/config/categoryMapping";
 import { findAdapter } from "@/server/scrapers/shops";
 import { robotsAllows, robotsPolicy } from "@/server/scrapers/robots";
 import { ScrapedOffer, ShopAdapter } from "@/server/scrapers/types";
@@ -62,7 +63,7 @@ function canScrapeByProductUrls(adapter: ShopAdapter) {
 }
 
 async function categoryIdForSlug(slug?: string) {
-  if (!prisma || !slug) return null;
+  if (!prisma || !slug || !isPublicCategorySlug(slug)) return null;
   if (categoryIdBySlug.has(slug)) return categoryIdBySlug.get(slug) ?? null;
   const category = await prisma.category.findUnique({ where: { slug }, select: { id: true } });
   categoryIdBySlug.set(slug, category?.id ?? null);
@@ -89,6 +90,10 @@ async function findOrCreateProduct(offer: ScrapedOffer) {
     model: offer.model,
     categorySlug: categoryDecision.publicCategorySlug,
     breadcrumbs: offer.breadcrumbs,
+    imageUrl: offer.imageUrl,
+    price: offer.price,
+    oldPrice: offer.oldPrice,
+    stockStatus: offer.availability,
   });
   const candidates = await prisma.product.findMany({
     where: identity.canonicalKey
@@ -147,9 +152,10 @@ async function findOrCreateProduct(offer: ScrapedOffer) {
 }
 
 function categoryDecisionData(decision: ReturnType<typeof categorizeProduct>, offer: ScrapedOffer) {
+  const publicCategory = isPublicCategorySlug(decision.publicCategorySlug);
   return {
     categoryConfidence: decision.confidenceScore,
-    categoryNeedsReview: decision.needsReview,
+    categoryNeedsReview: decision.needsReview || !publicCategory,
     categorySuggestedSlug: decision.publicCategorySlug,
     categoryReason: decision.reason,
     categoryMatchedRules: decision.matchedRules,
@@ -167,6 +173,9 @@ async function saveOffer(shopId: string, scraped: ScrapedOffer, options: Pick<Sc
   const rawOffer = await saveRawOffer(shopId, scraped, options.importBatchId);
   if (options.rawOnly) {
     return { created: 0, updated: 1, skipped: 0 };
+  }
+  if (!isPublicCategorySlug(rawOffer.categorySlug)) {
+    return { created: 0, updated: 1, skipped: 1 };
   }
   const match = await findOrCreateProduct(scraped);
   const product = match.product;
@@ -236,6 +245,8 @@ async function saveOffer(shopId: string, scraped: ScrapedOffer, options: Pick<Sc
 
 export async function saveRawOffer(shopId: string, scraped: ScrapedOffer, importBatchId?: string) {
   if (!prisma) throw new Error("DATABASE_URL is required for scraping.");
+  const db = prisma;
+  let rawExternalId: string | null = scraped.externalId ?? null;
   const categoryDecision = categorizeProduct({
     title: scraped.title,
     description: scraped.description,
@@ -252,67 +263,87 @@ export async function saveRawOffer(shopId: string, scraped: ScrapedOffer, import
     model: scraped.model,
     categorySlug: categoryDecision.publicCategorySlug,
     breadcrumbs: scraped.breadcrumbs,
+    imageUrl: scraped.imageUrl,
+    price: scraped.price,
+    oldPrice: scraped.oldPrice,
+    stockStatus: scraped.availability,
   });
-  return prisma.rawOffer.upsert({
-    where: { shopId_originalUrl: { shopId, originalUrl: scraped.url } },
-    update: {
-      externalId: scraped.externalId,
-      originalTitle: scraped.title,
-      originalImageUrl: scraped.imageUrl,
-      rawPrice: scraped.price,
-      rawOldPrice: scraped.oldPrice,
-      rawDiscount: discountPercent(scraped.price, scraped.oldPrice),
-      availability: scraped.availability as OfferAvailability,
-      rawCategory: scraped.categorySlug,
-      sourceCategory: scraped.categorySlug,
-      breadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
-      sourceBreadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
-      description: scraped.description,
-      imageAlt: scraped.imageAlt,
-      rawSpecsJson: jsonValue({}),
-      importBatchId,
-      brand: scraped.brand,
-      model: scraped.model,
-      normalizedTitle: normalizeProductTitle(scraped.title),
-      cleanTitle: removeNoiseWords(scraped.title),
-      canonicalKey: identity.canonicalKey,
-      productIdentity: jsonValue(identity),
-      categorySlug: categoryDecision.publicCategorySlug,
-      categoryConfidence: categoryDecision.confidenceScore,
-      categoryNeedsReview: categoryDecision.needsReview,
-      status: categoryDecision.needsReview ? "NEEDS_REVIEW" : "NORMALIZED",
-      scrapedAt: new Date(),
-    },
-    create: {
-      shopId,
-      externalId: scraped.externalId,
-      originalTitle: scraped.title,
-      originalUrl: scraped.url,
-      originalImageUrl: scraped.imageUrl,
-      rawPrice: scraped.price,
-      rawOldPrice: scraped.oldPrice,
-      rawDiscount: discountPercent(scraped.price, scraped.oldPrice),
-      availability: scraped.availability as OfferAvailability,
-      rawCategory: scraped.categorySlug,
-      sourceCategory: scraped.categorySlug,
-      breadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
-      sourceBreadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
-      description: scraped.description,
-      imageAlt: scraped.imageAlt,
-      rawSpecsJson: jsonValue({}),
-      importBatchId,
-      brand: scraped.brand,
-      model: scraped.model,
-      normalizedTitle: normalizeProductTitle(scraped.title),
-      cleanTitle: removeNoiseWords(scraped.title),
-      canonicalKey: identity.canonicalKey,
-      productIdentity: jsonValue(identity),
-      categorySlug: categoryDecision.publicCategorySlug,
-      categoryConfidence: categoryDecision.confidenceScore,
-      categoryNeedsReview: categoryDecision.needsReview,
-      status: categoryDecision.needsReview ? "NEEDS_REVIEW" : "NORMALIZED",
-    },
-  });
+  const publicCategory = isPublicCategorySlug(categoryDecision.publicCategorySlug);
+  const upsertRawOffer = () => db.rawOffer.upsert({
+      where: { shopId_originalUrl: { shopId, originalUrl: scraped.url } },
+      update: {
+        externalId: rawExternalId,
+        originalTitle: scraped.title,
+        originalImageUrl: scraped.imageUrl,
+        rawPrice: scraped.price,
+        rawOldPrice: scraped.oldPrice,
+        rawDiscount: discountPercent(scraped.price, scraped.oldPrice),
+        availability: scraped.availability as OfferAvailability,
+        rawCategory: scraped.categorySlug,
+        sourceCategory: scraped.categorySlug,
+        breadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
+        sourceBreadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
+        description: scraped.description,
+        imageAlt: scraped.imageAlt,
+        rawSpecsJson: jsonValue({}),
+        importBatchId,
+        brand: scraped.brand,
+        model: scraped.model,
+        normalizedTitle: normalizeProductTitle(scraped.title),
+        cleanTitle: removeNoiseWords(scraped.title),
+        canonicalKey: identity.canonicalKey,
+        productIdentity: jsonValue(identity),
+        categorySlug: categoryDecision.publicCategorySlug,
+        categoryConfidence: categoryDecision.confidenceScore,
+        categoryNeedsReview: categoryDecision.needsReview || !publicCategory,
+        status: categoryDecision.needsReview || !publicCategory ? "NEEDS_REVIEW" : "NORMALIZED",
+        scrapedAt: new Date(),
+      },
+      create: {
+        shopId,
+        externalId: rawExternalId,
+        originalTitle: scraped.title,
+        originalUrl: scraped.url,
+        originalImageUrl: scraped.imageUrl,
+        rawPrice: scraped.price,
+        rawOldPrice: scraped.oldPrice,
+        rawDiscount: discountPercent(scraped.price, scraped.oldPrice),
+        availability: scraped.availability as OfferAvailability,
+        rawCategory: scraped.categorySlug,
+        sourceCategory: scraped.categorySlug,
+        breadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
+        sourceBreadcrumbs: jsonValue(scraped.breadcrumbs ?? []),
+        description: scraped.description,
+        imageAlt: scraped.imageAlt,
+        rawSpecsJson: jsonValue({}),
+        importBatchId,
+        brand: scraped.brand,
+        model: scraped.model,
+        normalizedTitle: normalizeProductTitle(scraped.title),
+        cleanTitle: removeNoiseWords(scraped.title),
+        canonicalKey: identity.canonicalKey,
+        productIdentity: jsonValue(identity),
+        categorySlug: categoryDecision.publicCategorySlug,
+        categoryConfidence: categoryDecision.confidenceScore,
+        categoryNeedsReview: categoryDecision.needsReview || !publicCategory,
+        status: categoryDecision.needsReview || !publicCategory ? "NEEDS_REVIEW" : "NORMALIZED",
+      },
+    });
+
+  try {
+    return await upsertRawOffer();
+  } catch (error) {
+    const prismaError = error as { code?: string; meta?: { target?: unknown } };
+    const errorText = String(error);
+    const externalIdConflict =
+      (prismaError.code === "P2002" && String(prismaError.meta?.target ?? "").includes("externalId")) ||
+      (errorText.includes("Unique constraint failed") && errorText.includes("externalId"));
+    if (externalIdConflict && rawExternalId !== null) {
+      rawExternalId = null;
+      return upsertRawOffer();
+    }
+    throw error;
+  }
 }
 
 function jsonValue(value: unknown) {
@@ -412,7 +443,8 @@ async function scrapeProductMode(shopId: string, adapter: ShopAdapter, userAgent
       pagesVisited += 1;
 
       if (!offer || !offer.title || offer.price <= 0) continue;
-      const result = await saveOffer(shopId, offer, options);
+      const scopedOffer = options.category ? { ...offer, categorySlug: options.category } : offer;
+      const result = await saveOffer(shopId, scopedOffer, options);
       offersCreated += result.created;
       offersUpdated += result.updated;
       offersSkipped += result.skipped;

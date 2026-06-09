@@ -1,12 +1,18 @@
 import "./load-env";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/prisma";
-import { readProductIdentity } from "../src/lib/productIdentity";
+import { extractProductIdentity } from "../src/lib/productIdentity";
 import { explainMatchDecision } from "../src/lib/productMatching";
 import { checkpointId, logProgress, parseBatchOptions, writeCheckpoint } from "./job-utils";
 
 if (!prisma) throw new Error("DATABASE_URL is required.");
 const db = prisma;
+const publicOfferWhere = {
+  currentPrice: { gt: 0 },
+  shop: { enabled: true },
+  matchStatus: "CONFIRMED",
+  verificationStatus: "CONFIRMED",
+} satisfies Prisma.ProductOfferWhereInput;
 
 async function main() {
   const options = parseBatchOptions("audit-public-catalog", { limit: 200 });
@@ -19,11 +25,12 @@ async function main() {
       needsReview: false,
       categoryNeedsReview: false,
       categorySuggestedSlug: options.category,
-      offers: { some: { currentPrice: { gt: 0 } } },
+      offers: { some: publicOfferWhere },
     },
     include: {
       category: true,
       offers: {
+        where: publicOfferWhere,
         include: { shop: true },
         orderBy: { currentPrice: "asc" },
       },
@@ -40,23 +47,24 @@ async function main() {
 
   for (const product of products) {
     processed += 1;
-    const baseIdentity =
-      readProductIdentity(product.productIdentity) ?? {
-        title: product.name,
-        brand: product.brand,
-        model: product.model,
-        categorySlug: product.categorySuggestedSlug ?? product.category?.slug,
-      };
+    const baseIdentity = extractProductIdentity({
+      title: product.name,
+      brand: product.brand,
+      model: product.model,
+      categorySlug: product.categorySuggestedSlug ?? product.category?.slug,
+      imageUrl: product.imageUrl,
+    });
     let confirmedOffers = 0;
 
     for (const offer of product.offers) {
       try {
         const decision = explainMatchDecision(
           baseIdentity,
-          readProductIdentity(offer.productIdentity) ?? {
+          extractProductIdentity({
             title: offer.title,
             categorySlug: product.categorySuggestedSlug ?? product.category?.slug,
-          },
+            imageUrl: offer.imageUrl,
+          }),
         );
         const valid =
           decision.status === "CONFIRMED" &&
@@ -66,6 +74,22 @@ async function main() {
 
         if (valid) {
           confirmedOffers += 1;
+          continue;
+        }
+
+        if (decision.status === "CONFIRMED" && decision.confidence >= 90) {
+          confirmedOffers += 1;
+          if (!options.dryRun) {
+            await db.productOffer.update({
+              where: { id: offer.id },
+              data: {
+                matchStatus: "CONFIRMED",
+                matchConfidence: decision.confidence,
+                verificationStatus: "CONFIRMED",
+              },
+            });
+            updated += 1;
+          }
           continue;
         }
 

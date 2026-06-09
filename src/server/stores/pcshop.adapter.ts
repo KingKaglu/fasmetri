@@ -11,7 +11,8 @@ const SN = "Sitemap-based; category inferred from JSON-LD breadcrumbs at scrape 
 const CATEGORIES: Partial<Record<FasmetriCategorySlug, CategoryCoverage>> = {
   // ── Core PCShop categories ─────────────────────────────────────────
   computers:              { url: "/product-category/desktops/",           status: SM,     notes: "Mini PCs, desktops, all-in-ones; " + SN },
-  laptops:                { url: "/product-category/laptops/",            status: SM,     notes: SN },
+  laptops:                { url: "/product-category/notebooks/",          status: SM,     notes: SN },
+  mobiles:                { url: "/product-category/smartphones-tablets/smartphones/", status: SM, notes: SN },
   "computer-accessories": { url: "/product-category/accessories/",        status: SM,     notes: "RAM, SSD, coolers, peripherals; " + SN },
   "cables-adapters":      { url: "/product-category/cables-adapters/",    status: SM,     notes: SN },
   monitors:               { url: "/product-category/monitors/",           status: SM,     notes: SN },
@@ -22,7 +23,6 @@ const CATEGORIES: Partial<Record<FasmetriCategorySlug, CategoryCoverage>> = {
   "tablet-accessories":   { url: null,                                    status: SM,     notes: SN },
   furniture:              { url: "/product-category/furniture/",          status: SM,     notes: "Gaming chairs, desks; " + SN },
   // ── Unlikely / unsupported ────────────────────────────────────────
-  mobiles:                { url: null, status: "unsupported" },
   "phone-accessories":    { url: null, status: "unsupported" },
   televisions:            { url: null, status: "unsupported" },
   wearables:              { url: null, status: "unsupported" },

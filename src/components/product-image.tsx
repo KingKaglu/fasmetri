@@ -8,6 +8,17 @@ function wsrvLoader({ src, width, quality }: ImageLoaderProps) {
   return `https://wsrv.nl/?url=${encodeURIComponent(src)}&w=${width}&q=${quality ?? 72}&output=webp&we`;
 }
 
+const nextOptimizedHosts = new Set(["s3.zoommer.ge", "zoommer.ge", "alta.ge", "ee.ge", "veli.store", "pcshop.ge", "extra.ge"]);
+
+function isNextOptimizableImage(src: string | null | undefined) {
+  if (!src) return false;
+  try {
+    return nextOptimizedHosts.has(new URL(src).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 export function ProductImage({ src, alt, priority = false, tall = false }: { src?: string | null; alt: string; priority?: boolean; tall?: boolean }) {
   const [failed, setFailed] = useState(false);
   const [direct, setDirect] = useState(false);
@@ -17,6 +28,7 @@ export function ProductImage({ src, alt, priority = false, tall = false }: { src
   // which returns 400 and would leave the card photoless. Fall back to loading
   // the original image directly before showing the placeholder.
   const useWsrv = isExternalImage && !direct;
+  const optimizeDirect = direct && isNextOptimizableImage(src);
   const shape = tall ? "h-full min-h-[16rem]" : "aspect-square";
 
   return (
@@ -31,8 +43,10 @@ export function ProductImage({ src, alt, priority = false, tall = false }: { src
           sizes={tall ? "(max-width: 1024px) 90vw, 520px" : "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 240px"}
           priority={priority}
           loading={priority ? undefined : "lazy"}
+          quality={priority ? 76 : 68}
           loader={useWsrv ? wsrvLoader : undefined}
-          unoptimized={!useWsrv}
+          unoptimized={!useWsrv && !optimizeDirect}
+          referrerPolicy="no-referrer"
           onError={() => (useWsrv ? setDirect(true) : setFailed(true))}
           className="object-contain p-3 transition duration-300 group-hover:scale-[1.05]"
         />

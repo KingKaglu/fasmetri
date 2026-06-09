@@ -1,5 +1,6 @@
 import { AlertStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { siteUrl } from "@/config/site";
 
 export async function prepareTriggeredAlerts() {
   if (!prisma) return [];
@@ -11,7 +12,10 @@ export async function prepareTriggeredAlerts() {
 
   // Replace this console provider with Resend, SES, or another configured sender.
   if (process.env.ALERT_PROVIDER === "console") {
-    for (const alert of triggered) console.log(`Alert ready for ${alert.email}: ${alert.product.name}`);
+    for (const alert of triggered) {
+      const unsubscribeUrl = `${siteUrl()}/alerts/unsubscribe/${alert.id}`;
+      console.log(`Alert ready for ${alert.email}: ${alert.product.name}; unsubscribe=${unsubscribeUrl}`);
+    }
   }
   await prisma.userPriceAlert.updateMany({
     where: { id: { in: triggered.map((alert) => alert.id) } },

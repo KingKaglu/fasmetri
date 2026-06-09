@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { BadgePercent, Flame } from "lucide-react";
 import { listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product-grid";
@@ -6,6 +7,14 @@ import { CatalogFilters } from "@/components/catalog-filters";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { filterCuratedProducts } from "@/config/productCuration";
+import {
+  cleanSlugParam,
+  finiteNumberParam,
+  firstParam,
+  pageNumberParam,
+  PUBLIC_DEALS_RANKED_BATCH_SIZE,
+  PUBLIC_LIST_PAGE_SIZE,
+} from "@/lib/publicQueryParams";
 
 export const metadata: Metadata = {
   title: "აქციები და ფასდაკლებები",
@@ -14,33 +23,31 @@ export const metadata: Metadata = {
 };
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
-const val = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
-const productPageSize = 36;
-const rankedBatchSize = 120;
 
 export default async function DealsPage({ searchParams }: { searchParams: Params }) {
   const params = await searchParams;
-  const page = Number(val(params.page)) || 1;
+  const page = pageNumberParam(params.page);
   const filters = {
-    category: val(params.category),
-    shop: val(params.shop),
-    minPrice: val(params.minPrice) ? Number(val(params.minPrice)) : undefined,
-    maxPrice: val(params.maxPrice) ? Number(val(params.maxPrice)) : undefined,
-    minDiscount: val(params.minDiscount) ? Number(val(params.minDiscount)) : undefined,
-    availability: val(params.availability),
-    sort: val(params.sort) ?? "deal-priority",
-    popularOnly: val(params.popularOnly) === "true",
-    inStockOnly: val(params.inStockOnly) === "true",
-    techOnly: val(params.techOnly) === "true",
-    largeDiscountOnly: val(params.largeDiscountOnly) === "true",
+    category: cleanSlugParam(params.category),
+    shop: cleanSlugParam(params.shop),
+    minPrice: finiteNumberParam(params.minPrice),
+    maxPrice: finiteNumberParam(params.maxPrice),
+    minDiscount: finiteNumberParam(params.minDiscount, 100),
+    availability: cleanSlugParam(params.availability),
+    sort: cleanSlugParam(params.sort) ?? "deal-priority",
+    popularOnly: firstParam(params.popularOnly) === "true",
+    inStockOnly: firstParam(params.inStockOnly) === "true",
+    techOnly: firstParam(params.techOnly) === "true",
+    largeDiscountOnly: firstParam(params.largeDiscountOnly) === "true",
     page,
   };
   const [rankedDeals, categories, shops] = await Promise.all([
-    listPublicProducts({ ...filters, dealsOnly: true, pageSize: rankedBatchSize }),
+    listPublicProducts({ ...filters, dealsOnly: true, pageSize: PUBLIC_DEALS_RANKED_BATCH_SIZE }),
     listPublicCategories(),
     listPublicShops(),
   ]);
-  const products = filterCuratedProducts(rankedDeals, filters).slice(0, productPageSize);
+  if (page > 1 && rankedDeals.length === 0) notFound();
+  const products = filterCuratedProducts(rankedDeals, filters).slice(0, PUBLIC_LIST_PAGE_SIZE);
 
   return (
     <>
@@ -58,8 +65,9 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
           <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/8 px-4 py-3">
             <BadgePercent className="size-5 text-[var(--accent)]" />
             <div>
-              <p className="text-[11px] font-black uppercase text-white/58">ამ გვერდზე</p>
-              <p className="text-2xl font-black leading-none text-white">{products.length}</p>
+              <p className="text-[11px] font-black uppercase text-white/58">ამ გვერდზე ნაჩვენებია</p>
+              <p className="text-2xl font-black leading-none text-white">{products.length.toLocaleString()}</p>
+              <p className="mt-1 text-xs font-bold text-white/62">აქტიური აქცია</p>
             </div>
           </div>
         </div>
@@ -83,7 +91,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
               emptyTitle="აქციები ვერ მოიძებნა"
               emptyDescription="შეცვალე ფილტრები ან მოგვიანებით გადაამოწმე ახალი ფასდაკლებები."
             />
-            <CatalogPager baseHref="/deals" params={params} page={page} hasNext={rankedDeals.length === rankedBatchSize} />
+            <CatalogPager baseHref="/deals" params={params} page={page} hasNext={rankedDeals.length === PUBLIC_DEALS_RANKED_BATCH_SIZE} />
           </div>
         </div>
       </section>

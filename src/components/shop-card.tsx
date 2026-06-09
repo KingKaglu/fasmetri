@@ -20,11 +20,11 @@ export function ShopCard({ shop }: { shop: ShopView }) {
       <div className="grid gap-2 text-xs font-black sm:grid-cols-2">
         <span className="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-[var(--brand)]">
           <PackageSearch className="size-3.5 text-[var(--muted)]" />
-          {(shop.productCount ?? 0).toLocaleString()} პროდუქტი
+          {(shop.productCount ?? 0).toLocaleString()} ამ მაღაზიაში ნაპოვნი პროდუქტი
         </span>
         <span className="inline-flex items-center gap-2 rounded-xl border border-[#ffdca6] bg-[var(--warn-soft)] px-3 py-2 text-[var(--warn)]">
           <BadgePercent className="size-3.5" />
-          {(shop.dealCount ?? 0).toLocaleString()} აქცია
+          {(shop.dealCount ?? 0).toLocaleString()} აქტიური აქცია
         </span>
       </div>
 

@@ -32,12 +32,13 @@ export function extractVariantIdentity(input: ProductAttributeInput | ProductIde
 
 export function buildParentKey(identity: ProductIdentity) {
   if (identity.productType === "mobile_phone" || identity.productType === "tablet") {
-    if (!identity.brand || !identity.model || !identity.storage) return undefined;
+    const storage = identity.storage ?? (phoneCanUseModelCodeInsteadOfStorage(identity) ? identity.modelCode ?? "base" : undefined);
+    if (!identity.brand || !identity.model || !storage) return undefined;
     const ram = phoneRamBelongsInParentKey(identity) ? identity.ram : undefined;
     // e-SIM-only labelling is descriptive (most new flagships ship eSIM-only),
     // not a separate purchasable variant — folding it into the key split single
     // models into duplicate products, so it is intentionally excluded.
-    return key([identity.brand, identity.model, ram, identity.storage]);
+    return key([identity.brand, identity.model, ram, storage]);
   }
 
   if (identity.productType === "laptop") {
@@ -122,7 +123,7 @@ export function buildVariantKey(identity: ProductIdentity) {
   return key([parentKey, identity.color]);
 }
 
-export function compareVariantIdentities(leftInput: ProductIdentity | ProductAttributeInput, rightInput: ProductIdentity | ProductAttributeInput): VariantMatchDecision {
+export function compareVariantIdentities(leftInput: ProductIdentity | ProductAttributeInput | unknown, rightInput: ProductIdentity | ProductAttributeInput | unknown): VariantMatchDecision {
   const left = extractVariantIdentity(leftInput);
   const right = extractVariantIdentity(rightInput);
 
@@ -133,9 +134,22 @@ export function compareVariantIdentities(leftInput: ProductIdentity | ProductAtt
     const sameVariant = Boolean(left.canonicalVariantKey && left.canonicalVariantKey === right.canonicalVariantKey);
     if (sameVariant) {
       const decision = explainMatchDecision(left, right);
+      if (decision.status !== "CONFIRMED") {
+        return {
+          status: decision.status === "POSSIBLE" ? "POSSIBLE" : "REJECTED",
+          confidence: decision.confidence,
+          reasons: [`Variant key matched but strong identity checks did not reach auto-merge confidence: ${left.canonicalVariantKey}.`, ...decision.reasons],
+          hardMismatchReasons: decision.hardMismatchReasons,
+          missingAttributes: decision.missingAttributes,
+          parentKey: left.canonicalParentKey,
+          variantKey: left.canonicalVariantKey,
+          left,
+          right,
+        };
+      }
       return {
         status: "SAME_VARIANT",
-        confidence: 100,
+        confidence: decision.confidence,
         reasons: [`Variant key matched: ${left.canonicalVariantKey}.`, ...decision.reasons],
         hardMismatchReasons: [],
         missingAttributes: decision.missingAttributes,
@@ -199,6 +213,10 @@ function phoneRamBelongsInParentKey(identity: ProductIdentity) {
   if (!identity.ram) return false;
   if (identity.brand === "apple" || identity.model?.startsWith("iphone_")) return false;
   return true;
+}
+
+function phoneCanUseModelCodeInsteadOfStorage(identity: ProductIdentity) {
+  return Boolean(identity.model && /^(hmd|nokia|oukitel|sigma)_/.test(identity.model));
 }
 
 function isMacBook(identity: ProductIdentity) {

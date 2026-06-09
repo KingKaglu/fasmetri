@@ -1,12 +1,13 @@
 import "../scripts/load-env";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import { PUBLIC_CATEGORY_TAXONOMY } from "../src/config/categoryMapping";
+import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY } from "../src/config/categoryMapping";
 import { normalizeProductName } from "../src/lib/matching";
 
 const connectionString = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/fasmetri?schema=public";
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 const removedDemoProductSlugs = ["apple-iphone-16-128gb", "lenovo-ideapad-slim-5-14"];
+const publicCategorySlugSet = new Set<string>(PUBLIC_CATEGORY_SLUGS);
 
 const categories = [
   ["tech", "ტექნიკა", "Electronics"],
@@ -84,9 +85,11 @@ const comparisonSeedProducts = [
 
 async function main() {
   for (const [slug, nameKa, nameEn] of categories) {
+    if (!publicCategorySlugSet.has(slug)) continue;
     await prisma.category.upsert({ where: { slug }, update: { nameKa, nameEn }, create: { slug, nameKa, nameEn } });
   }
   for (const [slug, category] of Object.entries(PUBLIC_CATEGORY_TAXONOMY)) {
+    if (!publicCategorySlugSet.has(slug)) continue;
     await prisma.category.upsert({
       where: { slug },
       update: { nameKa: category.nameKa, nameEn: category.nameEn },
@@ -114,6 +117,7 @@ async function seedComparisonProducts() {
   const shops = new Map(shopRows.map((shop) => [shop.slug, shop]));
 
   for (const [slug, name, categorySlug, price] of comparisonSeedProducts) {
+    if (!publicCategorySlugSet.has(categorySlug)) continue;
     const product = await prisma.product.upsert({
       where: { slug },
       update: { name, normalizedName: normalizeProductName(name), categoryId: categoryIds.get(categorySlug), popularityScore: 70 },

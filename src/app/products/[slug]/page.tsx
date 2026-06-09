@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, ChevronRight } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { getPublicProduct, listPublicProducts } from "@/lib/catalog";
+import { isPublicMatchStatus } from "@/lib/catalog-types";
 import { PriceChart } from "@/components/price-chart";
 import { AlertForm } from "@/components/alert-form";
 import { ProductGrid } from "@/components/product-grid";
@@ -12,6 +13,7 @@ import {
   AvailabilityBadge,
   DiscountBadge,
   LastUpdatedText,
+  PriceDisclaimer,
   PriceDisplay,
   ProductImage,
   SectionHeader,
@@ -19,10 +21,11 @@ import {
   ShopStatusBadge,
   TrustNote,
   EmptyState,
+  realDiscountPercent,
 } from "@/components/public-ui";
 import { formatGel } from "@/lib/format";
 import { extractProductAttributes, ProductAttributes } from "@/lib/productNormalization";
-import { extractProductIdentity, readProductIdentity } from "@/lib/productIdentity";
+import { extractProductIdentity } from "@/lib/productIdentity";
 import { explainMatchDecision } from "@/lib/productMatching";
 
 // Product pages depend only on the slug (no searchParams) and the catalog
@@ -64,11 +67,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const cheapest = product.offers[0];
   const history = dailyLowestHistory(product.offers.flatMap((offer) => offer.history ?? []));
   const priceSummary = offerPriceSummary(product);
-  const productIdentity = readProductIdentity(product.productIdentity) ?? extractProductIdentity({
+  const cheapestDiscount = realDiscountPercent(cheapest);
+  const latestUpdate = latestOfferSeenAt(product.offers) ?? cheapest.lastSeenAt;
+  const productIdentity = extractProductIdentity({
     title: product.name,
     brand: product.brand,
     model: product.model,
     categorySlug: product.category?.slug,
+    imageUrl: product.imageUrl ?? cheapest.imageUrl,
   });
   const offerDetails = product.offers.map((offer) => ({
     offer,
@@ -78,9 +84,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ),
     match: explainMatchDecision(
       productIdentity,
-      readProductIdentity(offer.productIdentity) ?? extractProductIdentity({ title: offer.title, categorySlug: product.category?.slug }),
+      extractProductIdentity({ title: offer.title, categorySlug: product.category?.slug, imageUrl: offer.imageUrl }),
     ),
   }));
+  const exactMatchCount = offerDetails.filter(({ offer, match }) => isExactMatch(offer, match)).length;
+  const dataConfidence = dataConfidenceLabel(product, offerDetails);
+  const comparisonMessage =
+    priceSummary.shopCount === 1
+      ? "ამ დროისთვის ეს პროდუქტი მხოლოდ ერთ მაღაზიაშია ნაპოვნი."
+      : "ფასები შედარებულია რამდენიმე მაღაზიიდან.";
   const similar = product.category
     ? (await listPublicProducts({ category: product.category.slug, sort: "priority", pageSize: 18 })).filter((item) => item.id !== product.id).slice(0, 6)
     : [];
@@ -118,28 +130,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           {/* Product hero */}
           <article className="surface-flat grid min-w-0 gap-5 p-4 sm:p-5 md:grid-cols-[minmax(15rem,22rem)_minmax(0,1fr)]">
-            <div className="overflow-hidden rounded-md border border-[#e2e8f0] bg-white">
+            <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-white">
               <ProductImage src={product.imageUrl ?? cheapest.imageUrl} alt={product.name} priority />
             </div>
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="eyebrow text-[#65a30d]">
+                <p className="eyebrow text-[var(--accent-strong)]">
                   {product.offers.length > 1 ? `${product.offers.length} შეთავაზება` : "1 შეთავაზება"}
                 </p>
-                {cheapest.discountPercent > 0 && <DiscountBadge percent={cheapest.discountPercent} />}
+                <span className="inline-flex items-center gap-1 rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-[10px] font-black text-[var(--muted-strong)]">
+                  <BadgeCheck className="size-3" />
+                  {comparisonMessage}
+                </span>
+                {cheapestDiscount > 0 && <DiscountBadge percent={cheapestDiscount} />}
               </div>
-              <h1 className="mt-1.5 break-words text-2xl font-black leading-tight tracking-tight text-[#0f172a] [overflow-wrap:anywhere] sm:text-3xl">
+              <h1 className="mt-1.5 break-words text-2xl font-black leading-tight tracking-tight text-[var(--brand)] [overflow-wrap:anywhere] sm:text-3xl">
                 {product.name}
               </h1>
-              <p className="mt-3 text-sm leading-6 text-[#64748b]">
-                {priceSummary.shopCount === 1
-                  ? "პროდუქტი ნაპოვნია 1 მაღაზიაში."
-                  : `ნაპოვნია ${priceSummary.shopCount} მაღაზიაში. ყველაზე დაბალი ფასი: ${formatGel(priceSummary.lowest)}.`}
+              <p className="mt-3 text-sm font-bold leading-6 text-[var(--muted)]">
+                {comparisonMessage} ყველაზე დაბალი ფასი არის <span className="font-black text-[var(--brand)]">{formatGel(priceSummary.lowest)}</span>.
               </p>
-              <p className="mt-1 text-xs font-semibold text-[#94a3b8]">{comparisonFreshnessText(product)}</p>
+              <p className="mt-1 text-xs font-semibold text-[var(--muted)]">{comparisonFreshnessText(product)}</p>
 
               <div className="mt-4">
-                <PriceDisplay price={cheapest.currentPrice} oldPrice={cheapest.oldPrice} strong deal={cheapest.discountPercent > 0} />
+                <p className="mb-1 text-[11px] font-black uppercase text-[var(--accent-strong)]">საუკეთესო ფასი</p>
+                <PriceDisplay price={cheapest.currentPrice} oldPrice={cheapest.oldPrice} strong deal={cheapestDiscount > 0} />
               </div>
 
               {priceSummary.shopCount > 1 ? (
@@ -153,16 +168,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <AvailabilityBadge availability={cheapest.availability} />
-                <span className="inline-flex items-center rounded-sm border border-[#e2e8f0] bg-[#f8fafc] px-2 py-1 text-[11px] font-bold text-[#64748b]">
+                <span className="inline-flex items-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-[11px] font-bold text-[var(--muted)]">
                   <LastUpdatedText value={cheapest.lastSeenAt} exact />
                 </span>
               </div>
 
-              <div className="mt-4 flex min-w-0 items-center gap-3 rounded-md border border-[#e2e8f0] bg-[#f8fafc] p-3">
+              <div className="mt-4 grid gap-2 min-[420px]:grid-cols-3">
+                <TrustMetric label="ბოლო განახლება" value={<LastUpdatedText value={latestUpdate} exact />} />
+                <TrustMetric label="მონაცემების სიზუსტე" value={dataConfidence} />
+                <TrustMetric label="ზუსტი მოდელის დამთხვევა" value={`${exactMatchCount}/${product.offers.length} შეთავაზება`} />
+              </div>
+
+              <div className="mt-4 flex min-w-0 items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
                 <ShopMark shop={cheapest.shop} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-[#0f172a]">{cheapest.shop.name}</p>
-                  <p className="text-[11px] font-bold text-[#64748b]">საბოლოო ფასი მაღაზიაში გადაამოწმე</p>
+                  <p className="truncate text-sm font-black text-[var(--brand)]">{cheapest.shop.name}</p>
+                  <p className="text-[11px] font-bold text-[var(--muted)]">საბოლოო ფასი მაღაზიის ვებსაიტზე გადაამოწმე</p>
                 </div>
               </div>
 
@@ -174,9 +195,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 shopName={cheapest.shop.name}
                 price={cheapest.currentPrice}
                 sourceUrl={cheapest.url}
-                className="mt-4 inline-flex h-12 w-fit items-center gap-2 rounded-md bg-[#0f172a] px-6 text-sm font-black text-white hover:bg-black"
+                ariaLabel={`${cheapest.shop.name} შეთავაზების ნახვა`}
+                className="btn-primary mt-4 inline-flex h-12 w-fit items-center gap-2 px-6 text-sm"
               >
-                ნახე მაღაზიაში
+                შეთავაზების ნახვა
                 <ArrowUpRight className="size-4" />
               </ShopClickLink>
             </div>
@@ -187,38 +209,42 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <SectionHeader
               eyebrow="ყველა შეთავაზება"
               title="ფასების შედარება"
-              description="დაბალი ფასი პირველია."
+              description="ყველა შეთავაზება დალაგებულია ფასით. საუკეთესო ფასი პირველია."
             />
-            <div className="grid gap-2">
-              {offerDetails.map(({ offer, attributes, match }, index) => (
+            <PriceDisclaimer compact />
+            <div className="mt-3 grid gap-2">
+              {offerDetails.map(({ offer, attributes, match }, index) => {
+                const offerDiscount = realDiscountPercent(offer);
+                return (
                 <article
                   key={offer.id}
-                  className={`grid min-w-0 gap-3 rounded-md border bg-white p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
-                    index === 0 ? "border-[#84cc16] ring-1 ring-[#84cc16]" : "border-[#e2e8f0]"
+                  className={`grid min-w-0 gap-3 rounded-xl border bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.05)] sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
+                    index === 0 ? "border-[var(--accent)] ring-1 ring-[var(--accent)]" : "border-[var(--line)]"
                   }`}
                 >
                   <div className="flex min-w-0 gap-3">
                     <ShopMark shop={offer.shop} />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-sm font-black text-[#0f172a]">{offer.shop.name}</p>
+                        <p className="truncate text-sm font-black text-[var(--brand)]">{offer.shop.name}</p>
                         {index === 0 ? (
-                          <span className="inline-flex items-center rounded-sm bg-[#84cc16] px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#1a2e05]">
-                            დაბალი ფასი
+                          <span className="inline-flex items-center rounded-full bg-[var(--accent)] px-2 py-1 text-[10px] font-black uppercase tracking-wider text-[var(--accent-ink)]">
+                            საუკეთესო ფასი
                           </span>
                         ) : null}
+                        {offerDiscount > 0 ? <DiscountBadge percent={offerDiscount} /> : null}
                         <ShopStatusBadge shop={offer.shop} />
                       </div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <AvailabilityBadge availability={offer.availability} />
                         <LastUpdatedText value={offer.lastSeenAt} className="text-[11px] font-bold" />
-                        <MatchConfidenceBadge confidence={match.confidence} status={match.status} />
+                        <MatchConfidenceBadge confidence={offer.matchConfidence ?? match.confidence} status={offer.matchStatus ?? match.status} />
                       </div>
-                      <p className="mt-2 break-words text-xs font-semibold leading-5 text-[#64748b]">{offer.title}</p>
+                      <p className="mt-2 break-words text-xs font-semibold leading-5 text-[var(--muted)]">{offer.title}</p>
                       {attributeLabels(attributes).length ? (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {attributeLabels(attributes).map((label) => (
-                            <span key={label} className="inline-flex items-center rounded-sm border border-[#e2e8f0] bg-[#f8fafc] px-1.5 py-0.5 text-[10px] font-bold text-[#475569]">
+                            <span key={label} className="inline-flex items-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--muted-strong)]">
                               {label}
                             </span>
                           ))}
@@ -227,7 +253,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 md:flex-col md:items-end">
-                    <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={offer.discountPercent > 0} />
+                    <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={offerDiscount > 0} />
                     <ShopClickLink
                       offerId={offer.id}
                       productId={product.id}
@@ -236,15 +262,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       shopName={offer.shop.name}
                       price={offer.currentPrice}
                       sourceUrl={offer.url}
-                      ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
-                      className="inline-flex h-10 items-center gap-1.5 rounded-md bg-[#0f172a] px-3 text-xs font-bold text-white hover:bg-black"
+                      ariaLabel={`${offer.shop.name} შეთავაზების ნახვა`}
+                      className="btn-outline inline-flex h-10 items-center gap-1.5 px-3 text-xs"
                     >
-                      მაღაზიაში
+                      შეთავაზების ნახვა
                       <ArrowUpRight className="size-3.5" />
                     </ShopClickLink>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -290,22 +317,32 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
 function StatCell({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <span className={`flex flex-col gap-0.5 rounded-md border p-2 ${accent ? "border-[#fed7aa] bg-[#fff7ed]" : "border-[#e2e8f0] bg-[#f8fafc]"}`}>
-      <strong className={`text-[10px] font-black uppercase tracking-wider ${accent ? "text-[#c2410c]" : "text-[#64748b]"}`}>
+    <span className={`flex flex-col gap-0.5 rounded-xl border p-2 ${accent ? "border-[#fed7aa] bg-[#fff7ed]" : "border-[var(--line)] bg-[var(--surface-soft)]"}`}>
+      <strong className={`text-[10px] font-black uppercase tracking-wider ${accent ? "text-[#c2410c]" : "text-[var(--muted)]"}`}>
         {label}
       </strong>
-      <span className={`text-sm font-black tabular-nums ${accent ? "text-[#c2410c]" : "text-[#0f172a]"}`}>{value}</span>
+      <span className={`text-sm font-black tabular-nums ${accent ? "text-[#c2410c]" : "text-[var(--brand)]"}`}>{value}</span>
+    </span>
+  );
+}
+
+function TrustMetric({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <span className="rounded-xl border border-[var(--line)] bg-white px-3 py-2">
+      <span className="block text-[10px] font-black uppercase tracking-wider text-[var(--muted)]">{label}</span>
+      <span className="mt-1 block text-xs font-black leading-5 text-[var(--brand)]">{value}</span>
     </span>
   );
 }
 
 function comparisonFreshnessText(product: { crossStoreCheckedAt?: string | null; checkedShopsCount?: number; totalEnabledShopsCount?: number }) {
   if (!product.crossStoreCheckedAt || !product.checkedShopsCount) return "სხვა მაღაზიების შემოწმება მიმდინარეობს.";
-  return `დამუშავებული წყაროები: ${product.checkedShopsCount}.`;
+  const total = product.totalEnabledShopsCount ? `/${product.totalEnabledShopsCount}` : "";
+  return `შემოწმებული წყაროები: ${product.checkedShopsCount}${total}.`;
 }
 
 function MatchConfidenceBadge({ confidence, status }: { confidence: number; status: string }) {
-  const label = status === "CONFIRMED" ? "დადასტურებული" : status === "POSSIBLE" ? "მოწმდება" : "სხვა ვარიანტი";
+  const label = status === "CONFIRMED" ? "ზუსტი მოდელის დამთხვევა" : status === "POSSIBLE" ? "მონაცემი მოწმდება" : "სხვა ვარიანტი";
   const styles =
     status === "CONFIRMED"
       ? "border-[#bbf7d0] bg-[#ecfdf5] text-[#15803d]"
@@ -313,10 +350,36 @@ function MatchConfidenceBadge({ confidence, status }: { confidence: number; stat
         ? "border-[#fed7aa] bg-[#fff7ed] text-[#c2410c]"
         : "border-[#e2e8f0] bg-[#f8fafc] text-[#64748b]";
   return (
-    <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] font-bold ${styles}`}>
+    <span className={`inline-flex items-center rounded-lg border px-1.5 py-0.5 text-[10px] font-bold ${styles}`}>
       {label} · {confidence}%
     </span>
   );
+}
+
+function isExactMatch(offer: { matchStatus?: string | null; matchConfidence?: number | null; verificationStatus?: string | null }, match: { status: string; confidence: number }) {
+  const confidence = offer.matchConfidence ?? match.confidence;
+  return isPublicMatchStatus(offer.matchStatus ?? match.status) && offer.verificationStatus === "CONFIRMED" && confidence >= 90;
+}
+
+function dataConfidenceLabel(
+  product: { categoryConfidence?: number | null },
+  offerDetails: Array<{ offer: { matchConfidence?: number | null }; match: { confidence: number } }>,
+) {
+  const values = [
+    product.categoryConfidence,
+    ...offerDetails.map(({ offer, match }) => offer.matchConfidence ?? match.confidence),
+  ].filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+  if (!values.length) return "დადასტურებული შეთავაზებები";
+  const average = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  const label = average >= 95 ? "მაღალი" : average >= 85 ? "კარგი" : "მოწმდება";
+  return `${label} · ${average}%`;
+}
+
+function latestOfferSeenAt(offers: Array<{ lastSeenAt: string }>) {
+  return offers
+    .map((offer) => offer.lastSeenAt)
+    .filter(Boolean)
+    .sort((left, right) => right.localeCompare(left))[0];
 }
 
 function attributeLabels(attributes: ProductAttributes) {

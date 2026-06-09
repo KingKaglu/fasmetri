@@ -10,6 +10,7 @@ import {
   PriceDisplay,
   ProductImage,
   ShopMark,
+  realDiscountPercent,
 } from "@/components/public-ui";
 
 export function ProductCard({
@@ -24,15 +25,16 @@ export function ProductCard({
   const offer = product.offers[0];
   if (!offer) return null;
 
-  const discount = Math.max(...product.offers.map((item) => item.discountPercent), 0);
+  const discount = realDiscountPercent(offer);
   const image = offer.imageUrl ?? product.imageUrl;
   const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
   const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
+  const comparisonLabel = shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "1 მაღაზიის შეთავაზება";
 
   return (
     <article
       data-kind={deal ? "deal" : "product"}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-[0_10px_26px_rgba(18,19,15,0.07)] ring-1 ring-black/[0.03] transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(18,19,15,0.14)]"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-white shadow-[0_10px_26px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.02] transition hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(15,23,42,0.12)]"
     >
       <Link href={`/products/${product.slug}`} className="relative block overflow-hidden border-b border-[var(--line)]">
         <ProductImage src={image} alt={product.name} priority={imagePriority} />
@@ -41,12 +43,14 @@ export function ProductCard({
             <DiscountBadge percent={discount} />
           </span>
         )}
-        <span className="absolute right-2 top-2">
-          <AvailabilityBadge availability={offer.availability} />
-        </span>
+        {offer.availability !== "UNKNOWN" ? (
+          <span className="absolute right-2 top-2">
+            <AvailabilityBadge availability={offer.availability} hideUnknown />
+          </span>
+        ) : null}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2.5 p-3">
+      <div className="flex flex-1 flex-col gap-2.5 p-3.5">
         <div className="flex min-w-0 items-center gap-2">
           <ShopMark shop={offer.shop} size="sm" />
           <span className="min-w-0 flex-1 truncate text-[11px] font-black text-[var(--brand)]">{offer.shop.name}</span>
@@ -73,21 +77,21 @@ export function ProductCard({
           </span>
         )}
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[10px] font-bold text-[var(--muted)]">
-          <Store className="size-3 shrink-0" />
-          <span className="truncate">
-            {shopCount > 1 ? `${shopCount} მაღაზია` : `${product.offerCount ?? product.offers.length} შეთავაზება`}
+        <div className="mt-auto grid gap-1.5 border-t border-[var(--line)] pt-2.5 text-[10px] font-bold text-[var(--muted)]">
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            <Store className="size-3 shrink-0" />
+            <span className="truncate">{comparisonLabel}</span>
           </span>
-          <LastUpdatedText value={offer.lastSeenAt} className="basis-full text-[10px] sm:ml-auto sm:basis-auto sm:shrink-0" />
+          <LastUpdatedText value={offer.lastSeenAt} className="text-[10px]" />
         </div>
 
-        <div className="grid grid-cols-[1fr_2.25rem] gap-1.5">
+        <div className="grid gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="inline-flex h-9 min-w-0 items-center justify-center gap-1 rounded-xl bg-[var(--brand)] px-2 text-[11px] font-black text-white hover:bg-black"
+            className="btn-primary inline-flex h-10 min-w-0 items-center justify-center gap-1.5 px-3 text-[11px]"
           >
             <Scale className="size-3 shrink-0" />
-            <span className="truncate">შედარება</span>
+            <span className="truncate">ფასების შედარება</span>
           </Link>
           <ShopClickLink
             offerId={offer.id}
@@ -97,11 +101,12 @@ export function ProductCard({
             shopName={offer.shop.name}
             price={offer.currentPrice}
             sourceUrl={offer.url}
-            ariaLabel={`${offer.shop.name} მაღაზიაში ნახვა`}
-            title="მაღაზიაში ნახვა"
-            className="grid size-9 place-items-center rounded-xl border border-[var(--line)] bg-white text-[var(--brand)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+            ariaLabel={`${offer.shop.name} შეთავაზების ნახვა`}
+            title="შეთავაზების ნახვა"
+            className="btn-outline inline-flex h-10 min-w-0 items-center justify-center gap-1.5 px-3 text-[11px]"
           >
             <ArrowUpRight className="size-3.5" />
+            <span className="truncate">შეთავაზების ნახვა</span>
           </ShopClickLink>
         </div>
       </div>

@@ -117,7 +117,7 @@ export function CatalogFilters({
     for (const [name, value] of new FormData(form).entries()) {
       if (!name || typeof value !== "string") continue;
       if (fixedCategory && name === "category") continue;
-      const cleaned = value.trim();
+      const cleaned = value.trim().replace(/\s+/g, " ").slice(0, name === "q" ? 140 : 80);
       if (!cleaned) continue;
       query.append(name, cleaned);
     }
@@ -137,16 +137,16 @@ export function CatalogFilters({
       onSubmit={handleSubmit}
       className={
         inDrawer
-          ? "flex h-full min-h-0 flex-col bg-[#edf4e7] text-[var(--brand)]"
-          : "filter-deck overflow-hidden rounded-[1.35rem] border border-[#c8d7bd] bg-[#edf4e7] text-[var(--brand)] shadow-[0_22px_54px_rgba(18,19,15,0.14)]"
+          ? "flex h-full min-h-0 flex-col bg-[var(--surface-soft)] text-[var(--brand)]"
+          : "filter-deck overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--brand)] shadow-[0_18px_44px_rgba(15,23,42,0.12)]"
       }
     >
       {!inDrawer ? (
         <div className="relative overflow-hidden bg-[#151713] px-4 py-4 text-white">
-          <div className="absolute inset-y-0 right-0 w-28 bg-[radial-gradient(circle_at_70%_35%,rgba(187,244,81,0.48),transparent_42%),linear-gradient(135deg,transparent,rgba(255,255,255,0.07))]" />
+          <div className="absolute inset-y-0 right-0 w-28 bg-[radial-gradient(circle_at_70%_35%,rgba(37,99,235,0.45),transparent_42%),linear-gradient(135deg,transparent,rgba(255,255,255,0.07))]" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">filter deck</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">ფილტრები</p>
               <h2 className="mt-1 inline-flex items-center gap-2 text-base font-black">
                 <span className="grid size-9 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-ink)]">
                   <SlidersHorizontal className="size-4" />
@@ -208,10 +208,10 @@ export function CatalogFilters({
           >
             <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
               <Field label="ფასი დან" compact icon={<CircleDollarSign className="size-3.5" />}>
-                <input name="minPrice" type="number" min="0" defaultValue={values.minPrice} className={controlClassName} placeholder="0" />
+                <input name="minPrice" type="number" min="0" max="1000000" defaultValue={values.minPrice} className={controlClassName} placeholder="0" />
               </Field>
               <Field label="ფასი მდე" compact icon={<CircleDollarSign className="size-3.5" />}>
-                <input name="maxPrice" type="number" min="0" defaultValue={values.maxPrice} className={controlClassName} placeholder="9999" />
+                <input name="maxPrice" type="number" min="0" max="1000000" defaultValue={values.maxPrice} className={controlClassName} placeholder="9999" />
               </Field>
               <Field label="მინ. ფასდაკლება" compact icon={<BadgePercent className="size-3.5" />}>
                 <input name="minDiscount" type="number" min="0" max="100" defaultValue={values.minDiscount} className={controlClassName} placeholder="%" />
@@ -233,8 +233,8 @@ export function CatalogFilters({
       <div
         className={
           inDrawer
-            ? "grid grid-cols-1 gap-2 border-t border-[#c8d7bd] bg-[#f7faf1]/95 p-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-18px_40px_rgba(18,19,15,0.08)] backdrop-blur min-[360px]:grid-cols-[1fr_1.45fr]"
-            : "grid gap-2 border-t border-[#c8d7bd] bg-[#f7faf1] p-3"
+            ? "grid grid-cols-1 gap-2 border-t border-[var(--line)] bg-white/95 p-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-18px_40px_rgba(15,23,42,0.08)] backdrop-blur min-[360px]:grid-cols-[1fr_1.45fr]"
+            : "grid gap-2 border-t border-[var(--line)] bg-white p-3"
         }
       >
         {inDrawer ? (

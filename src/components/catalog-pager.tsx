@@ -105,16 +105,27 @@ function pageHref(baseHref: string, params: SearchParams, page: number) {
 
   for (const [key, value] of Object.entries(params)) {
     if (key === "page" || value == null || value === "") continue;
+    const safeKey = safeQueryPart(key, 80);
+    if (!safeKey) continue;
     if (Array.isArray(value)) {
-      value.filter(Boolean).forEach((item) => query.append(key, item));
+      value
+        .map((item) => safeQueryPart(item, 180))
+        .filter((item): item is string => Boolean(item))
+        .forEach((item) => query.append(safeKey, item));
     } else {
-      query.set(key, value);
+      const safeValue = safeQueryPart(value, 180);
+      if (safeValue) query.set(safeKey, safeValue);
     }
   }
 
   if (page > 1) query.set("page", String(page));
   const suffix = query.toString();
   return suffix ? `${baseHref}?${suffix}` : baseHref;
+}
+
+function safeQueryPart(value: string, maxLength: number) {
+  const trimmed = value.trim().replace(/\s+/g, " ").slice(0, maxLength);
+  return trimmed || null;
 }
 
 function normalizePage(page?: number) {

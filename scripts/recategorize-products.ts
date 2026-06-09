@@ -1,7 +1,7 @@
 import "./load-env";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import { PUBLIC_CATEGORY_TAXONOMY } from "../src/config/categoryMapping";
+import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY } from "../src/config/categoryMapping";
 import { categorizeProduct } from "../src/lib/categorizeProduct";
 import { checkpointId, logProgress, parseBatchOptions, writeCheckpoint } from "./job-utils";
 
@@ -12,14 +12,20 @@ const prisma = new PrismaClient({
 });
 
 async function ensurePublicCategories() {
-  for (const [slug, category] of Object.entries(PUBLIC_CATEGORY_TAXONOMY)) {
+  for (const slug of PUBLIC_CATEGORY_SLUGS) {
+    const category = PUBLIC_CATEGORY_TAXONOMY[slug];
     await prisma.category.upsert({
       where: { slug },
       update: { nameKa: category.nameKa, nameEn: category.nameEn },
       create: { slug, nameKa: category.nameKa, nameEn: category.nameEn },
     });
   }
-  return new Map((await prisma.category.findMany({ select: { id: true, slug: true } })).map((category) => [category.slug, category.id]));
+  return new Map(
+    (await prisma.category.findMany({ where: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } }, select: { id: true, slug: true } })).map((category) => [
+      category.slug,
+      category.id,
+    ]),
+  );
 }
 
 async function main() {

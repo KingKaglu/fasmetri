@@ -43,6 +43,7 @@ export function SiteHeader() {
             <input
               name="q"
               aria-label="პროდუქტის ძებნა"
+              maxLength={140}
               placeholder="მოძებნე iPhone, MacBook, Galaxy..."
               className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
             />
@@ -81,6 +82,22 @@ export function SiteHeader() {
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
+
+      <form action="/search" className="shell pb-3 md:hidden">
+        <label className="flex h-11 min-w-0 items-center gap-2 overflow-hidden rounded-xl border border-[var(--line)] bg-white px-3 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+          <Search className="size-4 shrink-0 text-[var(--muted)]" />
+          <input
+            name="q"
+            aria-label="პროდუქტის ძებნა"
+            maxLength={140}
+            placeholder="მოძებნე iPhone, MacBook..."
+            className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
+          />
+          <button className="h-8 shrink-0 rounded-lg bg-[var(--brand)] px-3 text-xs font-black text-white">
+            ძებნა
+          </button>
+        </label>
+      </form>
 
       {open ? (
         <nav className="shell grid gap-1 border-t border-[var(--line)] py-3 lg:hidden">

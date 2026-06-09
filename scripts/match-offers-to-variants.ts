@@ -3,8 +3,9 @@ import { createHash } from "node:crypto";
 import { OfferAvailability, Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/prisma";
 import { normalizeProductName, slugifyProduct } from "../src/lib/matching";
-import { readProductIdentity } from "../src/lib/productIdentity";
-import { extractVariantIdentity } from "../src/lib/variantMatching";
+import { PUBLIC_CATEGORY_SLUGS, isPublicCategorySlug } from "../src/config/categoryMapping";
+import { explainMatchDecision } from "../src/lib/productMatching";
+import { compareVariantIdentities, extractVariantIdentity } from "../src/lib/variantMatching";
 import { checkpointId, logProgress, parseBatchOptions, writeCheckpoint } from "./job-utils";
 
 if (!prisma) throw new Error("DATABASE_URL is required.");
@@ -13,11 +14,16 @@ const db = prisma;
 async function main() {
   const options = parseBatchOptions("match-offers-to-variants", { limit: 200 });
   const id = checkpointId("match-offers-to-variants", options);
+  const categorySlugFilter = options.category
+    ? isPublicCategorySlug(options.category)
+      ? options.category
+      : "__non_public_category__"
+    : { in: [...PUBLIC_CATEGORY_SLUGS] };
   const rawOffers = await db.rawOffer.findMany({
     where: {
       id: options.cursor ? { gt: options.cursor } : undefined,
       shop: options.shop ? { slug: options.shop } : undefined,
-      categorySlug: options.category,
+      categorySlug: categorySlugFilter,
       originalTitle: options.q ? { contains: options.q, mode: "insensitive" } : undefined,
       status: { in: ["NORMALIZED", "ATTACHED"] },
       rawPrice: { not: null },
@@ -36,20 +42,36 @@ async function main() {
 
   for (const raw of rawOffers) {
     try {
-      const identity = extractVariantIdentity(
-        readProductIdentity(raw.productIdentity) ?? {
-          title: raw.originalTitle,
-          description: raw.description ?? undefined,
-          brand: raw.brand ?? undefined,
-          model: raw.model ?? undefined,
-          categorySlug: raw.categorySlug ?? undefined,
-          breadcrumbs: toStringArray(raw.breadcrumbs ?? raw.sourceBreadcrumbs),
-        },
-      );
+      const identity = extractVariantIdentity({
+        title: raw.originalTitle,
+        description: raw.description ?? undefined,
+        brand: raw.brand ?? undefined,
+        model: raw.model ?? undefined,
+        categorySlug: raw.categorySlug ?? undefined,
+        breadcrumbs: toStringArray(raw.breadcrumbs ?? raw.sourceBreadcrumbs),
+        imageUrl: raw.originalImageUrl ?? undefined,
+        price: raw.rawPrice == null ? undefined : Number(raw.rawPrice),
+        oldPrice: raw.rawOldPrice == null ? undefined : Number(raw.rawOldPrice),
+        discount: raw.rawDiscount,
+        stockStatus: raw.availability,
+      });
 
       if (!identity.canonicalParentKey || !identity.canonicalVariantKey || !raw.rawPrice || !raw.categorySlug) {
         skipped += 1;
         if (!options.dryRun) await markReview(raw.id, "Missing parent/variant key, category, or price.");
+        continue;
+      }
+
+      const identityDecision = explainMatchDecision(identity, identity);
+      if (identityDecision.status !== "CONFIRMED") {
+        skipped += 1;
+        if (!options.dryRun) {
+          await markReview(
+            raw.id,
+            [...identityDecision.missingAttributes, ...identityDecision.hardMismatchReasons, ...identityDecision.reasons].join(" ") ||
+              "Identity did not reach automatic matching confidence.",
+          );
+        }
         continue;
       }
 
@@ -58,6 +80,25 @@ async function main() {
         skipped += 1;
         if (!options.dryRun) await markReview(raw.id, `Unknown normalized category: ${raw.categorySlug}.`);
         continue;
+      }
+
+      const existingVariant = await db.productVariant.findUnique({
+        where: { canonicalVariantKey: identity.canonicalVariantKey },
+        select: { specsJson: true },
+      });
+      if (existingVariant?.specsJson) {
+        const variantDecision = compareVariantIdentities(existingVariant.specsJson, identity);
+        if (variantDecision.status !== "SAME_VARIANT" || variantDecision.confidence < 90) {
+          skipped += 1;
+          if (!options.dryRun) {
+            await markReview(
+              raw.id,
+              [...variantDecision.hardMismatchReasons, ...variantDecision.missingAttributes, ...variantDecision.reasons].join(" ") ||
+                "Existing variant key matched, but category-aware identity checks require review.",
+            );
+          }
+          continue;
+        }
       }
 
       if (options.dryRun) {
@@ -151,7 +192,7 @@ async function main() {
           canonicalKey: identity.canonicalVariantKey,
           productIdentity: jsonValue(identity),
           matchStatus: "CONFIRMED",
-          matchConfidence: 100,
+          matchConfidence: identityDecision.confidence,
           verificationStatus: "CONFIRMED",
           currentPrice: price,
           oldPrice,
@@ -173,7 +214,7 @@ async function main() {
           canonicalKey: identity.canonicalVariantKey,
           productIdentity: jsonValue(identity),
           matchStatus: "CONFIRMED",
-          matchConfidence: 100,
+          matchConfidence: identityDecision.confidence,
           verificationStatus: "CONFIRMED",
           currentPrice: price,
           oldPrice,

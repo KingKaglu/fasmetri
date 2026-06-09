@@ -4,7 +4,12 @@ fix.py
 *.sql
 .env
 .env.*
+.next/
 AGENTS.md
 fasmetri-products.csv
 .codex-logs/
 .codex-qa/
+phase*-browser/
+*.log
+.claude/
+reports/

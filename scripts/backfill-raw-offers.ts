@@ -1,6 +1,7 @@
 import "./load-env";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/prisma";
+import { isPublicCategorySlug } from "../src/config/categoryMapping";
 import { categorizeProduct } from "../src/lib/categorizeProduct";
 import { extractProductIdentity } from "../src/lib/productIdentity";
 import { normalizeProductTitle, removeNoiseWords } from "../src/lib/productNormalization";
@@ -44,6 +45,7 @@ async function main() {
         model: offer.product.model,
         categorySlug: categoryDecision.publicCategorySlug,
       });
+      const publicCategory = isPublicCategorySlug(categoryDecision.publicCategorySlug);
       if (options.dryRun) {
         created += 1;
         continue;
@@ -65,7 +67,7 @@ async function main() {
           productIdentity: jsonValue(identity),
           categorySlug: categoryDecision.publicCategorySlug,
           categoryConfidence: categoryDecision.confidenceScore,
-          categoryNeedsReview: categoryDecision.needsReview,
+          categoryNeedsReview: categoryDecision.needsReview || !publicCategory,
           status: "ATTACHED",
           processedAt: new Date(),
         },
@@ -86,7 +88,7 @@ async function main() {
           productIdentity: jsonValue(identity),
           categorySlug: categoryDecision.publicCategorySlug,
           categoryConfidence: categoryDecision.confidenceScore,
-          categoryNeedsReview: categoryDecision.needsReview,
+          categoryNeedsReview: categoryDecision.needsReview || !publicCategory,
           status: "ATTACHED",
           processedAt: new Date(),
         },

@@ -4,6 +4,7 @@ import {
   FasmetriCategorySlug,
   PUBLIC_CATEGORY_TAXONOMY,
   SHOP_CATEGORY_MAPPING,
+  isPublicCategorySlug,
 } from "@/config/categoryMapping";
 import { normalizeProductName } from "@/lib/matching";
 
@@ -30,10 +31,13 @@ export type ProductCategoryDecision = {
 type ScoredDecision = ProductCategoryDecision & { score: number };
 
 export function categorizeProduct(input: ProductCategoryInput): ProductCategoryDecision {
+  const explicitCategory = input.scrapedShopCategory?.trim();
+  const explicitPublicCategory = explicitCategory && isPublicCategorySlug(explicitCategory) ? explicitCategory : undefined;
+
   const titleSignal = categorySignal([input.title, input.brand, input.model]);
   const contextSignal = categorySignal([input.description, input.imageAlt, ...breadcrumbsOf(input.breadcrumbs)]);
   const shopSignal = categorySignal([input.scrapedShopCategory, input.sourceShop, ...breadcrumbsOf(input.breadcrumbs)]);
-  const scored = CATEGORY_RULES.map((rule) => scoreRule(rule, titleSignal, contextSignal, shopSignal, input.sourceShop))
+  const scored = CATEGORY_RULES.map((rule) => scoreRule(rule, titleSignal, contextSignal, shopSignal, input.sourceShop, explicitPublicCategory))
     .filter((decision): decision is ScoredDecision => Boolean(decision))
     .sort((left, right) => right.score - left.score);
   const winner = scored[0];
@@ -72,6 +76,7 @@ function scoreRule(
   contextSignal: string,
   shopSignal: string,
   sourceShop?: string | null,
+  explicitPublicCategory?: FasmetriCategorySlug,
 ): ScoredDecision | null {
   const titleMatches = matchedKeywords(titleSignal, rule.titleKeywords);
   const titleGroupMatches = (rule.titleKeywordGroups ?? [])
@@ -86,13 +91,14 @@ function scoreRule(
   const shopMatches = matchedKeywords(shopSignal, rule.shopKeywords ?? []);
   const mappedShopCategory = mappedShopSlug(sourceShop, shopSignal);
   const mappedMatch = mappedShopCategory === rule.slug;
-  if (!titleMatches.length && !titleGroupMatches.length && !contextMatches.length && !shopMatches.length && !mappedMatch) return null;
+  const explicitMatch = explicitPublicCategory === rule.slug;
+  if (!titleMatches.length && !titleGroupMatches.length && !contextMatches.length && !shopMatches.length && !mappedMatch && !explicitMatch) return null;
 
   const titleMatchCount = titleMatches.length + titleGroupMatches.length;
   const titleScore = titleMatchCount ? Math.min(100, (rule.titleWeight ?? 76) + Math.max(0, titleMatchCount - 1) * 4) : 0;
   const contextScore = contextMatches.length ? Math.min(34, 18 + contextMatches.length * 5) : 0;
   const shopScore = shopMatches.length ? Math.min(20, 10 + shopMatches.length * 3) : 0;
-  const mappingScore = mappedMatch ? 18 : 0;
+  const mappingScore = explicitMatch ? 68 : mappedMatch ? 18 : 0;
   const score = Math.max(titleScore, contextScore + shopScore + mappingScore, mappingScore);
   const confidenceScore = clampScore(titleScore ? score : Math.min(score, 64));
   const matchedRules = [
@@ -100,6 +106,7 @@ function scoreRule(
     ...titleGroupMatches.map((keywords) => `title-group:${keywords}`),
     ...contextMatches.map((keyword) => `context:${keyword}`),
     ...shopMatches.map((keyword) => `shop:${keyword}`),
+    ...(explicitMatch ? [`source-category:${explicitPublicCategory}`] : []),
     ...(mappedMatch ? [`shop-map:${sourceShop ?? "unknown"}`] : []),
   ];
   const needsReview = rule.slug !== "adult" && confidenceScore < 72;

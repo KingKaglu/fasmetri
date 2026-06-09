@@ -51,6 +51,7 @@ function trackedTarget(rawTarget: string, offerId: string) {
   try {
     const target = new URL(rawTarget);
     if (target.protocol !== "http:" && target.protocol !== "https:") return null;
+    if (!isPublicHttpHost(target.hostname)) return null;
     target.searchParams.set("utm_source", "fasmetri");
     target.searchParams.set("utm_medium", "price_comparison");
     target.searchParams.set("utm_campaign", "product_click");
@@ -59,4 +60,20 @@ function trackedTarget(rawTarget: string, offerId: string) {
   } catch {
     return null;
   }
+}
+
+function isPublicHttpHost(hostname: string) {
+  const host = hostname.toLowerCase();
+  if (!host || host === "localhost" || host.endsWith(".localhost")) return false;
+  if (host === "::1" || host === "[::1]") return false;
+
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!ipv4) return !host.includes(":");
+
+  const [a, b] = ipv4.slice(1).map(Number);
+  if (a === 10 || a === 127 || a === 0) return false;
+  if (a === 169 && b === 254) return false;
+  if (a === 172 && b >= 16 && b <= 31) return false;
+  if (a === 192 && b === 168) return false;
+  return ipv4.slice(1).every((part) => Number(part) >= 0 && Number(part) <= 255);
 }

@@ -18,20 +18,27 @@ const TOKEN_ALIASES: Record<string, string[]> = {
   iphon: ["iphone"],
   iphone: ["აიფონი", "apple"],
   აიფონი: ["iphone", "apple"],
+  phone: ["ტელეფონი", "მობილური", "მობილურ", "smartphone", "mobiles"],
+  mobile: ["მობილური", "მობილურ", "ტელეფონი", "smartphone", "mobiles"],
+  smartphone: ["სმარტფონი", "ტელეფონი", "mobile", "phone", "mobiles"],
+  ტელეფონი: ["phone", "mobile", "smartphone", "mobiles"],
+  მობილური: ["phone", "mobile", "smartphone", "mobiles"],
+  სმარტფონი: ["smartphone", "phone", "mobile", "mobiles"],
   samsung: ["სამსუნგი", "galaxy"],
   სამსუნგი: ["samsung", "galaxy"],
   galaxy: ["samsung", "გალაქსი"],
   xiaomi: ["xiaomi", "redmi", "poco"],
   სიაომი: ["xiaomi", "redmi"],
+  შაომი: ["xiaomi", "redmi"],
   redmi: ["xiaomi"],
   honor: ["ჰონორი"],
   ჰონორი: ["honor"],
   pixel: ["google"],
   google: ["pixel"],
-  laptop: ["ლეპტოპი", "notebook", "ნოუთბუქი"],
-  laptops: ["ლეპტოპი", "notebook"],
-  ლეპტოპი: ["laptop", "notebook", "ნოუთბუქი"],
-  ნოუთბუქი: ["laptop", "notebook"],
+  laptop: ["ლეპტოპი", "ლეპტოპ", "notebook", "ნოუთბუქი", "laptops"],
+  laptops: ["ლეპტოპი", "ლეპტოპ", "notebook"],
+  ლეპტოპი: ["laptop", "notebook", "ნოუთბუქი", "laptops"],
+  ნოუთბუქი: ["laptop", "notebook", "laptops"],
   macbook: ["მაკბუქი", "apple"],
   მაკბუქი: ["macbook", "apple"],
   tv: ["television", "ტელევიზორი", "smart tv"],
@@ -121,11 +128,16 @@ const GENERIC_TOKENS = new Set([
 
 export function normalizeSearchText(input?: string | null) {
   if (!input) return "";
-  let value = normalizeProductTitle(input).replace(/[_]+/g, " ");
+  let value = normalizeProductTitle(input)
+    .replace(/[_-]+/g, " ")
+    .replace(/\b(iphone|galaxy|pixel|redmi|poco|honor|xiaomi|macbook)(\d)/g, "$1 $2")
+    .replace(/\b(s\d{1,3})(ultra|plus|fe|lite|mini)\b/g, "$1 $2")
+    .replace(/\b(\d{1,3})(pro|max|ultra|plus|fe|lite|mini|air)\b/g, "$1 $2")
+    .replace(/\b(\d{1,2})\s*\/\s*(\d{2,4})\s*(gb)?\b/g, "$1/$2");
   for (const [pattern, replacement] of PHRASE_ALIASES) value = value.replace(pattern, replacement);
   value = value
     .replace(/\b(\d+)\s*(gb|tb)\b/g, "$1$2")
-    .replace(/[^\p{L}\p{N}\s.+-]/gu, " ")
+    .replace(/[^\p{L}\p{N}\s.+/-]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -146,7 +158,7 @@ export function buildSearchPlan(query?: string | null): SearchPlan | null {
   if (!tokens.length) return null;
 
   const groups = tokens.map((token) => {
-    const alternatives = unique([token, ...(TOKEN_ALIASES[token] ?? [])].flatMap((item) => [normalizeSearchText(item), removeNoiseWords(item)]));
+    const alternatives = unique([token, ...specAlternatives(token), ...(TOKEN_ALIASES[token] ?? [])].flatMap((item) => [normalizeSearchText(item), removeNoiseWords(item)]));
     return {
       raw: token,
       alternatives,
@@ -208,10 +220,17 @@ export function scoreProductSearch(product: ProductView, queryOrPlan?: string | 
   const ratio = matchedWeight / totalWeight;
   if (plan.groups.length > 1 && ratio < 0.52) return 0;
 
-  const exactBoost = haystack.includes(plan.normalizedQuery) ? 28 : 0;
-  const offerBoost = product.offers.some((offer) => normalizeSearchText(offer.title).includes(plan.normalizedQuery)) ? 12 : 0;
-  const categoryBoost = product.category && termMatches(haystack, haystackTokens, product.category.nameKa) ? 4 : 0;
-  return Math.round(ratio * 100 + exactBoost + offerBoost + categoryBoost + Math.min(product.popularityScore / 10, 10));
+  const titleText = normalizeSearchText(product.name);
+  const modelText = normalizeSearchText([product.brand, product.model, product.canonicalKey, identityText(product.productIdentity)].filter(Boolean).join(" "));
+  const categoryText = normalizeSearchText([product.category?.slug, product.category?.nameKa, product.category?.nameEn].filter(Boolean).join(" "));
+  const offerText = normalizeSearchText(product.offers.map((offer) => [offer.title, offer.canonicalKey, offer.shop.name].filter(Boolean).join(" ")).join(" "));
+  const titleBoost = fieldMatchScore(titleText, plan, 70, 42);
+  const modelBoost = fieldMatchScore(modelText, plan, 48, 28);
+  const specBoost = plan.groups.some((group) => /\d|gb|tb|\//.test(group.raw) && group.alternatives.some((term) => termMatches(modelText, new Set(modelText.split(/\s+/)), term))) ? 22 : 0;
+  const categoryBoost = fieldMatchScore(categoryText, plan, 12, 8);
+  const offerBoost = fieldMatchScore(offerText, plan, 14, 9);
+  const dealBoost = product.offers.some((offer) => offer.discountPercent > 0) && plan.groups.some((group) => ["sale", "deal", "აქცია", "ფასდაკლება"].includes(group.raw)) ? 8 : 0;
+  return Math.round(ratio * 100 + titleBoost + modelBoost + specBoost + categoryBoost + offerBoost + dealBoost + Math.min(product.popularityScore / 10, 10));
 }
 
 function productSearchHaystack(product: ProductView) {
@@ -234,6 +253,16 @@ function productSearchHaystack(product: ProductView) {
     ]),
   ];
   return normalizeSearchText(values.filter(Boolean).join(" "));
+}
+
+function fieldMatchScore(text: string, plan: SearchPlan, exactScore: number, partialScore: number) {
+  if (!text) return 0;
+  if (text === plan.normalizedQuery) return exactScore;
+  if (text.includes(plan.normalizedQuery)) return partialScore;
+  const tokens = new Set(text.split(/\s+/).filter(Boolean));
+  const matchedGroups = plan.groups.filter((group) => group.alternatives.some((term) => termMatches(text, tokens, term))).length;
+  if (!matchedGroups) return 0;
+  return Math.round((matchedGroups / plan.groups.length) * partialScore * 0.72);
 }
 
 function identityText(value: unknown) {
@@ -278,11 +307,20 @@ function mergeStorageTokens(tokens: string[]) {
     if (/^\d{1,4}$/.test(current) && /^(gb|tb)$/.test(next ?? "")) {
       merged.push(`${current}${next}`);
       index += 1;
+    } else if (/^\d{1,2}gb$/.test(current) && /^\d{2,4}gb$/.test(next ?? "")) {
+      merged.push(`${current.replace(/gb$/, "")}/${next.replace(/gb$/, "")}`);
+      index += 1;
     } else {
       merged.push(current);
     }
   }
   return merged;
+}
+
+function specAlternatives(token: string) {
+  const ramStorage = token.match(/^(\d{1,2})\/(\d{2,4})$/);
+  if (ramStorage) return [`${ramStorage[1]}gb ${ramStorage[2]}gb`, `${ramStorage[1]} ${ramStorage[2]}`];
+  return [];
 }
 
 function tokenWeight(token: string) {

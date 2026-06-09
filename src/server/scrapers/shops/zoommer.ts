@@ -15,6 +15,11 @@ type ZoommerProduct = {
   route?: string;
 };
 
+type ZoommerCategoryPage = {
+  productsCount?: number;
+  products?: ZoommerProduct[];
+};
+
 type ZoommerShareData = {
   name?: string;
   price?: number | string;
@@ -55,6 +60,14 @@ type JsonLdListItem = {
 };
 
 const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
+const CATEGORY_API_IDS: Partial<Record<FasmetriCategorySlug, number>> = {
+  mobiles: 855,
+  laptops: 531,
+};
+const CATEGORY_PAGE_URLS: Partial<Record<FasmetriCategorySlug, string>> = {
+  mobiles: "https://zoommer.ge/mobiluri-telefonebi-c855",
+  laptops: "https://zoommer.ge/leptopebi-c531",
+};
 
 function toNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -99,6 +112,9 @@ const categoryProductPathPrefixes: Partial<Record<FasmetriCategorySlug, RegExp>>
 };
 
 async function listProductUrls(categorySlug?: string) {
+  const apiUrls = await listCurrentCategoryUrls(categorySlug);
+  if (apiUrls?.length) return apiUrls;
+
   const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
   const urls = await loadProductUrlsFromIndexes(["https://zoommer.ge/sitemap_index.xml"], {
     includeSitemap: /\/sitemap\/products\//i,
@@ -118,6 +134,64 @@ async function listProductUrls(categorySlug?: string) {
     return categoryFilter.test(new URL(candidate).pathname);
   });
   return values.sort((left, right) => productId(right) - productId(left));
+}
+
+async function listCurrentCategoryUrls(categorySlug?: string) {
+  const slug = categorySlug as FasmetriCategorySlug | undefined;
+  if (!slug) return null;
+  const categoryId = CATEGORY_API_IDS[slug];
+  const pageUrl = CATEGORY_PAGE_URLS[slug];
+  if (!categoryId || !pageUrl) return null;
+
+  try {
+    const userAgent = process.env.SCRAPER_USER_AGENT ?? DEFAULT_USER_AGENT;
+    const cookie = await fetchAccessCookie(pageUrl, userAgent);
+    const firstPage = await fetchCategoryPage(categoryId, 1, pageUrl, cookie, userAgent);
+    const pages = Math.ceil((firstPage.productsCount ?? firstPage.products?.length ?? 0) / 28);
+    const products = [...(firstPage.products ?? [])];
+    for (let page = 2; page <= pages; page += 1) {
+      products.push(...((await fetchCategoryPage(categoryId, page, pageUrl, cookie, userAgent)).products ?? []));
+    }
+    const urls = new Map<string, string>();
+    for (const product of products) {
+      if (!product.route) continue;
+      const url = new URL(product.route.replace(/^\//, ""), "https://zoommer.ge/").toString();
+      urls.set(canonicalProductKey(url), url);
+    }
+    return [...urls.values()].sort((left, right) => productId(right) - productId(left));
+  } catch (error) {
+    console.warn(`Zoommer category API discovery failed for ${slug}; falling back to sitemap:`, error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+async function fetchAccessCookie(pageUrl: string, userAgent: string) {
+  const response = await fetch(pageUrl, {
+    headers: { "user-agent": userAgent, "accept-language": "ka" },
+  });
+  const setCookie = response.headers.get("set-cookie") ?? "";
+  const tokens = [...setCookie.matchAll(/zoommer-access_token=([^;]+)/g)].map((match) => match[1]);
+  if (!tokens.length) throw new Error("missing zoommer-access_token cookie");
+  return `zoommer-access_token=${tokens[tokens.length - 1]}`;
+}
+
+async function fetchCategoryPage(categoryId: number, page: number, referer: string, cookie: string, userAgent: string) {
+  const url = new URL("https://zoommer.ge/api/proxy/v1/Products/v3");
+  url.searchParams.set("CategoryId", String(categoryId));
+  url.searchParams.set("Page", String(page));
+  url.searchParams.set("Limit", "28");
+  const response = await fetch(url, {
+    headers: {
+      "user-agent": userAgent,
+      accept: "application/json, text/plain, */*",
+      "accept-language": "ka",
+      os: "web",
+      referer,
+      cookie,
+    },
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<ZoommerCategoryPage>;
 }
 
 function parseNextData({ $ }: ProductPageParseContext) {

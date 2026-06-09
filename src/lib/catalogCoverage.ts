@@ -1,3 +1,4 @@
+import { PUBLIC_OFFER_MATCH_STATUSES } from "@/lib/catalog-types";
 import { prisma } from "@/lib/prisma";
 
 export type StoreCoverageRow = {
@@ -74,11 +75,11 @@ export async function getCatalogCoverageSummary(): Promise<CatalogCoverageSummar
       failedRuns,
     ] = await Promise.all([
       prisma.rawOffer.count({ where: { shopId: shop.id } }),
-      prisma.productOffer.count({ where: { shopId: shop.id, matchStatus: "CONFIRMED" } }),
+      prisma.productOffer.count({ where: { shopId: shop.id, matchStatus: { in: [...PUBLIC_OFFER_MATCH_STATUSES] } } }),
       prisma.productOffer.findMany({
         where: {
           shopId: shop.id,
-          matchStatus: "CONFIRMED",
+          matchStatus: { in: [...PUBLIC_OFFER_MATCH_STATUSES] },
           product: { isPublic: true, archivedAt: null, needsReview: false, categoryNeedsReview: false },
         },
         select: { productId: true },

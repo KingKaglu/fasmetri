@@ -1,5 +1,16 @@
 export type Availability = "IN_STOCK" | "OUT_OF_STOCK" | "UNKNOWN";
 
+// Offer match statuses that are safe to show publicly. "CONFIRMED" is written by
+// the per-store sync pipelines; "SAFE_AUTO" (confidence >= 95) and
+// "CANONICAL_CREATED" (confidence 100) are written by the safe canonical matcher
+// (scripts/match-products.ts) for linked offers. "CANONICAL_CREATED_NEEDS_REVIEW"
+// is intentionally excluded — those offers wait for manual review.
+export const PUBLIC_OFFER_MATCH_STATUSES = ["CONFIRMED", "SAFE_AUTO", "CANONICAL_CREATED"] as const;
+
+export function isPublicMatchStatus(status: string | null | undefined): boolean {
+  return status != null && (PUBLIC_OFFER_MATCH_STATUSES as readonly string[]).includes(status);
+}
+
 export type ShopView = {
   id: string;
   slug: string;
