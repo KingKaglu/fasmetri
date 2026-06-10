@@ -31,24 +31,24 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
 
   return (
     <section className="shell py-6 sm:py-9">
-      <div className="mb-5 grid gap-4 rounded-md border border-[#e2e8f0] bg-white p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+      <div className="mb-5 grid gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:grid-cols-[auto_1fr_auto] sm:items-center">
         <ShopMark shop={shop} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">{shop.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{shop.name}</h1>
             <ShopStatusBadge shop={shop} />
           </div>
-          <p className="mt-1 text-sm text-[#64748b]">
-            <span className="font-bold text-[#0f172a]">{(shop.productCount ?? products.length).toLocaleString()}</span> ამ მაღაზიაში ნაპოვნი პროდუქტი
+          <p className="mt-1 text-sm text-gray-500">
+            <span className="font-semibold text-gray-900">{(shop.productCount ?? products.length).toLocaleString()}</span> ამ მაღაზიაში ნაპოვნი პროდუქტი
             {" · "}
-            <span className="font-bold text-[#0f172a]">{(shop.dealCount ?? 0).toLocaleString()}</span> აქტიური აქცია
+            <span className="font-semibold text-gray-900">{(shop.dealCount ?? 0).toLocaleString()}</span> აქტიური აქცია
           </p>
-          <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-[#64748b]">
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-400">
             ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
           </p>
-          {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} className="mt-1 text-xs font-bold" /> : null}
+          {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} className="mt-1 text-xs" /> : null}
         </div>
-        <p className="rounded-sm border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-xs font-bold text-[#64748b]">
+        <p className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
           საბოლოო ფასი მაღაზიაში გადაამოწმე
         </p>
       </div>

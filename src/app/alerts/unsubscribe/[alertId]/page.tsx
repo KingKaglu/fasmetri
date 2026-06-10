@@ -11,12 +11,12 @@ export default async function AlertUnsubscribePage({ params }: { params: Promise
   return (
     <section className="shell py-10 sm:py-14">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="eyebrow text-[var(--accent-strong)]">ფასის შეტყობინება</p>
-        <h1 className="mt-2 text-3xl font-black text-[var(--brand)] sm:text-4xl">შეტყობინების გაუქმება</h1>
-        <p className="mt-3 text-sm font-bold leading-6 text-[var(--muted)]">
+        <p className="eyebrow">ფასის შეტყობინება</p>
+        <h1 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">შეტყობინების გაუქმება</h1>
+        <p className="mt-3 text-sm leading-6 text-gray-500">
           უსაფრთხოებისთვის შეიყვანე იგივე ელფოსტა, რომლითაც ფასის შეტყობინება დააყენე.
         </p>
-        <p className="mt-2 text-xs font-bold leading-5 text-[var(--muted)]">
+        <p className="mt-2 text-xs leading-5 text-gray-400">
           ელფოსტა გამოიყენება მხოლოდ შესაბამისი ფასის შეტყობინების პოვნისა და გაუქმებისთვის.
         </p>
       </div>

@@ -35,19 +35,13 @@ export function MobileFilterDrawer({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(true)}
-        className="relative flex min-h-14 w-full items-center justify-between gap-3 overflow-hidden rounded-xl border border-[var(--brand)] bg-[var(--brand)] px-3 text-sm font-black text-white shadow-[0_14px_32px_rgba(15,23,42,0.16)]"
+        className="flex h-11 w-full items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 shadow-sm hover:border-gray-300 hover:bg-gray-50"
       >
-        <span className="absolute inset-y-0 right-0 w-28 bg-[radial-gradient(circle_at_70%_35%,rgba(37,99,235,0.56),transparent_42%)]" />
-        <span className="relative inline-flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-xl bg-[var(--accent)] text-[var(--accent-ink)]">
-            <SlidersHorizontal className="size-4" />
-          </span>
-          <span>
-              <span className="block text-left text-[10px] uppercase tracking-[0.16em] text-white/42">ფილტრები</span>
-            <span className="block text-left leading-none">ფილტრები</span>
-          </span>
+        <span className="inline-flex items-center gap-2">
+          <SlidersHorizontal className="size-4 text-gray-400" />
+          ფილტრები
         </span>
-        <span className="relative rounded-full border border-white/12 bg-white px-2.5 py-1 text-[11px] font-black text-[#151713]">
+        <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-500">
           {badge ?? "გახსნა"}
         </span>
       </button>
@@ -58,31 +52,25 @@ export function MobileFilterDrawer({
             type="button"
             aria-label="ფილტრების დახურვა"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-[#0b0d09]/70 backdrop-blur-md"
+            className="absolute inset-0 bg-gray-900/50"
           />
           <div
             id={panelId}
-            className="absolute inset-x-1 bottom-1 top-4 grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-xl border border-white/16 bg-[var(--surface-soft)] shadow-[0_30px_80px_rgba(0,0,0,0.38)] min-[360px]:inset-x-2 min-[360px]:bottom-2 min-[360px]:top-8"
+            className="absolute inset-x-0 bottom-0 top-12 grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-t-xl bg-white shadow-lg"
           >
-            <div className="relative overflow-hidden bg-[#151713] px-4 pb-4 pt-3 text-white">
-              <div className="absolute inset-y-0 right-0 w-36 bg-[radial-gradient(circle_at_70%_35%,rgba(37,99,235,0.5),transparent_42%)]" />
-              <div className="relative flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/42">ფილტრები</p>
-                  <h2 className="mt-1 text-xl font-black leading-none">ფილტრები</h2>
-                  <p className="mt-2 max-w-56 text-xs font-bold leading-5 text-white/62">
-                    სწრაფად შეცვალე მაღაზია, ფასი, მარაგი და დალაგება.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  aria-label="დახურვა"
-                  onClick={() => setOpen(false)}
-                  className="grid size-10 shrink-0 place-items-center rounded-2xl border border-white/16 bg-white/9 text-white hover:bg-white/14"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
+              <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
+                <SlidersHorizontal className="size-4 text-gray-400" />
+                ფილტრები
+              </h2>
+              <button
+                type="button"
+                aria-label="დახურვა"
+                onClick={() => setOpen(false)}
+                className="grid size-9 shrink-0 place-items-center rounded-md border border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+              >
+                <X className="size-4" />
+              </button>
             </div>
             <div className="min-h-0 overflow-hidden">{children}</div>
           </div>

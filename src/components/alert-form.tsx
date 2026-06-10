@@ -28,9 +28,9 @@ export function AlertForm({ productId }: { productId: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="surface-flat grid gap-2.5 p-3.5">
-      <h2 className="flex items-center gap-2 text-sm font-black text-[#0f172a]">
-        <BellRing className="size-4 text-[#65a30d]" /> ფასის შეტყობინება
+    <form onSubmit={submit} className="grid gap-2.5 rounded-lg border border-gray-200 bg-white p-4">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+        <BellRing className="size-4 text-green-600" /> ფასის შეტყობინება
       </h2>
       <input
         name="email"
@@ -39,7 +39,7 @@ export function AlertForm({ productId }: { productId: string }) {
         maxLength={254}
         autoComplete="email"
         placeholder="ელფოსტა"
-        className="h-10 rounded-md border border-[#e2e8f0] bg-white px-3 text-sm font-medium text-[#0f172a] outline-none focus:border-[#0f172a]"
+        className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-400"
       />
       <input
         name="targetPrice"
@@ -49,23 +49,23 @@ export function AlertForm({ productId }: { productId: string }) {
         required
         inputMode="decimal"
         placeholder="სამიზნე ფასი ₾"
-        className="h-10 rounded-md border border-[#e2e8f0] bg-white px-3 text-sm font-medium text-[#0f172a] outline-none focus:border-[#0f172a]"
+        className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-400"
       />
-      <button className="h-10 rounded-md bg-[#0f172a] text-sm font-black text-white hover:bg-black">
+      <button className="h-10 rounded-md bg-gray-900 text-sm font-semibold text-white hover:bg-black">
         დაყენება
       </button>
-      <p className="text-[11px] font-bold leading-5 text-[#64748b]">
+      <p className="text-[11px] leading-5 text-gray-500">
         ელფოსტა გამოიყენება მხოლოდ ფასის შეტყობინებისთვის.
         {unsubscribeHref ? (
           <>
             {" "}
-            <a href={unsubscribeHref} className="text-[#0f172a] underline decoration-[#94a3b8] underline-offset-2">
+            <a href={unsubscribeHref} className="text-gray-700 underline underline-offset-2">
               გაუქმების ბმული
             </a>
           </>
         ) : null}
       </p>
-      {message ? <p className="text-xs font-bold text-[#65a30d]">{message}</p> : null}
+      {message ? <p className="text-xs font-medium text-green-700">{message}</p> : null}
     </form>
   );
 }

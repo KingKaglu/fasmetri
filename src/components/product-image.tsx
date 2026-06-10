@@ -51,8 +51,8 @@ export function ProductImage({ src, alt, priority = false, tall = false }: { src
           className="object-contain p-3 transition duration-300 group-hover:scale-[1.05]"
         />
       ) : (
-        <div className="grid h-full place-items-center gap-1.5 p-4 text-center text-xs font-black text-[var(--muted)]">
-          <ImageOff className="mx-auto size-7 text-[var(--line-strong)]" />
+        <div className="grid h-full place-items-center gap-1.5 p-4 text-center text-xs font-medium text-gray-400">
+          <ImageOff className="mx-auto size-7 text-gray-300" />
           სურათი მიუწვდომელია
         </div>
       )}
