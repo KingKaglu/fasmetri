@@ -319,7 +319,7 @@ function scorePhone(raw: SafeProductIdentity, candidate: SafeProductIdentity): S
     reasons.push("image +5");
   }
 
-  return finalize(confidence, reasons, hardConflicts, caps, { auto: 70, review: 70, weak: 60 });
+  return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 60 });
 }
 
 function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {
@@ -407,7 +407,7 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
     caps.push({ value: 94, reason: "color mismatch prevents auto" });
   }
 
-  return finalize(confidence, reasons, hardConflicts, caps, { auto: 70, review: 70, weak: 65 });
+  return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 65 });
 }
 
 function finalize(
