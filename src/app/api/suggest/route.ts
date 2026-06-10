@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const prices = product.offers.map((offer) => offer.currentPrice).filter((price) => price > 0);
     return {
       slug: product.slug,
-      name: product.name.replace(/_/g, " "),
+      name: product.name,
       imageUrl: product.imageUrl ?? product.offers.find((offer) => offer.imageUrl)?.imageUrl ?? null,
       category: product.category?.nameKa ?? product.category?.nameEn ?? null,
       minPrice: prices.length ? Math.min(...prices) : null,

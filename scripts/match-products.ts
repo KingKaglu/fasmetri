@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { OfferAvailability, Prisma } from "@prisma/client";
 import { prisma } from "../src/lib/prisma";
 import { normalizeProductName, slugifyProduct } from "../src/lib/matching";
+import { prettifyProductName } from "../src/lib/productDisplay";
 import {
   SAFE_MATCHER_VERSION,
   SafeCategorySlug,
@@ -558,7 +559,8 @@ function ownCanonicalKey(identity: SafeProductIdentity, rawOfferId: string, poss
 }
 
 function canonicalTitle(identity: SafeProductIdentity, fallback: string) {
-  return identitySummary(identity) || fallback;
+  const summary = identitySummary(identity);
+  return summary ? prettifyProductName(summary) : fallback;
 }
 
 function autoThreshold(identity: SafeProductIdentity) {

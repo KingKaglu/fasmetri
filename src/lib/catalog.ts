@@ -11,6 +11,7 @@ import {
   toPublicProduct,
 } from "@/config/productCuration";
 import { prisma } from "@/lib/prisma";
+import { prettifyProductName } from "@/lib/productDisplay";
 import { productSearchWhereTerms, rankSearchResults } from "@/lib/searchKeywords";
 
 export type ProductFilters = {
@@ -91,7 +92,7 @@ function productView(product: ProductRecord | ProductSummaryRecord): ProductView
   return {
     id: product.id,
     slug: product.slug,
-    name: product.name,
+    name: prettifyProductName(product.name),
     canonicalKey: product.canonicalKey,
     productIdentity: product.productIdentity,
     brand: product.brand,
@@ -443,7 +444,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v8", publicListingKey(filters)],
+    ["public-products-v9", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -454,7 +455,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v6", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v7", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
