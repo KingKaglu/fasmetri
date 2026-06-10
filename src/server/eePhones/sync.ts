@@ -665,78 +665,90 @@ async function promoteSnapshot(snapshot: EePhonesSnapshot): Promise<PromotionRep
     const priceChanged = existingPrice !== currentPriceGel || existingOldPrice !== item.oldPriceGel;
     const saleDetectedAt = item.discountPercent > 0 ? existing?.saleDetectedAt ?? new Date() : null;
 
-    await db.$transaction(async (tx) => {
-      const rawOffer = await upsertRawOffer(shop.id, item, tx);
-      const product = await upsertStandaloneProduct(tx, category.id, item, existing?.id);
-      const offer = await tx.productOffer.upsert({
-        where: { shopId_url: { shopId: shop.id, url: item.productUrl } },
-        update: {
-          productId: product.id,
-          rawOfferId: rawOffer.id,
-          externalId: item.eeProductId ?? null,
-          title: item.originalTitle,
-          canonicalKey: item.uniqueKey,
-          productIdentity: jsonValue(productIdentityFor(item)),
-          matchStatus: "CONFIRMED",
-          matchConfidence: 100,
-          verificationStatus: "CONFIRMED",
-          previousSeenPrice: priceChanged && existingPrice != null ? existingPrice : undefined,
-          currentPrice: currentPriceGel,
-          oldPrice: item.oldPriceGel,
-          discountAmount: item.discountAmountGel,
-          discountPercent: item.discountPercent,
-          isOnSale: item.discountPercent > 0,
-          saleDetectedAt,
-          availability: item.availability,
-          imageUrl: item.imageUrl,
-          lastSeenAt: new Date(item.scrapedAt),
-          lastCheckedAt: new Date(),
-          lastPriceChangedAt: priceChanged ? new Date() : undefined,
-          isActive: true,
-          missedSyncCount: 0,
-          possiblyInactiveAt: null,
-          inactiveAt: null,
-        },
-        create: {
-          shopId: shop.id,
-          productId: product.id,
-          rawOfferId: rawOffer.id,
-          externalId: item.eeProductId,
-          url: item.productUrl,
-          title: item.originalTitle,
-          canonicalKey: item.uniqueKey,
-          productIdentity: jsonValue(productIdentityFor(item)),
-          matchStatus: "CONFIRMED",
-          matchConfidence: 100,
-          verificationStatus: "CONFIRMED",
-          currentPrice: currentPriceGel,
-          oldPrice: item.oldPriceGel,
-          discountAmount: item.discountAmountGel,
-          discountPercent: item.discountPercent,
-          isOnSale: item.discountPercent > 0,
-          saleDetectedAt: item.discountPercent > 0 ? new Date() : undefined,
-          availability: item.availability,
-          imageUrl: item.imageUrl,
-          firstSeenAt: new Date(item.scrapedAt),
-          lastSeenAt: new Date(item.scrapedAt),
-          lastCheckedAt: new Date(),
-          lastPriceChangedAt: new Date(),
-          isActive: true,
-        },
-      });
-
-      if (priceChanged || !existing) {
-        await tx.priceHistory.create({
-          data: {
-            offerId: offer.id,
-            price: currentPriceGel,
+    const rawOffer = await upsertRawOffer(shop.id, item, undefined);
+    let offerExternalId: string | null = item.eeProductId ?? null;
+    const runTransaction = () =>
+      db.$transaction(async (tx) => {
+        const product = await upsertStandaloneProduct(tx, category.id, item, existing?.id);
+        const offer = await tx.productOffer.upsert({
+          where: { shopId_url: { shopId: shop.id, url: item.productUrl } },
+          update: {
+            productId: product.id,
+            rawOfferId: rawOffer.id,
+            externalId: offerExternalId,
+            title: item.originalTitle,
+            canonicalKey: item.uniqueKey,
+            productIdentity: jsonValue(productIdentityFor(item)),
+            matchStatus: "CONFIRMED",
+            matchConfidence: 100,
+            verificationStatus: "CONFIRMED",
+            previousSeenPrice: priceChanged && existingPrice != null ? existingPrice : undefined,
+            currentPrice: currentPriceGel,
             oldPrice: item.oldPriceGel,
+            discountAmount: item.discountAmountGel,
+            discountPercent: item.discountPercent,
+            isOnSale: item.discountPercent > 0,
+            saleDetectedAt,
             availability: item.availability,
-            capturedAt: new Date(item.scrapedAt),
+            imageUrl: item.imageUrl,
+            lastSeenAt: new Date(item.scrapedAt),
+            lastCheckedAt: new Date(),
+            lastPriceChangedAt: priceChanged ? new Date() : undefined,
+            isActive: true,
+            missedSyncCount: 0,
+            possiblyInactiveAt: null,
+            inactiveAt: null,
+          },
+          create: {
+            shopId: shop.id,
+            productId: product.id,
+            rawOfferId: rawOffer.id,
+            externalId: offerExternalId,
+            url: item.productUrl,
+            title: item.originalTitle,
+            canonicalKey: item.uniqueKey,
+            productIdentity: jsonValue(productIdentityFor(item)),
+            matchStatus: "CONFIRMED",
+            matchConfidence: 100,
+            verificationStatus: "CONFIRMED",
+            currentPrice: currentPriceGel,
+            oldPrice: item.oldPriceGel,
+            discountAmount: item.discountAmountGel,
+            discountPercent: item.discountPercent,
+            isOnSale: item.discountPercent > 0,
+            saleDetectedAt: item.discountPercent > 0 ? new Date() : undefined,
+            availability: item.availability,
+            imageUrl: item.imageUrl,
+            firstSeenAt: new Date(item.scrapedAt),
+            lastSeenAt: new Date(item.scrapedAt),
+            lastCheckedAt: new Date(),
+            lastPriceChangedAt: new Date(),
+            isActive: true,
           },
         });
+
+        if (priceChanged || !existing) {
+          await tx.priceHistory.create({
+            data: {
+              offerId: offer.id,
+              price: currentPriceGel,
+              oldPrice: item.oldPriceGel,
+              availability: item.availability,
+              capturedAt: new Date(item.scrapedAt),
+            },
+          });
+        }
+      });
+    try {
+      await runTransaction();
+    } catch (err) {
+      if (isExternalIdConflict(err) && offerExternalId !== null) {
+        offerExternalId = null;
+        await runTransaction();
+      } else {
+        throw err;
       }
-    });
+    }
 
     totalImportedOrUpserted += 1;
     if (!existing) totalNewProducts += 1;
@@ -1604,10 +1616,10 @@ function releaseFileLock(path: string) {
 
 function isExternalIdConflict(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-    return String(error.meta?.target ?? "").includes("externalId");
+    return JSON.stringify(error.meta ?? "").includes("externalId");
   }
-  const text = String(error);
-  return text.includes("Unique constraint failed") && text.includes("externalId");
+  const text = error instanceof Error ? error.message : String(error);
+  return text.includes("externalId");
 }
 
 function isMissingColumnError(error: unknown) {
