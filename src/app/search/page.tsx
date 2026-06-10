@@ -19,7 +19,11 @@ import {
   PUBLIC_LIST_PAGE_SIZE,
 } from "@/lib/publicQueryParams";
 
-export const metadata: Metadata = { title: "პროდუქტის ძებნა" };
+export const metadata: Metadata = {
+  title: "პროდუქტის ძებნა",
+  description: "მოძებნე ტელეფონები და ლეპტოპები და შეადარე ფასები ქართულ ონლაინ მაღაზიებში.",
+  alternates: { canonical: "/search" },
+};
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const suggestedSearches = ["iPhone", "აიფონი", "Samsung", "Xiaomi", "MacBook", "ლეპტოპი", "ტელეფონი", "128GB", "12/256"];
@@ -28,7 +32,7 @@ const popularSearches = ["iphone 15", "Samsung Galaxy", "Xiaomi 128GB", "MacBook
 export default async function SearchPage({ searchParams }: { searchParams: Params }) {
   const params = await searchParams;
   const filters = readFilters(params);
-  const hasSearchIntent = Boolean(filters.q || filters.category || filters.shop || filters.dealsOnly || filters.minPrice || filters.maxPrice || filters.minDiscount || filters.availability);
+  const hasSearchIntent = Boolean(filters.q || filters.category || filters.shop || filters.dealsOnly || filters.inStockOnly || filters.minPrice || filters.maxPrice || filters.minDiscount || filters.availability);
   const [products, discoveryProducts, latestDeals, categories, shops] = await Promise.all([
     hasSearchIntent ? listPublicProducts({ ...filters, pageSize: PUBLIC_LIST_PAGE_SIZE }) : Promise.resolve([]),
     hasSearchIntent ? Promise.resolve([]) : listPublicProducts({ sort: "priority", pageSize: 8 }),
@@ -116,6 +120,7 @@ function readFilters(params: Record<string, string | string[] | undefined>) {
     minDiscount: finiteNumberParam(params.minDiscount, 100),
     availability: cleanSlugParam(params.availability),
     dealsOnly: firstParam(params.dealsOnly) === "true",
+    inStockOnly: firstParam(params.inStockOnly) === "true",
     sort: cleanSlugParam(params.sort),
     page: pageNumberParam(params.page),
   };

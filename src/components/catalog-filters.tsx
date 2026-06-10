@@ -103,7 +103,7 @@ export function CatalogFilters({
     { value: "UNKNOWN", label: "მოწმდება" },
   ];
   const sortOptions = [
-    ...(dealsOnly ? [{ value: "deal-priority", label: "სასარგებლო აქციები" }] : []),
+    ...(dealsOnly ? [{ value: "deal-priority", label: "სასარგებლო აქციები" }] : [{ value: "recommended", label: "რეკომენდებული" }]),
     { value: "lowest", label: "იაფიდან ძვირამდე" },
     { value: "highest", label: "ძვირიდან იაფამდე" },
     { value: "discount", label: "დიდი ფასდაკლებით" },
@@ -185,6 +185,11 @@ export function CatalogFilters({
             <SwitchRow name="dealsOnly" label="მხოლოდ ფასდაკლებული" checked={values.dealsOnly} />
           )}
 
+          {/* Hide out-of-stock toggle (deal pages expose it via the quick picks) */}
+          {!dealShortcuts && (
+            <SwitchRow name="inStockOnly" label="ამოწურულის დამალვა" checked={values.inStockOnly} />
+          )}
+
           {/* Quick picks */}
           {dealShortcuts && (
             <CollapsibleSection
@@ -255,7 +260,7 @@ export function CatalogFilters({
           <FilterSection label="დალაგება" icon={<ArrowDownUp className="size-3.5" />}>
             <Select
               name="sort"
-              defaultValue={values.sort ?? (dealsOnly ? "deal-priority" : "lowest")}
+              defaultValue={values.sort ?? (dealsOnly ? "deal-priority" : "recommended")}
               options={sortOptions}
             />
           </FilterSection>

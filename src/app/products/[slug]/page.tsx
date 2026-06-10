@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, ChevronRight } from "lucide-react";
-import { getPublicProduct, listPublicProducts } from "@/lib/catalog";
-import { isPublicMatchStatus } from "@/lib/catalog-types";
+import { getPublicProduct, listPublicProductMatches } from "@/lib/catalog";
+import { isPublicMatchStatus, ProductView } from "@/lib/catalog-types";
 import { PriceChart } from "@/components/price-chart";
 import { AlertForm } from "@/components/alert-form";
 import { ProductGrid } from "@/components/product-grid";
@@ -93,9 +93,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     priceSummary.shopCount === 1
       ? "ამ დროისთვის ეს პროდუქტი მხოლოდ ერთ მაღაზიაშია ნაპოვნი."
       : "ფასები შედარებულია რამდენიმე მაღაზიიდან.";
-  const similar = product.category
-    ? (await listPublicProducts({ category: product.category.slug, sort: "priority", pageSize: 18 })).filter((item) => item.id !== product.id).slice(0, 6)
+  const categoryPool = product.category
+    ? (await listPublicProductMatches({ category: product.category.slug })).filter((item) => item.id !== product.id)
     : [];
+  const similarSections = buildSimilarSections(product, categoryPool);
 
   return (
     <section className="shell py-5 sm:py-8">
@@ -239,7 +240,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           <AvailabilityBadge availability={offer.availability} />
                           <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
-                          <MatchConfidenceBadge confidence={offer.matchConfidence ?? match.confidence} status={offer.matchStatus ?? match.status} />
+                          <MatchConfidenceBadge
+                            confidence={offer.matchConfidence ?? match.confidence}
+                            status={offer.matchStatus ?? match.status}
+                            singleStore={priceSummary.shopCount === 1}
+                          />
                         </div>
                         <p className="mt-1.5 break-words text-xs leading-5 text-gray-500">{offer.title}</p>
                         {attributeLabels(attributes).length > 0 && (
@@ -286,25 +291,36 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <PriceChart history={history} />
           </div>
 
-          {/* Similar products */}
-          <div>
-            <SectionHeader
-              eyebrow="კატეგორიიდან"
-              title="მსგავსი პროდუქტები"
-              href={product.category ? `/categories/${product.category.slug}` : "/categories"}
-              action="კატეგორია"
-            />
-            {similar.length ? (
-              <ProductGrid products={similar} density="compact" />
-            ) : (
+          {/* Similar products — structured: variants → same brand → same price range */}
+          {similarSections.length ? (
+            similarSections.map((section) => (
+              <div key={section.key}>
+                <SectionHeader
+                  eyebrow={section.eyebrow}
+                  title={section.title}
+                  description={section.description}
+                  href={product.category ? `/categories/${product.category.slug}` : "/categories"}
+                  action="კატეგორია"
+                />
+                <ProductGrid products={section.products} density="compact" />
+              </div>
+            ))
+          ) : (
+            <div>
+              <SectionHeader
+                eyebrow="კატეგორიიდან"
+                title="მსგავსი პროდუქტები"
+                href={product.category ? `/categories/${product.category.slug}` : "/categories"}
+                action="კატეგორია"
+              />
               <EmptyState
                 title="მსგავსი პროდუქტები მალე გამოჩნდება"
                 description="ამ კატეგორიაში ახალი შეთავაზებები დამატებისთანავე აქ გამოჩნდება."
                 href="/categories"
                 action="კატეგორიების ნახვა"
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <aside className="grid h-fit gap-3 lg:sticky lg:top-[4.5rem]">
@@ -342,17 +358,27 @@ function comparisonFreshnessText(product: { crossStoreCheckedAt?: string | null;
   return `შემოწმებული წყაროები: ${product.checkedShopsCount}${total}.`;
 }
 
-function MatchConfidenceBadge({ confidence, status }: { confidence: number; status: string }) {
-  const label = status === "CONFIRMED" ? "ზუსტი მოდელის დამთხვევა" : status === "POSSIBLE" ? "მონაცემი მოწმდება" : "სხვა ვარიანტი";
-  const styles =
-    status === "CONFIRMED"
-      ? "border-green-200 bg-green-50 text-green-700"
-      : status === "POSSIBLE"
-        ? "border-amber-200 bg-amber-50 text-amber-700"
-        : "border-gray-200 bg-gray-50 text-gray-500";
+// Four-tier match clarity labels: exact match, strong match, similar product,
+// single-store listing. A "match" here is how confidently this shop's offer is
+// the same variant as the product being compared.
+function MatchConfidenceBadge({ confidence, status, singleStore = false }: { confidence: number; status: string; singleStore?: boolean }) {
+  if (singleStore) {
+    return (
+      <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+        ერთი მაღაზიის შეთავაზება
+      </span>
+    );
+  }
+  const isPublic = isPublicMatchStatus(status);
+  const tier =
+    isPublic && confidence >= 95
+      ? { label: "ზუსტი დამთხვევა", styles: "border-green-200 bg-green-50 text-green-700" }
+      : isPublic && confidence >= 90
+        ? { label: "ძლიერი დამთხვევა", styles: "border-blue-200 bg-blue-50 text-blue-700" }
+        : { label: "მსგავსი პროდუქტი", styles: "border-amber-200 bg-amber-50 text-amber-700" };
   return (
-    <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${styles}`}>
-      {label} · {confidence}%
+    <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${tier.styles}`}>
+      {tier.label} · {confidence}%
     </span>
   );
 }
@@ -458,6 +484,93 @@ function offerPriceSummary(product: { offers: Array<{ currentPrice: number; shop
     difference: highest - lowest,
     shopCount: new Set(product.offers.map((offer) => offer.shop.id)).size,
   };
+}
+
+type SimilarSection = {
+  key: string;
+  eyebrow: string;
+  title: string;
+  description?: string;
+  products: ProductView[];
+};
+
+// Structured "similar products": (1) other variants of the same model,
+// (2) other products of the same brand, (3) same category in the same price
+// range. Items appear in at most one section, and nothing outside the
+// product's own category is ever suggested.
+function buildSimilarSections(product: ProductView, categoryPool: ProductView[]): SimilarSection[] {
+  const productBrand = similarKey(product.brand ?? firstWord(product.name));
+  const productModel = similarKey(product.model);
+  const cheapest = Math.min(...product.offers.map((offer) => offer.currentPrice).filter((price) => price > 0));
+  const used = new Set<string>();
+  const take = (pool: ProductView[], limit: number) => {
+    const taken: ProductView[] = [];
+    for (const item of pool) {
+      if (used.has(item.id)) continue;
+      used.add(item.id);
+      taken.push(item);
+      if (taken.length >= limit) break;
+    }
+    return taken;
+  };
+
+  const variants = productBrand && productModel
+    ? take(
+        categoryPool.filter(
+          (item) => similarKey(item.brand) === productBrand && similarKey(item.model) === productModel,
+        ),
+        6,
+      )
+    : [];
+  const sameBrand = productBrand
+    ? take(categoryPool.filter((item) => similarKey(item.brand ?? firstWord(item.name)) === productBrand), 6)
+    : [];
+  const samePriceRange = Number.isFinite(cheapest)
+    ? take(
+        categoryPool.filter((item) => {
+          const itemPrice = Math.min(...item.offers.map((offer) => offer.currentPrice).filter((price) => price > 0));
+          return Number.isFinite(itemPrice) && itemPrice >= cheapest * 0.75 && itemPrice <= cheapest * 1.25;
+        }),
+        6,
+      )
+    : [];
+
+  const sections: SimilarSection[] = [];
+  if (variants.length) {
+    sections.push({
+      key: "variants",
+      eyebrow: "იგივე მოდელი",
+      title: "ამ მოდელის სხვა ვარიანტები",
+      description: "განსხვავებული მეხსიერება, ფერი ან კონფიგურაცია.",
+      products: variants,
+    });
+  }
+  if (sameBrand.length) {
+    sections.push({
+      key: "same-brand",
+      eyebrow: "იგივე ბრენდი",
+      title: `კიდევ ${product.brand ?? firstWord(product.name)}-ის პროდუქტები`,
+      products: sameBrand,
+    });
+  }
+  if (samePriceRange.length) {
+    sections.push({
+      key: "same-price",
+      eyebrow: "მსგავსი ფასი",
+      title: "ალტერნატივები იმავე ფასის ფარგლებში",
+      description: "იმავე კატეგორიიდან, შესადარებელ ფასად.",
+      products: samePriceRange,
+    });
+  }
+  return sections;
+}
+
+function similarKey(value?: string | null) {
+  return (value ?? "").normalize("NFKC").toLowerCase().replace(/[^a-z0-9Ⴀ-ჿ]+/g, " ").trim();
+}
+
+function firstWord(value: string) {
+  return value.trim().split(/\s+/)[0] ?? "";
 }
 
 function dailyLowestHistory(history: { capturedAt: string; price: number }[]) {
