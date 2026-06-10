@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { ArrowRight, Search, X } from "lucide-react";
 import { formatGel } from "@/lib/format";
 
 type Suggestion = {
@@ -32,6 +32,7 @@ export function SearchBar({
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const cacheRef = useRef(new Map<string, Suggestion[]>());
@@ -60,7 +61,7 @@ export function SearchBar({
       setOpen(data.suggestions.length > 0);
       setActiveIndex(-1);
     } catch {
-      // aborted or offline — keep whatever is shown
+      // aborted or offline
     }
   }, []);
 
@@ -75,6 +76,14 @@ export function SearchBar({
       return;
     }
     debounceRef.current = setTimeout(() => fetchSuggestions(trimmed), DEBOUNCE_MS);
+  };
+
+  const clearQuery = () => {
+    setQuery("");
+    setSuggestions([]);
+    setOpen(false);
+    setActiveIndex(-1);
+    inputRef.current?.focus();
   };
 
   const goToSearch = useCallback(
@@ -103,10 +112,10 @@ export function SearchBar({
     }
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((index) => (index + 1) % suggestions.length);
+      setActiveIndex((i) => (i + 1) % suggestions.length);
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((index) => (index <= 0 ? suggestions.length - 1 : index - 1));
+      setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
     } else if (event.key === "Escape") {
       setOpen(false);
       setActiveIndex(-1);
@@ -114,8 +123,8 @@ export function SearchBar({
   };
 
   useEffect(() => {
-    const onPointerDown = (event: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+    const onPointerDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => {
@@ -132,52 +141,70 @@ export function SearchBar({
       ref={rootRef}
       onSubmit={onSubmit}
       action="/search"
-      className={
-        isHeader
-          ? "relative flex h-11 w-full min-w-0 items-center overflow-visible rounded-2xl border border-[var(--line)] bg-white/90 shadow-[0_10px_24px_rgba(18,19,15,0.06)]"
-          : "relative flex w-full overflow-visible rounded-2xl border border-white/70 bg-white shadow-[0_18px_45px_rgba(18,19,15,0.16)] ring-1 ring-black/5"
-      }
+      className="relative flex min-w-0 w-full overflow-visible"
     >
-      <label className={isHeader ? "flex min-w-0 flex-1 items-center gap-2.5 px-3.5" : "flex min-w-0 flex-1 items-center gap-2 px-3 min-[380px]:gap-3 min-[380px]:px-4"}>
-        {isHeader ? (
-          <Search className="size-4 shrink-0 text-[var(--muted)]" />
-        ) : (
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--brand)]">
-            <Search className="size-4" />
-          </span>
-        )}
-        <input
-          name="q"
-          value={query}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={onKeyDown}
-          onFocus={() => suggestions.length > 0 && query.trim().length >= MIN_QUERY_LENGTH && setOpen(true)}
-          maxLength={140}
-          autoComplete="off"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls="search-suggestions"
-          aria-label="პროდუქტის ძებნა"
-          placeholder={isHeader ? "მოძებნე iPhone 15, MacBook..." : "მოძებნე iPhone 15, MacBook Air..."}
-          className={`${isHeader ? "h-11 text-sm" : large ? "h-14 text-base" : "h-12 text-sm"} w-full min-w-0 bg-transparent font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]`}
-        />
-      </label>
-      <button
-        type="submit"
-        className={
+      <div
+        className={`flex min-w-0 flex-1 items-center overflow-hidden border bg-white ${
           isHeader
-            ? "h-full shrink-0 rounded-r-2xl bg-[var(--brand)] px-5 text-sm font-black text-white hover:bg-black"
-            : `${large ? "h-14 px-4 text-sm min-[380px]:px-7" : "h-12 px-3 text-sm min-[380px]:px-5"} shrink-0 rounded-r-2xl bg-[var(--accent)] font-black text-[var(--accent-ink)] hover:bg-[#d7ff73]`
-        }
+            ? "h-10 rounded-md border-gray-200 shadow-sm"
+            : large
+              ? "h-14 rounded-lg border-gray-300 shadow-md"
+              : "h-12 rounded-lg border-gray-300 shadow-md"
+        } ${open && suggestions.length > 0 ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/10" : "hover:border-gray-300 focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10"}`}
       >
-        ძებნა
-      </button>
+        <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
+          <Search className={`shrink-0 text-gray-400 ${isHeader ? "size-3.5" : "size-4.5"}`} />
+          <input
+            ref={inputRef}
+            name="q"
+            value={query}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={onKeyDown}
+            onFocus={() => suggestions.length > 0 && query.trim().length >= MIN_QUERY_LENGTH && setOpen(true)}
+            maxLength={140}
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls="search-suggestions"
+            aria-label="პროდუქტის ძებნა"
+            placeholder={isHeader ? "მოძებნე..." : "მოძებნე iPhone 15, MacBook Air, Galaxy S25..."}
+            className={`w-full min-w-0 bg-transparent font-medium text-gray-900 outline-none placeholder:text-gray-400 ${
+              isHeader ? "text-sm" : large ? "text-base" : "text-sm"
+            }`}
+          />
+        </label>
 
+        {query && (
+          <button
+            type="button"
+            onClick={clearQuery}
+            className="shrink-0 px-2 text-gray-400 hover:text-gray-600"
+            aria-label="გასუფთავება"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+
+        <button
+          type="submit"
+          className={`shrink-0 font-semibold text-white ${
+            isHeader
+              ? "h-full rounded-r-md bg-[var(--accent)] px-4 text-sm hover:bg-[var(--accent-strong)]"
+              : large
+                ? "h-full rounded-r-lg bg-[var(--accent)] px-6 text-sm hover:bg-[var(--accent-strong)]"
+                : "h-full rounded-r-lg bg-[var(--accent)] px-5 text-sm hover:bg-[var(--accent-strong)]"
+          }`}
+        >
+          {isHeader ? <Search className="size-4" /> : "ძებნა"}
+        </button>
+      </div>
+
+      {/* Suggestions dropdown */}
       {open && suggestions.length > 0 && (
         <ul
           id="search-suggestions"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-black/5 bg-white py-1 shadow-[0_24px_60px_rgba(18,19,15,0.22)]"
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-lg)]"
         >
           {suggestions.map((item, index) => (
             <li key={item.slug} role="option" aria-selected={index === activeIndex}>
@@ -188,36 +215,44 @@ export function SearchBar({
                   setOpen(false);
                   router.push(`/products/${item.slug}`);
                 }}
-                className={`flex w-full items-center gap-3 px-3 py-2 text-left ${index === activeIndex ? "bg-[var(--accent-soft)]" : ""}`}
+                className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                  index === activeIndex ? "bg-[var(--accent-soft)]" : "hover:bg-gray-50"
+                }`}
               >
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.imageUrl} alt="" loading="lazy" className="size-10 shrink-0 rounded-lg border border-black/5 object-contain" />
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    loading="lazy"
+                    className="size-9 shrink-0 rounded-md border border-gray-100 object-contain bg-gray-50"
+                  />
                 ) : (
-                  <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--muted)]">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-md bg-gray-100 text-gray-400">
                     <Search className="size-4" />
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold text-[var(--brand)]">{item.name}</span>
-                  <span className="block truncate text-xs text-[var(--muted)]">
+                  <span className="block truncate text-sm font-medium text-gray-900">{item.name}</span>
+                  <span className="block truncate text-xs text-gray-500">
                     {item.category}
                     {item.shopCount > 1 ? ` · ${item.shopCount} მაღაზია` : ""}
                   </span>
                 </span>
                 {item.minPrice != null && (
-                  <span className="shrink-0 text-sm font-black text-[var(--brand)]">{formatGel(item.minPrice)}</span>
+                  <span className="shrink-0 text-sm font-bold text-gray-900">{formatGel(item.minPrice)}</span>
                 )}
               </button>
             </li>
           ))}
-          <li className="border-t border-black/5">
+          <li className="border-t border-gray-100">
             <button
               type="button"
               onClick={() => goToSearch(query.trim())}
-              className="block w-full px-3 py-2 text-left text-xs font-bold text-[var(--muted)] hover:text-[var(--brand)]"
+              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-[var(--accent)] hover:bg-blue-50"
             >
-              ყველა შედეგი „{query.trim()}”-ისთვის →
+              <span>ყველა შედეგი „{query.trim()}"</span>
+              <ArrowRight className="size-3.5" />
             </button>
           </li>
         </ul>
