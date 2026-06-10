@@ -71,20 +71,27 @@ export default async function CategoryPage({ params, searchParams }: { params: P
     minDiscount: finiteNumberParam(raw.minDiscount, 100),
     availability: cleanSlugParam(raw.availability),
     dealsOnly: firstParam(raw.dealsOnly) === "true",
+    inStockOnly: firstParam(raw.inStockOnly) === "true",
     sort: cleanSlugParam(raw.sort),
     page,
   };
   const countFilters = { ...filters, page: undefined };
+  const hasExtraFilters = Boolean(
+    q || filters.shop || filters.minPrice != null || filters.maxPrice != null ||
+    filters.minDiscount != null || filters.availability || filters.dealsOnly || filters.inStockOnly,
+  );
   const [{ category, publicCategories: categories }, shops, products, matchingProducts] = await Promise.all([
     resolveCategoryForPage(slug),
     listPublicShops(),
     listPublicProducts({ ...filters, pageSize: PUBLIC_LIST_PAGE_SIZE }),
-    listPublicProductMatches(countFilters),
+    hasExtraFilters ? listPublicProductMatches(countFilters) : Promise.resolve(null),
   ]);
   if (!category) notFound();
   if (page > 1 && products.length === 0) notFound();
-  const totalProductCount = matchingProducts.length;
-  const totalDealCount = matchingProducts.filter(hasActiveDeal).length;
+  // Unfiltered totals come from the same shared summary that /categories and
+  // the homepage use, so the header always matches the category card counts.
+  const totalProductCount = matchingProducts ? matchingProducts.length : category.productCount ?? 0;
+  const totalDealCount = matchingProducts ? matchingProducts.filter(hasActiveDeal).length : category.dealCount ?? 0;
 
   return (
     <section className="shell py-5 sm:py-7">
@@ -95,11 +102,11 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         <p className="eyebrow mb-1">კატეგორია</p>
         <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{category.nameKa}</h1>
         <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-          <span><span className="font-semibold text-gray-900">{totalProductCount.toLocaleString()}</span> პროდუქტი</span>
+          <span><span className="font-semibold text-gray-900">{totalProductCount.toLocaleString()}</span> {hasExtraFilters ? "პროდუქტი ფილტრებით" : "პროდუქტი"}</span>
           <span className="text-gray-300">·</span>
           <span><span className="font-semibold text-gray-900">{totalDealCount.toLocaleString()}</span> აქტიური აქცია</span>
           <span className="text-gray-300">·</span>
-          <span>ამ გვერდზე {products.length.toLocaleString()}</span>
+          <span>ნაჩვენებია {products.length.toLocaleString()} / {totalProductCount.toLocaleString()}</span>
         </div>
       </div>
 
@@ -143,6 +150,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   );
 }
 
-function hasActiveDeal(product: { offers: { discountPercent: number }[] }) {
-  return product.offers.some((offer) => offer.discountPercent > 0);
+function hasActiveDeal(product: { offers: { discountPercent: number; oldPrice?: number | null; currentPrice: number }[] }) {
+  // Same "real discount" definition as the shared catalog summary and badges.
+  return product.offers.some((offer) => offer.discountPercent > 0 && offer.oldPrice != null && offer.oldPrice > offer.currentPrice);
 }

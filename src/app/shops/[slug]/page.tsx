@@ -42,6 +42,8 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
             <span className="font-semibold text-gray-900">{(shop.productCount ?? products.length).toLocaleString()}</span> ამ მაღაზიაში ნაპოვნი პროდუქტი
             {" · "}
             <span className="font-semibold text-gray-900">{(shop.dealCount ?? 0).toLocaleString()}</span> აქტიური აქცია
+            {" · "}
+            ნაჩვენებია {products.length.toLocaleString()} / {(shop.productCount ?? products.length).toLocaleString()}
           </p>
           <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-400">
             ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.

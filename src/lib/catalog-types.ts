@@ -32,6 +32,7 @@ export type CategoryView = {
   nameEn?: string | null;
   productCount?: number;
   dealCount?: number;
+  inStockCount?: number;
 };
 
 export type HistoryPoint = {
