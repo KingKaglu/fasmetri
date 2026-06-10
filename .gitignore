@@ -57,3 +57,9 @@ scripts/_*.ts
 /fks.sql
 /drop_fks.sql
 /prisma_cloud_schema.sql
+
+# session scratch artifacts (screenshots, QA logs, generated reports)
+reports/
+phase2-browser/
+phase3-browser/
+phase3-next-start*.log
