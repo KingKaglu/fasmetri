@@ -17,13 +17,13 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
   if (hideUnknown && availability === "UNKNOWN") return null;
   const meta =
     availability === "IN_STOCK"
-      ? { label: "მარაგშია", className: "border-[#bfeecf] bg-[var(--savings-soft)] text-[var(--savings)]" }
+      ? { label: "მარაგშია", className: "border-green-200 bg-green-50 text-green-700" }
       : availability === "OUT_OF_STOCK"
-        ? { label: "ამოიწურა", className: "border-[var(--line)] bg-[var(--surface-soft)] text-[var(--muted)]" }
-        : { label: "მარაგი მოწმდება", className: "border-[#ffdca6] bg-[var(--warn-soft)] text-[var(--warn)]" };
+        ? { label: "ამოიწურა", className: "border-gray-200 bg-gray-50 text-gray-500" }
+        : { label: "მარაგი მოწმდება", className: "border-amber-200 bg-amber-50 text-amber-700" };
 
   return (
-    <span className={`inline-flex h-6 items-center rounded-full border px-2 text-[10px] font-black ${meta.className}`}>
+    <span className={`inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium ${meta.className}`}>
       {meta.label}
     </span>
   );
@@ -32,7 +32,7 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
 export function DiscountBadge({ percent, label }: { percent: number; label?: string }) {
   if (!percent) return null;
   return (
-    <span className="inline-flex items-center rounded-full bg-[var(--price-deal)] px-2 py-1 text-[11px] font-black leading-none text-white shadow-[0_10px_20px_rgba(217,65,47,0.22)]">
+    <span className="inline-flex items-center rounded-md bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
       {label ?? `-${percent}%`}
     </span>
   );
@@ -51,15 +51,15 @@ export function PriceDisplay({
   deal?: boolean;
   tone?: "dark" | "light";
 }) {
-  const priceClass = tone === "light" ? "text-white" : deal ? "price-now-deal" : "price-now";
+  const priceClass = tone === "light" ? "text-white" : deal ? "text-red-600 price-now" : "price-now";
   const oldPriceClass = tone === "light" ? "text-white/50" : "price-old";
   const validOldPrice = oldPrice && oldPrice > price ? oldPrice : null;
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-      <strong className={`${strong ? "text-3xl sm:text-4xl" : "text-lg sm:text-xl"} ${priceClass} leading-none`}>
+    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+      <strong className={`${strong ? "text-2xl sm:text-3xl" : "text-base sm:text-lg"} ${priceClass} font-bold leading-none`}>
         {formatGel(price)}
       </strong>
-      {validOldPrice ? <span className={`${oldPriceClass} text-xs font-bold line-through sm:text-sm`}>{formatGel(validOldPrice)}</span> : null}
+      {validOldPrice ? <span className={`${oldPriceClass} text-xs line-through`}>{formatGel(validOldPrice)}</span> : null}
     </div>
   );
 }
@@ -77,9 +77,9 @@ export function LastUpdatedText({ value, exact = false, className = "" }: { valu
 }
 
 export function ShopMark({ shop, size = "md" }: { shop: Pick<ShopView, "name" | "logoUrl">; size?: "sm" | "md" }) {
-  const dimension = size === "sm" ? "size-7" : "size-10";
+  const dimension = size === "sm" ? "size-6" : "size-9";
   return (
-    <span className={`relative grid ${dimension} shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--line)] bg-white text-[11px] font-black text-[var(--brand)]`}>
+    <span className={`relative grid ${dimension} shrink-0 place-items-center overflow-hidden rounded-md border border-gray-200 bg-white text-[10px] font-semibold text-gray-600`}>
       {shop.logoUrl ? <Image src={shop.logoUrl} alt="" fill unoptimized className="object-contain p-1" /> : shop.name.slice(0, 1)}
     </span>
   );
@@ -89,13 +89,13 @@ export function ShopStatusBadge({ shop }: { shop: ShopView }) {
   const hasComparedProducts = shop.productCount == null ? Boolean(shop.lastScrapedAt) : shop.productCount > 0;
   const meta =
     hasComparedProducts && shop.lastScrapedAt
-      ? { label: "აქტიური", className: "border-[#bfeecf] bg-[var(--savings-soft)] text-[var(--savings)]" }
+      ? { label: "აქტიური", className: "border-green-200 bg-green-50 text-green-700" }
       : shop.enabled
-        ? { label: "მონაცემები მოწმდება", className: "border-[#ffdca6] bg-[var(--warn-soft)] text-[var(--warn)]" }
-        : { label: "მალე დაემატება", className: "border-[var(--line)] bg-[var(--surface-soft)] text-[var(--muted)]" };
+        ? { label: "მოწმდება", className: "border-amber-200 bg-amber-50 text-amber-700" }
+        : { label: "მალე", className: "border-gray-200 bg-gray-50 text-gray-500" };
 
   return (
-    <span className={`inline-flex rounded-full border px-2 py-1 text-[11px] font-black ${meta.className}`}>
+    <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${meta.className}`}>
       {meta.label}
     </span>
   );
@@ -115,16 +115,16 @@ export function SectionHeader({
   action?: string;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[var(--line)] pb-3">
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-gray-100 pb-3">
       <div className="max-w-2xl">
-        {eyebrow ? <p className="eyebrow text-[var(--accent-strong)]">{eyebrow}</p> : null}
-        <h2 className="mt-1 text-xl font-black text-[var(--brand)] sm:text-2xl">{title}</h2>
-        {description ? <p className="mt-1.5 text-sm leading-6 text-[var(--muted)]">{description}</p> : null}
+        {eyebrow ? <p className="eyebrow mb-0.5">{eyebrow}</p> : null}
+        <h2 className="text-lg font-bold text-gray-900 sm:text-xl">{title}</h2>
+        {description ? <p className="mt-1 text-sm leading-6 text-gray-500">{description}</p> : null}
       </div>
       {href ? (
-        <Link href={href} className="inline-flex h-9 items-center gap-1 rounded-full bg-white px-3 text-sm font-black text-[var(--brand)] hover:bg-[var(--accent-soft)]">
+        <Link href={href} className="inline-flex h-8 items-center gap-1 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
           {action}
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-3.5" />
         </Link>
       ) : null}
     </div>
@@ -146,15 +146,15 @@ export function EmptyState({
 }) {
   const Icon = icon === "store" ? Store : icon === "error" ? AlertCircle : PackageSearch;
   return (
-    <div className="surface-flat grid min-h-60 place-items-center px-5 py-10 text-center">
+    <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-5 py-12 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] text-[var(--muted)]">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-gray-200 bg-gray-50 text-gray-400">
           <Icon className="size-5" />
         </span>
-        <h2 className="mt-4 text-lg font-black text-[var(--brand)]">{title}</h2>
-        <p className="mt-1.5 text-sm leading-6 text-[var(--muted)]">{description}</p>
+        <h2 className="mt-4 text-base font-semibold text-gray-900">{title}</h2>
+        <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
         {href ? (
-          <Link href={href} className="mt-5 inline-flex h-10 items-center rounded-xl bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black">
+          <Link href={href} className="mt-5 inline-flex h-9 items-center rounded-md bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-black">
             {action}
           </Link>
         ) : null}

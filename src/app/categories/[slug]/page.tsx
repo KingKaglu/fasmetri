@@ -87,53 +87,54 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const totalDealCount = matchingProducts.filter(hasActiveDeal).length;
 
   return (
-    <section className="shell py-6 sm:py-9">
+    <section className="shell py-5 sm:py-7">
       <TrackView event="category_view" signature={`category_view:${category.slug}`} params={{ category: category.slug }} />
-      <div className="mb-5 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-[0_10px_26px_rgba(18,19,15,0.06)]">
-        <p className="eyebrow text-[var(--accent-strong)]">კატეგორია</p>
-        <h1 className="mt-1 text-3xl font-black text-[var(--brand)] sm:text-4xl">{category.nameKa}</h1>
-        <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm font-bold leading-6 text-[var(--muted)]">
-          <span>
-            სულ <span className="font-black text-[var(--brand)]">{totalProductCount.toLocaleString()}</span> უნიკალური პროდუქტი
-          </span>
-          <span>
-            ამ გვერდზე ნაჩვენებია <span className="font-black text-[var(--brand)]">{products.length.toLocaleString()}</span> პროდუქტი
-          </span>
-          <span>
-            სულ <span className="font-black text-[var(--brand)]">{totalDealCount.toLocaleString()}</span> აქტიური აქცია
-          </span>
-        </p>
-        <p className="mt-1.5 max-w-2xl text-xs font-bold leading-5 text-[var(--muted)]">
-          ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
-        </p>
+
+      {/* Page header */}
+      <div className="mb-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+        <p className="eyebrow mb-1">კატეგორია</p>
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{category.nameKa}</h1>
+        <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
+          <span><span className="font-semibold text-gray-900">{totalProductCount.toLocaleString()}</span> პროდუქტი</span>
+          <span className="text-gray-300">·</span>
+          <span><span className="font-semibold text-gray-900">{totalDealCount.toLocaleString()}</span> აქტიური აქცია</span>
+          <span className="text-gray-300">·</span>
+          <span>ამ გვერდზე {products.length.toLocaleString()}</span>
+        </div>
       </div>
+
+      {/* Mobile filter trigger */}
       <div className="mb-4 lg:hidden">
         <MobileFilterDrawer>
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} variant="drawer" />
         </MobileFilterDrawer>
       </div>
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
-        <div className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
+
+      {/* Main layout: sidebar + content */}
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <div className="hidden lg:sticky lg:top-[4.5rem] lg:block lg:h-fit">
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} />
         </div>
         <div className="min-w-0">
-          <form action={`/categories/${category.slug}`} className="mb-4 flex h-11 min-w-0 items-center overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_8px_20px_rgba(18,19,15,0.06)]">
-            <SearchIcon className="ml-3.5 size-4 shrink-0 text-[var(--muted)]" />
+          {/* Category search */}
+          <form action={`/categories/${category.slug}`} className="mb-4 flex h-10 min-w-0 items-center overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
+            <SearchIcon className="ml-3 size-3.5 shrink-0 text-gray-400" />
             <input
               name="q"
               defaultValue={q}
               maxLength={140}
               aria-label={`ძებნა კატეგორიაში ${category.nameKa}`}
-              placeholder={`მოძებნე ${category.nameKa}-ში...`}
-              className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm font-bold text-[var(--brand)] outline-none placeholder:text-[var(--muted)]"
+              placeholder={`ძებნა ${category.nameKa}-ში...`}
+              className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm font-medium text-gray-900 outline-none placeholder:text-gray-400"
             />
-            {q ? (
-              <a href={`/categories/${category.slug}`} className="mr-1 shrink-0 rounded-lg px-2 py-1 text-xs font-black text-[var(--muted)] hover:text-[var(--brand)]">
-                გასუფთავება
+            {q && (
+              <a href={`/categories/${category.slug}`} className="mr-1 shrink-0 px-2 py-1 text-xs font-medium text-gray-400 hover:text-gray-700">
+                ✕
               </a>
-            ) : null}
-            <button className="h-full shrink-0 bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black">ძებნა</button>
+            )}
+            <button className="h-full shrink-0 bg-gray-900 px-4 text-xs font-semibold text-white hover:bg-black">ძებნა</button>
           </form>
+
           <ProductGrid products={products} resetHref={`/categories/${category.slug}`} emptyTitle="კატეგორიაში პროდუქტი ვერ მოიძებნა" emptyDescription="სცადე სხვა ფილტრები ან მოგვიანებით გადაამოწმე ახალი შეთავაზებები." />
           <CatalogPager baseHref={`/categories/${category.slug}`} params={raw} page={page} hasNext={products.length === PUBLIC_LIST_PAGE_SIZE} />
         </div>
