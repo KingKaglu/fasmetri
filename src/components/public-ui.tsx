@@ -66,11 +66,11 @@ export function PriceDisplay({
 
 export function LastUpdatedText({ value, exact = false, className = "" }: { value: string | Date; exact?: boolean; className?: string }) {
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1 text-[var(--muted)] ${className}`}>
+    <span className={`inline-flex min-w-0 items-center gap-1 text-gray-400 ${className}`}>
       <Clock3 className="size-3 shrink-0" />
       <span className="min-w-0">
         <span className="block">{formatRelativeUpdated(value)}</span>
-        {exact ? <span className="block text-[11px] font-semibold text-[var(--muted)]">{formatUpdated(value)}</span> : null}
+        {exact ? <span className="block text-[11px] font-medium text-gray-500">{formatUpdated(value)}</span> : null}
       </span>
     </span>
   );
@@ -173,13 +173,13 @@ export function ErrorState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="surface-flat grid min-h-60 place-items-center px-5 py-10 text-center">
+    <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-5 py-10 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-[#f5beb7] bg-[#fff1ef] text-[var(--danger)]">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600">
           <AlertCircle className="size-5" />
         </span>
-        <h1 className="mt-4 text-xl font-black text-[var(--brand)]">{title}</h1>
-        <p className="mt-1.5 text-sm leading-6 text-[var(--muted)]">{description}</p>
+        <h1 className="mt-4 text-lg font-bold text-gray-900">{title}</h1>
+        <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
         {action ? <div className="mt-5">{action}</div> : null}
       </div>
     </div>
@@ -188,12 +188,12 @@ export function ErrorState({
 
 export function TrustNote({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`surface-flat ${compact ? "p-4" : "p-5"}`}>
-      <p className="flex gap-2 text-sm font-black text-[var(--brand)]">
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[var(--accent-strong)]" />
+    <div className={`rounded-lg border border-gray-200 bg-white ${compact ? "p-4" : "p-5"}`}>
+      <p className="flex gap-2 text-sm font-semibold text-gray-900">
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-green-600" />
         ფასები და მარაგი რეგულარულად ახლდება.
       </p>
-      <p className="mt-1.5 text-sm leading-5 text-[var(--muted)]">
+      <p className="mt-1.5 text-sm leading-5 text-gray-500">
         ყიდვამდე საბოლოო ფასი ყოველთვის გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
       </p>
     </div>
@@ -202,9 +202,9 @@ export function TrustNote({ compact = false }: { compact?: boolean }) {
 
 export function PriceDisclaimer({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] ${compact ? "px-3 py-2" : "px-4 py-3"}`}>
-      <p className="flex gap-2 text-xs font-bold leading-5 text-[var(--muted-strong)]">
-        <Info className="mt-0.5 size-3.5 shrink-0 text-[var(--accent-strong)]" />
+    <div className={`rounded-md border border-gray-200 bg-gray-50 ${compact ? "px-3 py-2" : "px-4 py-3"}`}>
+      <p className="flex gap-2 text-xs font-medium leading-5 text-gray-600">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-gray-400" />
         ფასები შეიძლება შეიცვალოს. საბოლოო ფასი გადაამოწმე მაღაზიის ვებსაიტზე.
       </p>
     </div>
@@ -226,12 +226,12 @@ export function ProductNotFound() {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
-      <div className="aspect-square animate-pulse bg-[var(--surface-soft)]" />
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="aspect-square animate-pulse bg-gray-100" />
       <div className="grid gap-2 p-3">
-        <div className="h-4 w-20 animate-pulse rounded bg-[var(--surface-soft)]" />
-        <div className="h-8 animate-pulse rounded bg-[var(--surface-soft)]" />
-        <div className="h-6 w-24 animate-pulse rounded bg-[var(--surface-soft)]" />
+        <div className="h-4 w-20 animate-pulse rounded bg-gray-100" />
+        <div className="h-8 animate-pulse rounded bg-gray-100" />
+        <div className="h-6 w-24 animate-pulse rounded bg-gray-100" />
       </div>
     </div>
   );

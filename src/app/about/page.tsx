@@ -11,10 +11,10 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <section className="shell py-8 sm:py-12">
-      <div className="max-w-3xl border-b border-[#e2e8f0] pb-6">
-        <p className="eyebrow text-[#65a30d]">ფასმეტრი</p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight text-[#0f172a] sm:text-4xl">ჩვენ შესახებ</h1>
-        <p className="mt-3 text-base leading-7 text-[#475569]">
+      <div className="max-w-3xl border-b border-gray-100 pb-6">
+        <p className="eyebrow">ფასმეტრი</p>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">ჩვენ შესახებ</h1>
+        <p className="mt-3 text-base leading-7 text-gray-600">
           ფასმეტრი გეხმარება ქართულ ონლაინ მაღაზიებში ფასების, აქციებისა და შეთავაზებების შედარებაში.
           მიზანი — პროდუქტის ძებნა უფრო სწრაფი, მარტივი და გამჭვირვალე.
         </p>
@@ -43,12 +43,12 @@ function InfoBlock({
   body: string;
 }) {
   return (
-    <article className="surface-flat p-5">
-      <span className="grid size-9 place-items-center rounded-md bg-[#0f172a] text-[#84cc16]">
+    <article className="rounded-lg border border-gray-200 bg-white p-5">
+      <span className="grid size-9 place-items-center rounded-md border border-gray-200 bg-gray-50 text-gray-500">
         <Icon className="size-4" />
       </span>
-      <h2 className="mt-3 text-base font-black text-[#0f172a]">{title}</h2>
-      <p className="mt-1.5 text-sm leading-6 text-[#64748b]">{body}</p>
+      <h2 className="mt-3 text-base font-semibold text-gray-900">{title}</h2>
+      <p className="mt-1.5 text-sm leading-6 text-gray-500">{body}</p>
     </article>
   );
 }

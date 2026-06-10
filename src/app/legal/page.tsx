@@ -10,19 +10,19 @@ export default function LegalPage() {
   return (
     <section className="shell py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
-        <p className="eyebrow text-[#65a30d]">სამართლებრივი</p>
-        <h1 className="mt-1 text-3xl font-black tracking-tight text-[#0f172a] sm:text-4xl">დისკლეიმერი</h1>
+        <p className="eyebrow">სამართლებრივი</p>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">დისკლეიმერი</h1>
 
-        <div className="mt-6 grid gap-5 text-sm leading-7 text-[#475569]">
+        <div className="mt-6 grid gap-5 text-sm leading-7 text-gray-600">
           <p>
-            ფასმეტრი არის <strong className="text-[#0f172a]">დამოუკიდებელი</strong> ფასების შედარების
+            ფასმეტრი არის <strong className="text-gray-900">დამოუკიდებელი</strong> ფასების შედარების
             პლატფორმა. ფასმეტრი არ არის Zoommer-ის, EE.ge / Elite Electronics-ის, PCShop-ის ან სხვა
             ჩამოთვლილი მაღაზიის ოფიციალური პარტნიორი, წარმომადგენელი, რესელერი ან აფილირებული პირი,
             თუ ეს პირდაპირ არ არის მითითებული.
           </p>
           <p>
             ფასები, ფასდაკლებები და მარაგი იცვლება და შესაძლოა არ ემთხვეოდეს მაღაზიის ვებსაიტზე
-            მითითებულ ინფორმაციას იმ მომენტში, როდესაც შენ ნახულობ. <strong className="text-[#0f172a]">საბოლოო
+            მითითებულ ინფორმაციას იმ მომენტში, როდესაც შენ ნახულობ. <strong className="text-gray-900">საბოლოო
             ფასი და ხელმისაწვდომობა ყოველთვის გადაამოწმე მაღაზიის ოფიციალურ გვერდზე</strong> შეძენამდე.
           </p>
           <p>
@@ -33,9 +33,9 @@ export default function LegalPage() {
           <p>
             მაღაზიების სახელები გამოყენებულია მხოლოდ წყაროს იდენტიფიკაციისთვის. ისინი ეკუთვნით შესაბამის
             მფლობელებს. თუ ხარ მაღაზიის წარმომადგენელი და გსურს მონაცემების შესწორება ან ამოღება,
-            დაგვიკავშირდი <a className="font-bold text-[#65a30d] hover:underline" href="/contact">კონტაქტის გვერდზე</a>.
+            დაგვიკავშირდი <a className="font-semibold text-blue-600 hover:underline" href="/contact">კონტაქტის გვერდზე</a>.
           </p>
-          <p className="text-xs text-[#64748b]">ბოლო განახლება: 2026 წელი.</p>
+          <p className="text-xs text-gray-500">ბოლო განახლება: 2026 წელი.</p>
         </div>
       </div>
     </section>

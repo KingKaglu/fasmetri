@@ -22,11 +22,11 @@ export default async function ShopsPage() {
 
   return (
     <section className="shell py-7 sm:py-10">
-      <div className="mb-6 border-b border-[#e2e8f0] pb-4">
-        <p className="eyebrow inline-flex items-center gap-1.5 text-[#65a30d]"><Store className="size-3.5" /> ქართული მაღაზიები</p>
-        <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0f172a] sm:text-3xl">მაღაზიები</h1>
-        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[#64748b]">აქტიური მაღაზიები პირველ რიგში ჩანს, ხოლო ახალი მაღაზიები ფასმეტრში ეტაპობრივად ემატება.</p>
-        <p className="mt-1.5 max-w-2xl text-xs font-bold leading-5 text-[#64748b]">
+      <div className="mb-6 border-b border-gray-100 pb-4">
+        <p className="eyebrow inline-flex items-center gap-1.5"><Store className="size-3.5" /> ქართული მაღაზიები</p>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">მაღაზიები</h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500">აქტიური მაღაზიები პირველ რიგში ჩანს, ხოლო ახალი მაღაზიები ფასმეტრში ეტაპობრივად ემატება.</p>
+        <p className="mt-1.5 max-w-2xl text-xs leading-5 text-gray-400">
           ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
         </p>
       </div>
