@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, BarChart2, TrendingDown } from "lucide-react";
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
+import { extractProductAttributes } from "@/lib/productNormalization";
 import { ShopClickLink } from "@/components/shop-click-link";
 import {
   AvailabilityBadge,
@@ -29,6 +30,7 @@ export function ProductCard({
   const image = offer.imageUrl ?? product.imageUrl;
   const shopCount = new Set(product.offers.map((o) => o.shop.id)).size;
   const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
+  const specChips = normalizedSpecChips(product);
 
   return (
     <article
@@ -71,6 +73,17 @@ export function ProductCard({
           {product.name}
         </Link>
 
+        {/* Normalized specs */}
+        {specChips.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1">
+            {specChips.map((chip) => (
+              <span key={chip} className="rounded border border-gray-100 bg-gray-50 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+                {chip}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Price */}
         <div className="mb-2">
           <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={deal && discount > 0} />
@@ -84,15 +97,12 @@ export function ProductCard({
           </span>
         )}
 
-        {/* Shop comparison info */}
-        <div className="mb-3 mt-auto border-t border-gray-100 pt-2">
-          {shopCount > 1 ? (
-            <span className="text-[10px] font-medium text-gray-400">
-              {shopCount} მაღაზია ადარებს
-            </span>
-          ) : (
-            <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
-          )}
+        {/* Shop comparison info: store count + freshness, always visible */}
+        <div className="mb-3 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
+          <span className={`text-[10px] font-medium ${shopCount > 1 ? "text-blue-600" : "text-gray-400"}`}>
+            {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
+          </span>
+          <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
         </div>
 
         {/* Actions */}
@@ -123,4 +133,17 @@ export function ProductCard({
       </div>
     </article>
   );
+}
+
+// Up to three normalized spec chips (RAM, storage, screen/color) so visually
+// similar listings are distinguishable at a glance in grids and search results.
+function normalizedSpecChips(product: ProductView) {
+  const attributes = extractProductAttributes({ title: product.name, categorySlug: product.category?.slug });
+  return [
+    attributes.ram[0] ? `RAM ${attributes.ram[0]}` : null,
+    attributes.storage[0] ?? null,
+    attributes.screenSize ?? attributes.color ?? null,
+  ]
+    .filter((chip): chip is string => Boolean(chip))
+    .slice(0, 3);
 }
