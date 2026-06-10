@@ -564,7 +564,7 @@ function canonicalTitle(identity: SafeProductIdentity, fallback: string) {
 }
 
 function autoThreshold(identity: SafeProductIdentity) {
-  return identity.kind === "phone" ? 95 : 96;
+  return identity.kind === "phone" ? 70 : 70;
 }
 
 function discountPercent(price: number, oldPrice?: number) {
