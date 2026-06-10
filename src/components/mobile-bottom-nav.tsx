@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/", label: "მთავარი", icon: Home },
-  { href: "/categories", label: "კატეგ.", icon: Grid3X3 },
+  { href: "/categories", label: "კატეგორიები", icon: Grid3X3 },
   { href: "/deals", label: "აქციები", icon: BadgePercent },
-  { href: "/shops", label: "მაღაზია", icon: Store },
+  { href: "/shops", label: "მაღაზიები", icon: Store },
 ];
 
 export function MobileBottomNav() {

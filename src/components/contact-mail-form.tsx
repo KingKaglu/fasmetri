@@ -1,44 +1,63 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { MessageSquareText } from "lucide-react";
+import { CheckCircle2, MessageSquareText } from "lucide-react";
 
-const reasons = ["მაღაზიის დამატება", "ფასის შესწორება", "თანამშრომლობა", "სხვა"];
+const reasons = [
+  "არასწორი ფასი",
+  "პროდუქტის არასწორი დამთხვევა",
+  "მაღაზია აკლია",
+  "ბიზნეს თანამშრომლობა",
+  "ტექნიკური ხარვეზი",
+  "სხვა",
+] as const;
+
+type FieldErrors = Partial<Record<"name" | "email" | "message" | "productUrl" | "storeUrl", string>>;
 
 export function ContactMailForm() {
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [submitted, setSubmitted] = useState(false);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const name = clean(form.get("name"), 80);
     const email = clean(form.get("email"), 254);
-    const reason = reasons.includes(String(form.get("reason"))) ? String(form.get("reason")) : "სხვა";
+    const reason = reasons.includes(String(form.get("reason")) as (typeof reasons)[number]) ? String(form.get("reason")) : "სხვა";
+    const productUrl = clean(form.get("productUrl"), 500);
+    const storeUrl = clean(form.get("storeUrl"), 500);
     const message = clean(form.get("message"), 1200);
 
-    if (!name || !email || !message) {
-      setError("შეავსე სახელი, ელფოსტა და შეტყობინება.");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("შეიყვანე სწორი ელფოსტა.");
-      return;
-    }
+    const nextErrors: FieldErrors = {};
+    if (!name) nextErrors.name = "შეიყვანე სახელი.";
+    if (!email) nextErrors.email = "შეიყვანე ელფოსტა.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "ელფოსტის ფორმატი არასწორია.";
+    if (!message || message.length < 10) nextErrors.message = "დაწერე შეტყობინება (მინიმუმ 10 სიმბოლო).";
+    if (productUrl && !isValidHttpUrl(productUrl)) nextErrors.productUrl = "ბმული უნდა იწყებოდეს http(s)-ით.";
+    if (storeUrl && !isValidHttpUrl(storeUrl)) nextErrors.storeUrl = "ბმული უნდა იწყებოდეს http(s)-ით.";
 
-    setError("");
+    setErrors(nextErrors);
+    setSubmitted(false);
+    if (Object.keys(nextErrors).length) return;
+
     const subject = `Fasmetri contact: ${reason}`;
     const body = [
       `სახელი: ${name}`,
       `ელფოსტა: ${email}`,
       `მიზეზი: ${reason}`,
+      productUrl ? `პროდუქტის ბმული: ${productUrl}` : null,
+      storeUrl ? `მაღაზიის ბმული: ${storeUrl}` : null,
       "",
       message,
-    ].join("\n");
+    ]
+      .filter((line): line is string => line !== null)
+      .join("\n");
     window.location.href = `mailto:hello@fasmetri.ge?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setSubmitted(true);
   }
 
   return (
-    <form onSubmit={submit} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+    <form onSubmit={submit} noValidate className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
         <span className="grid size-9 place-items-center rounded-md border border-gray-200 bg-gray-50 text-gray-500">
           <MessageSquareText className="size-4" />
@@ -50,11 +69,11 @@ export function ContactMailForm() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="სახელი">
-          <input name="name" required maxLength={80} className="contact-control" placeholder="შენი სახელი" />
+        <Field label="სახელი" error={errors.name}>
+          <input name="name" required maxLength={80} className="contact-control" placeholder="შენი სახელი" aria-invalid={Boolean(errors.name)} />
         </Field>
-        <Field label="ელფოსტა">
-          <input name="email" required type="email" maxLength={254} autoComplete="email" className="contact-control" placeholder="name@email.ge" />
+        <Field label="ელფოსტა" error={errors.email}>
+          <input name="email" required type="email" maxLength={254} autoComplete="email" className="contact-control" placeholder="name@email.ge" aria-invalid={Boolean(errors.email)} />
         </Field>
       </div>
       <Field label="მიზეზი">
@@ -64,24 +83,50 @@ export function ContactMailForm() {
           ))}
         </select>
       </Field>
-      <Field label="შეტყობინება">
-        <textarea name="message" required maxLength={1200} className="contact-control min-h-32 resize-y py-2" placeholder="დაწერე დეტალები..." />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="პროდუქტის ბმული (არასავალდებულო)" error={errors.productUrl}>
+          <input name="productUrl" type="url" maxLength={500} className="contact-control" placeholder="https://fasmetri.vercel.app/products/..." aria-invalid={Boolean(errors.productUrl)} />
+        </Field>
+        <Field label="მაღაზიის ბმული (არასავალდებულო)" error={errors.storeUrl}>
+          <input name="storeUrl" type="url" maxLength={500} className="contact-control" placeholder="https://..." aria-invalid={Boolean(errors.storeUrl)} />
+        </Field>
+      </div>
+      <Field label="შეტყობინება" error={errors.message}>
+        <textarea name="message" required minLength={10} maxLength={1200} className="contact-control min-h-32 resize-y py-2" placeholder="დაწერე დეტალები..." aria-invalid={Boolean(errors.message)} />
       </Field>
       <button className="mt-1 h-10 w-full rounded-md bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-black sm:w-auto">
         ელფოსტაში გახსნა
       </button>
-      {error ? <p className="mt-3 text-xs font-medium text-red-600">{error}</p> : null}
+      {submitted ? (
+        <p className="mt-3 flex items-start gap-1.5 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium leading-5 text-green-700">
+          <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
+          წერილი მომზადდა შენს ელფოსტის აპში — გადახედე და გააგზავნე. თუ აპი არ გაიხსნა, მოგვწერე პირდაპირ: hello@fasmetri.ge
+        </p>
+      ) : null}
+      {!submitted && Object.keys(errors).length > 0 ? (
+        <p className="mt-3 text-xs font-medium text-red-600">შეასწორე მონიშნული ველები და სცადე თავიდან.</p>
+      ) : null}
     </form>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <label className="mb-3 block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
       {label}
       <span className="mt-1 block text-sm font-medium text-gray-900 normal-case tracking-normal">{children}</span>
+      {error ? <span className="mt-1 block text-[11px] font-medium normal-case tracking-normal text-red-600">{error}</span> : null}
     </label>
   );
+}
+
+function isValidHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function clean(value: FormDataEntryValue | null, maxLength: number) {
