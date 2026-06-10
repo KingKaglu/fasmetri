@@ -5,41 +5,44 @@ import { LastUpdatedText, ShopMark, ShopStatusBadge } from "@/components/public-
 
 export function ShopCard({ shop }: { shop: ShopView }) {
   return (
-    <article className="grid min-h-56 min-w-0 gap-3 rounded-2xl border border-white/70 bg-white/88 p-4 shadow-[0_10px_26px_rgba(18,19,15,0.07)] ring-1 ring-black/[0.03] transition hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(18,19,15,0.13)]">
-      <div className="flex min-w-0 items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
+    <article className="flex min-h-0 flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md">
+      {/* Shop identity */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <ShopMark shop={shop} />
           <div className="min-w-0">
-            <h2 className="truncate text-base font-black text-[var(--brand)]">{shop.name}</h2>
-            <p className="truncate text-xs font-bold text-[var(--muted)]">{shop.baseUrl.replace(/^https?:\/\//, "")}</p>
+            <h2 className="truncate text-sm font-semibold text-gray-900">{shop.name}</h2>
+            <p className="truncate text-xs text-gray-400">{shop.baseUrl.replace(/^https?:\/\//, "")}</p>
           </div>
         </div>
         <ShopStatusBadge shop={shop} />
       </div>
 
-      <div className="grid gap-2 text-xs font-black sm:grid-cols-2">
-        <span className="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-[var(--brand)]">
-          <PackageSearch className="size-3.5 text-[var(--muted)]" />
-          {(shop.productCount ?? 0).toLocaleString()} ამ მაღაზიაში ნაპოვნი პროდუქტი
-        </span>
-        <span className="inline-flex items-center gap-2 rounded-xl border border-[#ffdca6] bg-[var(--warn-soft)] px-3 py-2 text-[var(--warn)]">
-          <BadgePercent className="size-3.5" />
-          {(shop.dealCount ?? 0).toLocaleString()} აქტიური აქცია
-        </span>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex items-center gap-1.5 rounded-md border border-gray-100 bg-gray-50 px-2.5 py-2 text-xs font-medium text-gray-600">
+          <PackageSearch className="size-3.5 shrink-0 text-gray-400" />
+          <span className="truncate">{(shop.productCount ?? 0).toLocaleString()} პროდუქტი</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-md border border-amber-100 bg-amber-50 px-2.5 py-2 text-xs font-medium text-amber-700">
+          <BadgePercent className="size-3.5 shrink-0" />
+          <span className="truncate">{(shop.dealCount ?? 0).toLocaleString()} აქცია</span>
+        </div>
       </div>
 
-      <div className="mt-auto border-t border-[var(--line)] pt-3">
+      {/* Footer */}
+      <div className="mt-auto border-t border-gray-100 pt-3">
         {shop.lastScrapedAt ? (
-          <LastUpdatedText value={shop.lastScrapedAt} className="text-xs font-bold" />
+          <LastUpdatedText value={shop.lastScrapedAt} className="mb-2.5 text-xs text-gray-400" />
         ) : (
-          <p className="text-xs font-bold text-[var(--muted)]">მონაცემები მოწმდება</p>
+          <p className="mb-2.5 text-xs text-gray-400">მონაცემები მოწმდება</p>
         )}
         <Link
           href={`/shops/${shop.slug}`}
-          className="mt-3 inline-flex h-10 w-full min-w-0 items-center justify-center gap-1.5 rounded-xl bg-[var(--brand)] px-4 text-sm font-black text-white hover:bg-black"
+          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-gray-900 px-4 text-xs font-semibold text-white hover:bg-black"
         >
           შეთავაზებების ნახვა
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-3.5" />
         </Link>
       </div>
     </article>
