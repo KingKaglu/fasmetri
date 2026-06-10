@@ -119,8 +119,8 @@ function productView(product: ProductRecord | ProductSummaryRecord): ProductView
     missingOfferDiscoveryStatus: product.missingOfferDiscoveryStatus,
     updatedAt: product.updatedAt.toISOString(),
     offerCount: "_count" in product ? product._count.offers : product.offers.length,
-    offers: product.offers
-      .map((offer): OfferView => ({
+    offers: (() => {
+      const mapped = product.offers.map((offer): OfferView => ({
         id: offer.id,
         shop: shopView(offer.shop),
         url: offer.url,
@@ -141,8 +141,15 @@ function productView(product: ProductRecord | ProductSummaryRecord): ProductView
           capturedAt: history.capturedAt.toISOString(),
           price: numberValue(history.price) ?? 0,
         })),
-      }))
-      .sort((left: OfferView, right: OfferView) => left.currentPrice - right.currentPrice),
+      })).sort((left: OfferView, right: OfferView) => left.currentPrice - right.currentPrice);
+      // Keep only the cheapest offer per shop (color variants share the same product record)
+      const seenShops = new Set<string>();
+      return mapped.filter((offer) => {
+        if (seenShops.has(offer.shop.id)) return false;
+        seenShops.add(offer.shop.id);
+        return true;
+      });
+    })(),
   };
 }
 
