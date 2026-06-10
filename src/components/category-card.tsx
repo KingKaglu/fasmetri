@@ -31,39 +31,53 @@ const descriptions: Record<string, string> = {
   monitors: "სამუშაო და gaming მონიტორები.",
 };
 
+const accentColors: Record<string, string> = {
+  mobiles: "bg-blue-50 text-blue-600",
+  laptops: "bg-violet-50 text-violet-600",
+  tablets: "bg-sky-50 text-sky-600",
+  audio: "bg-purple-50 text-purple-600",
+  wearables: "bg-rose-50 text-rose-600",
+  gaming: "bg-orange-50 text-orange-600",
+  televisions: "bg-teal-50 text-teal-600",
+  monitors: "bg-indigo-50 text-indigo-600",
+};
+
 export function CategoryCard({ category, comingSoon = false }: { category: CategoryView; comingSoon?: boolean }) {
+  const colorClass = accentColors[category.slug] ?? "bg-gray-100 text-gray-600";
+
   return (
     <Link
       href={`/categories/${category.slug}`}
-      className="group relative flex min-h-44 flex-col gap-3 overflow-hidden rounded-2xl border border-white/70 bg-white/88 p-4 shadow-[0_10px_26px_rgba(18,19,15,0.07)] ring-1 ring-black/[0.03] transition hover:-translate-y-1 hover:shadow-[0_22px_52px_rgba(18,19,15,0.13)]"
+      className="group flex min-h-36 flex-col gap-3 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
     >
-      <span className="absolute -right-8 -top-10 size-28 rounded-full bg-[var(--accent-soft)] transition group-hover:scale-125" />
-      <div className="relative flex items-start justify-between gap-3">
-        <span className="grid size-12 place-items-center rounded-2xl bg-[var(--brand)] text-[var(--accent)] shadow-[0_12px_26px_rgba(18,19,15,0.16)] group-hover:bg-[var(--accent)] group-hover:text-[var(--accent-ink)]">
+      <div className="flex items-start justify-between gap-3">
+        <span className={`grid size-10 place-items-center rounded-lg ${colorClass}`}>
           {categoryIcon(category.slug)}
         </span>
         <span
-          className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-black ${
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
             comingSoon
-              ? "border-[#ffdca6] bg-[var(--warn-soft)] text-[var(--warn)]"
-              : "border-[var(--line)] bg-white text-[var(--brand)]"
+              ? "bg-amber-50 text-amber-600"
+              : "bg-gray-100 text-gray-500"
           }`}
         >
-          {comingSoon ? "მალე" : `სულ ${(category.productCount ?? 0).toLocaleString()} უნიკალური პროდუქტი`}
+          {comingSoon ? "მალე" : `${(category.productCount ?? 0).toLocaleString()} პროდუქტი`}
         </span>
       </div>
-      <div className="relative flex-1">
-        <h2 className="text-lg font-black text-[var(--brand)] group-hover:text-[var(--accent-strong)]">
+
+      <div className="flex-1">
+        <h2 className="font-semibold text-gray-900 group-hover:text-[var(--accent)]">
           {category.nameKa}
         </h2>
-        <p className="mt-1 line-clamp-2 text-sm leading-5 text-[var(--muted)]">
+        <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-gray-500">
           {descriptions[category.slug] ?? "შეთავაზებები ამ კატეგორიაში რეგულარულად ახლდება."}
         </p>
       </div>
-      <div className="relative flex items-center justify-between gap-2 border-t border-[var(--line)] pt-3 text-xs font-black">
-        <span className="text-[var(--muted)]">სულ {(category.dealCount ?? 0).toLocaleString()} აქტიური აქცია</span>
-        <span className="inline-flex items-center gap-1 text-[var(--brand)] group-hover:text-[var(--accent-strong)]">
-          გახსნა <ArrowRight className="size-3.5" />
+
+      <div className="flex items-center justify-between gap-2 border-t border-gray-100 pt-2 text-xs">
+        <span className="text-gray-400">{(category.dealCount ?? 0).toLocaleString()} აქტიური აქცია</span>
+        <span className="inline-flex items-center gap-1 font-semibold text-[var(--accent)]">
+          გახსნა <ArrowRight className="size-3" />
         </span>
       </div>
     </Link>
