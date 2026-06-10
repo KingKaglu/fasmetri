@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BadgePercent, Flame } from "lucide-react";
-import { listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
+import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
@@ -41,13 +41,15 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
     largeDiscountOnly: firstParam(params.largeDiscountOnly) === "true",
     page,
   };
-  const [rankedDeals, categories, shops] = await Promise.all([
+  const [rankedDeals, categories, shops, stats] = await Promise.all([
     listPublicProducts({ ...filters, dealsOnly: true, pageSize: PUBLIC_DEALS_RANKED_BATCH_SIZE }),
     listPublicCategories(),
     listPublicShops(),
+    getCatalogStats(),
   ]);
   if (page > 1 && rankedDeals.length === 0) notFound();
   const products = filterCuratedProducts(rankedDeals, filters).slice(0, PUBLIC_LIST_PAGE_SIZE);
+  const totalDeals = stats.deals;
 
   return (
     <>
@@ -65,9 +67,11 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
           <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 px-4 py-3">
             <BadgePercent className="size-5 text-blue-300" />
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/60">ამ გვერდზე ნაჩვენებია</p>
-              <p className="text-2xl font-bold leading-none text-white">{products.length.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-white/60">აქტიური აქცია</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/60">აქტიური აქცია</p>
+              <p className="text-2xl font-bold leading-none text-white">{totalDeals.toLocaleString()}</p>
+              <p className="mt-1 text-xs text-white/60">
+                ამ გვერდზე ნაჩვენებია {products.length.toLocaleString()} / {totalDeals.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>

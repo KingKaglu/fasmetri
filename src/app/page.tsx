@@ -66,9 +66,9 @@ export default async function Home() {
     getCatalogStats(),
     listPublicCategories(),
   ]);
-  const activeShops = shops
-    .filter((shop) => (shop.productCount ?? 0) > 0)
-    .sort((a, b) => (b.productCount ?? 0) - (a.productCount ?? 0));
+  // listPublicShops already returns only publicly active shops (same list as
+  // /shops and the filter dropdowns), sorted by product count.
+  const activeShops = shops;
   const discounts = selectHomeDeals(categoryDeals);
   const promotedKeys = new Set(discounts.flatMap(homepageDedupKeys));
   const trending = selectFrequentlyCompared(categoryPopular, promotedKeys);

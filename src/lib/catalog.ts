@@ -25,6 +25,7 @@ export type ProductFilters = {
   availability?: string;
   sort?: string;
   dealsOnly?: boolean;
+  inStockOnly?: boolean;
   publicSafe?: boolean;
   needsCategoryReview?: boolean;
   candidateLimit?: number;
@@ -187,13 +188,24 @@ function fixtureFilter(filters: ProductFilters) {
   if (filters.minDiscount != null) products = products.filter((product) => product.offers.some((offer) => offer.discountPercent >= filters.minDiscount!));
   if (filters.availability) products = products.filter((product) => product.offers.some((offer) => offer.availability === filters.availability));
   if (filters.dealsOnly) products = products.filter((product) => product.offers.some((offer) => offer.discountPercent > 0));
+  if (filters.inStockOnly) products = products.filter(productHasStock);
 
   if (filters.publicSafe) products = publicProducts(products);
   const visibleProducts = filters.q ? rankSearchResults(products, filters.q, filters.sort) : sortProducts(products, filters.sort);
   return filters.paginate === false ? visibleProducts : slicePage(visibleProducts, filters.page, filters.pageSize);
 }
 
-function sortProducts(products: ProductView[], sort = "lowest") {
+function productHasStock(product: Pick<ProductView, "offers">) {
+  return product.offers.some((offer) => offer.availability === "IN_STOCK");
+}
+
+function productHasRealDeal(product: Pick<ProductView, "offers">) {
+  return product.offers.some(
+    (offer) => offer.discountPercent > 0 && offer.oldPrice != null && offer.oldPrice > offer.currentPrice,
+  );
+}
+
+function sortProducts(products: ProductView[], sort = "recommended") {
   const minPrice = (product: ProductView) => Math.min(...product.offers.map((offer) => offer.currentPrice));
   const maxDiscount = (product: ProductView) => Math.max(...product.offers.map((offer) => offer.discountPercent));
 
@@ -204,7 +216,16 @@ function sortProducts(products: ProductView[], sort = "lowest") {
     if (sort === "highest") return minPrice(right) - minPrice(left);
     if (sort === "newest" || sort === "updated") return right.updatedAt.localeCompare(left.updatedAt);
     if (sort === "popular") return right.popularityScore - left.popularityScore;
-    return minPrice(left) - minPrice(right);
+    if (sort === "lowest") return minPrice(left) - minPrice(right);
+    // Default "recommended" order: in-stock first, then real deals, then the
+    // best (lowest) price, then most recently updated — out-of-stock items
+    // always sink to the bottom instead of dominating listings.
+    return (
+      Number(productHasStock(right)) - Number(productHasStock(left)) ||
+      Number(productHasRealDeal(right)) - Number(productHasRealDeal(left)) ||
+      minPrice(left) - minPrice(right) ||
+      right.updatedAt.localeCompare(left.updatedAt)
+    );
   });
 }
 
@@ -302,11 +323,18 @@ export async function listProducts(filters: ProductFilters = {}) {
 
     const views = products.map(productView);
     const safeProducts = filters.publicSafe ? publicProducts(views) : views;
-    const visibleProducts = filters.q ? rankSearchResults(safeProducts, filters.q, filters.sort) : sortProducts(safeProducts, filters.sort);
+    // "Deals" everywhere means a real discount (old price above current), the
+    // same definition the summary stats and the discount badges use.
+    const dealFiltered = filters.publicSafe && filters.dealsOnly ? safeProducts.filter(productHasRealDeal) : safeProducts;
+    const stockFiltered = filters.inStockOnly ? dealFiltered.filter(productHasStock) : dealFiltered;
+    const visibleProducts = filters.q ? rankSearchResults(stockFiltered, filters.q, filters.sort) : sortProducts(stockFiltered, filters.sort);
     const pageResult = filters.publicSafe && shouldPaginate ? slicePage(visibleProducts, currentPage, size) : visibleProducts;
     return filters.publicSafe ? pageResult.map(slimPublicView) : pageResult;
   } catch {
-    return fixtureFilter(filters);
+    // With a real database configured, never fall back to demo fixtures — a
+    // transient DB error on one page would otherwise show fake shops/counts
+    // while another page shows live data. Fixtures are dev-only (no DB).
+    return prisma ? [] : fixtureFilter(filters);
   }
 }
 
@@ -419,6 +447,7 @@ export async function getProduct(identifier: string) {
     });
     return product ? productView(product) : null;
   } catch {
+    if (prisma) return null;
     return productFixtures.find((product) => identifiers.includes(product.id) || identifiers.includes(product.slug)) ?? null;
   }
 }
@@ -441,6 +470,7 @@ function publicListingKey(filters: ProductFilters): string {
     filters.availability ?? "",
     filters.sort ?? "",
     filters.dealsOnly ? 1 : 0,
+    filters.inStockOnly ? 1 : 0,
     filters.page ?? 1,
     filters.pageSize ?? "",
     filters.paginate === false ? 0 : 1,
@@ -451,7 +481,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v9", publicListingKey(filters)],
+    ["public-products-v10", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -462,7 +492,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v7", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v8", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -486,7 +516,7 @@ function productIdentifiers(identifier: string) {
 // Cross-request cache: category list + per-category counts change only when the
 // catalog is re-scraped. Uncached, loadCategories runs an unbounded
 // "all discounted products" scan on every category/deals render.
-const cachedCategories = unstable_cache(loadCategories, ["categories-v6"], {
+const cachedCategories = unstable_cache(loadCategories, ["categories-v7"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -521,31 +551,38 @@ async function loadCategories(): Promise<CategoryView[]> {
       dealCount: dealsByCategory.get(category.id) ?? 0,
     }));
   } catch {
-    return categoryFixtures;
+    return prisma ? [] : categoryFixtures;
   }
 }
 
-export async function listPublicCategories() {
-  const [categories, summary] = await Promise.all([listCategories(), getPublicCatalogSummary()]);
+// Public categories come straight from the static taxonomy + the shared
+// catalog summary, so the homepage cards, /categories, category detail
+// headers, and filter dropdowns all show the same counts from one source.
+export async function listPublicCategories(): Promise<CategoryView[]> {
+  const summary = await getPublicCatalogSummary();
 
-  return categories
-    .filter((category) => isPublicCategorySlug(category.slug) && !isExcludedPublicCategory(category))
-    .map((category) => {
-      const counts = summary.categories[category.id] ?? summary.categories[category.slug];
-      return {
-        ...category,
-        productCount: counts?.products ?? 0,
-        dealCount: counts?.deals ?? 0,
-      };
-    })
-    .filter((category) => (category.productCount ?? 0) > 0);
+  return PUBLIC_CATEGORY_SLUGS.map((slug) => {
+    const taxonomyCategory = PUBLIC_CATEGORY_TAXONOMY[slug as keyof typeof PUBLIC_CATEGORY_TAXONOMY];
+    const counts = summary.categories[slug];
+    return {
+      id: slug,
+      slug,
+      nameKa: taxonomyCategory?.nameKa ?? slug,
+      nameEn: taxonomyCategory?.nameEn ?? slug,
+      productCount: counts?.products ?? 0,
+      dealCount: counts?.deals ?? 0,
+      inStockCount: counts?.inStock ?? 0,
+    };
+  })
+    .filter((category) => !isExcludedPublicCategory(category) && (category.productCount ?? 0) > 0)
+    .sort((left, right) => (right.productCount ?? 0) - (left.productCount ?? 0));
 }
 
 // Cross-request cache: listShops runs two groupBy scans over ALL offers, and
 // for public pages those counts are discarded and replaced by the cached
 // summary anyway. Caching keeps that scan off the per-request path of every
 // category/product/deals render.
-const cachedShops = unstable_cache(loadShops, ["shops-v3"], {
+const cachedShops = unstable_cache(loadShops, ["shops-v4"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -573,28 +610,55 @@ async function loadShops(): Promise<ShopView[]> {
       }),
     );
   } catch {
-    return shopFixtures;
+    return prisma ? [] : shopFixtures;
   }
 }
 
+// The single public definition of an "active shop": it has at least one
+// publicly visible product in the shared catalog summary. Every public surface
+// (homepage, /shops, shop pages, filters) uses this list, so a store can never
+// look active on one page and missing on another.
 export async function listPublicShops(): Promise<ShopView[]> {
   const [shops, summary] = await Promise.all([listShops(), getPublicCatalogSummary()]);
 
-  return shops.map((shop) => ({
-    ...shop,
-    productCount: summary.shops[shop.id]?.products ?? 0,
-    dealCount: summary.shops[shop.id]?.deals ?? 0,
-  }));
+  return shops
+    .map((shop) => {
+      const counts = summary.shops[shop.id];
+      return {
+        ...shop,
+        productCount: counts?.products ?? 0,
+        dealCount: counts?.deals ?? 0,
+        lastScrapedAt: latestIsoDate(shop.lastScrapedAt, counts?.latestUpdate),
+      };
+    })
+    .filter((shop) => shop.enabled && (shop.productCount ?? 0) > 0)
+    .sort((left, right) => (right.productCount ?? 0) - (left.productCount ?? 0));
+}
+
+function latestIsoDate(...values: Array<string | null | undefined>) {
+  const dates = values.filter((value): value is string => Boolean(value));
+  if (!dates.length) return null;
+  return dates.sort((left, right) => right.localeCompare(left))[0];
 }
 
 export async function getCatalogStats() {
   return (await getPublicCatalogSummary()).stats;
 }
 
+export type PublicCatalogStats = Awaited<ReturnType<typeof getCatalogStats>>;
+
 type PublicCatalogSummary = {
-  categories: Record<string, { products: number; deals: number }>;
-  shops: Record<string, { products: number; deals: number }>;
-  stats: { shops: number; products: number; deals: number; latestUpdate: string | null };
+  categories: Record<string, { products: number; deals: number; inStock: number }>;
+  shops: Record<string, { products: number; deals: number; latestUpdate: string | null }>;
+  stats: {
+    shops: number;
+    products: number;
+    deals: number;
+    inStock: number;
+    outOfStock: number;
+    totalOffers: number;
+    latestUpdate: string | null;
+  };
 };
 
 async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
@@ -629,7 +693,9 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 
       publicCatalog = publicProducts(products.map(productView));
     } catch {
-      publicCatalog = publicProducts(productFixtures);
+      // Never substitute demo fixtures when a real DB exists — an empty (but
+      // honest) summary beats fake counts that disagree with other pages.
+      publicCatalog = prisma ? [] : publicProducts(productFixtures);
     }
   }
 
@@ -637,37 +703,56 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
   const shops: PublicCatalogSummary["shops"] = {};
   const shopIds = new Set<string>();
   let deals = 0;
+  let inStock = 0;
+  let totalOffers = 0;
   let latestUpdate: string | null = null;
 
   for (const product of publicCatalog) {
-    const hasDeal = product.offers.some((offer) => offer.discountPercent > 0);
+    // "Active deal" everywhere means a real discount: old price above current.
+    const hasDeal = productHasRealDeal(product);
+    const hasStock = productHasStock(product);
     const categoryKeys = [...new Set([product.category?.id, product.category?.slug].filter(Boolean) as string[])];
     for (const categoryKey of categoryKeys) {
-      categories[categoryKey] ??= { products: 0, deals: 0 };
+      categories[categoryKey] ??= { products: 0, deals: 0, inStock: 0 };
       categories[categoryKey].products += 1;
       if (hasDeal) categories[categoryKey].deals += 1;
+      if (hasStock) categories[categoryKey].inStock += 1;
     }
     if (hasDeal) deals += 1;
+    if (hasStock) inStock += 1;
+    totalOffers += product.offers.length;
 
     const productShops = new Set<string>();
     const dealShops = new Set<string>();
     for (const offer of product.offers) {
       productShops.add(offer.shop.id);
       shopIds.add(offer.shop.id);
-      if (offer.discountPercent > 0) dealShops.add(offer.shop.id);
+      if (offer.discountPercent > 0 && offer.oldPrice != null && offer.oldPrice > offer.currentPrice) dealShops.add(offer.shop.id);
       if (!latestUpdate || offer.lastSeenAt > latestUpdate) latestUpdate = offer.lastSeenAt;
     }
     for (const shopId of productShops) {
-      shops[shopId] ??= { products: 0, deals: 0 };
+      shops[shopId] ??= { products: 0, deals: 0, latestUpdate: null };
       shops[shopId].products += 1;
     }
     for (const shopId of dealShops) shops[shopId].deals += 1;
+    for (const offer of product.offers) {
+      const entry = shops[offer.shop.id];
+      if (entry && (!entry.latestUpdate || offer.lastSeenAt > entry.latestUpdate)) entry.latestUpdate = offer.lastSeenAt;
+    }
   }
 
   return {
     categories,
     shops,
-    stats: { shops: shopIds.size, products: publicCatalog.length, deals, latestUpdate },
+    stats: {
+      shops: shopIds.size,
+      products: publicCatalog.length,
+      deals,
+      inStock,
+      outOfStock: publicCatalog.length - inStock,
+      totalOffers,
+      latestUpdate,
+    },
   };
 }
 
@@ -677,13 +762,13 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 // out into a single scan per revalidation window.
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
-  ["public-catalog-summary-v6"],
+  ["public-catalog-summary-v7"],
   { revalidate: 600, tags: ["catalog"] },
 );
 
 let pendingPublicCatalogSummary: Promise<PublicCatalogSummary> | null = null;
 
-async function getPublicCatalogSummary() {
+export async function getPublicCatalogSummary() {
   // In-flight de-dupe so concurrent sections of one render share one promise,
   // on top of the cross-request unstable_cache layer.
   if (pendingPublicCatalogSummary) return pendingPublicCatalogSummary;
