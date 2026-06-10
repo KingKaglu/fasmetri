@@ -14,6 +14,15 @@ type Suggestion = {
   shopCount: number;
 };
 
+type BrandSuggestion = { name: string; productCount: number };
+type CategorySuggestion = { slug: string; nameKa: string; productCount: number };
+
+type SuggestResponse = {
+  suggestions: Suggestion[];
+  brands?: BrandSuggestion[];
+  categories?: CategorySuggestion[];
+};
+
 const DEBOUNCE_MS = 150;
 const MIN_QUERY_LENGTH = 2;
 
@@ -29,20 +38,29 @@ export function SearchBar({
   const router = useRouter();
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [brands, setBrands] = useState<BrandSuggestion[]>([]);
+  const [categories, setCategories] = useState<CategorySuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const cacheRef = useRef(new Map<string, Suggestion[]>());
+  const cacheRef = useRef(new Map<string, SuggestResponse>());
+
+  const applyResponse = useCallback((data: SuggestResponse) => {
+    setSuggestions(data.suggestions);
+    setBrands(data.brands ?? []);
+    setCategories(data.categories ?? []);
+    setOpen(data.suggestions.length > 0 || (data.brands?.length ?? 0) > 0 || (data.categories?.length ?? 0) > 0);
+    setActiveIndex(-1);
+  }, []);
 
   const fetchSuggestions = useCallback(async (value: string) => {
     const key = value.toLowerCase();
     const cached = cacheRef.current.get(key);
     if (cached) {
-      setSuggestions(cached);
-      setOpen(cached.length > 0);
+      applyResponse(cached);
       return;
     }
     abortRef.current?.abort();
@@ -51,19 +69,17 @@ export function SearchBar({
     try {
       const response = await fetch(`/api/suggest?q=${encodeURIComponent(value)}`, { signal: controller.signal });
       if (!response.ok) return;
-      const data = (await response.json()) as { suggestions: Suggestion[] };
-      cacheRef.current.set(key, data.suggestions);
+      const data = (await response.json()) as SuggestResponse;
+      cacheRef.current.set(key, data);
       if (cacheRef.current.size > 80) {
         const first = cacheRef.current.keys().next().value;
         if (first !== undefined) cacheRef.current.delete(first);
       }
-      setSuggestions(data.suggestions);
-      setOpen(data.suggestions.length > 0);
-      setActiveIndex(-1);
+      applyResponse(data);
     } catch {
       // aborted or offline
     }
-  }, []);
+  }, [applyResponse]);
 
   const onChange = (value: string) => {
     setQuery(value);
@@ -71,6 +87,8 @@ export function SearchBar({
     const trimmed = value.trim();
     if (trimmed.length < MIN_QUERY_LENGTH) {
       setSuggestions([]);
+      setBrands([]);
+      setCategories([]);
       setOpen(false);
       setActiveIndex(-1);
       return;
@@ -81,6 +99,8 @@ export function SearchBar({
   const clearQuery = () => {
     setQuery("");
     setSuggestions([]);
+    setBrands([]);
+    setCategories([]);
     setOpen(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
@@ -200,12 +220,15 @@ export function SearchBar({
       </div>
 
       {/* Suggestions dropdown */}
-      {open && suggestions.length > 0 && (
+      {open && (suggestions.length > 0 || brands.length > 0 || categories.length > 0) && (
         <ul
           id="search-suggestions"
           role="listbox"
           className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-lg)]"
         >
+          {suggestions.length > 0 && (
+            <li className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">პროდუქტები</li>
+          )}
           {suggestions.map((item, index) => (
             <li key={item.slug} role="option" aria-selected={index === activeIndex}>
               <button
@@ -245,6 +268,40 @@ export function SearchBar({
               </button>
             </li>
           ))}
+          {(brands.length > 0 || categories.length > 0) && (
+            <li className="border-t border-gray-100 px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              ბრენდები და კატეგორიები
+            </li>
+          )}
+          {(brands.length > 0 || categories.length > 0) && (
+            <li className="flex flex-wrap gap-1.5 px-3 pb-2.5">
+              {brands.map((brand) => (
+                <button
+                  key={`brand-${brand.name}`}
+                  type="button"
+                  onClick={() => goToSearch(brand.name)}
+                  className="inline-flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-blue-50 hover:text-[var(--accent)]"
+                >
+                  {brand.name}
+                  <span className="text-[10px] text-gray-400">{brand.productCount}</span>
+                </button>
+              ))}
+              {categories.map((category) => (
+                <button
+                  key={`category-${category.slug}`}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    router.push(`/categories/${category.slug}`);
+                  }}
+                  className="inline-flex h-7 items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 hover:border-[var(--accent)]"
+                >
+                  {category.nameKa}
+                  <span className="text-[10px] text-blue-400">{category.productCount}</span>
+                </button>
+              ))}
+            </li>
+          )}
           <li className="border-t border-gray-100">
             <button
               type="button"

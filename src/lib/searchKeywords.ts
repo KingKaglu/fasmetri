@@ -44,9 +44,50 @@ function tokenize(value: string) {
 export function buildSearchPlan(query?: string | null): SearchPlan | null {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return null;
-  const tokens = [...new Set(tokenize(normalizedQuery).map(stemQueryToken))];
+  const tokens = [...new Set(tokenize(normalizedQuery).map(stemQueryToken).map(applyQueryTokenAlias))];
   if (!tokens.length) return null;
-  return { normalizedQuery, tokens };
+  return { normalizedQuery: tokens.join(" "), tokens };
+}
+
+// Georgian phonetic spellings of common brands/product lines. Product titles
+// in the catalog are Latin, so a query like "აიფონი 15" only works if the
+// Georgian token is translated to its Latin equivalent before matching.
+const QUERY_TOKEN_ALIASES: Record<string, string> = {
+  "აიფონ": "iphone",
+  "აიფონებ": "iphone",
+  "ეპლ": "apple",
+  "ეფლ": "apple",
+  "სამსუნგ": "samsung",
+  "გალაქს": "galaxy",
+  "გალაკს": "galaxy",
+  "ქსიაომ": "xiaomi",
+  "სიაომ": "xiaomi",
+  "შაომ": "xiaomi",
+  "რედმ": "redmi",
+  "პოკო": "poco",
+  "მაკბუქ": "macbook",
+  "მაკბუკ": "macbook",
+  "ლენოვო": "lenovo",
+  "ასუს": "asus",
+  "ეისერ": "acer",
+  "დელ": "dell",
+  "ჰონორ": "honor",
+  "ჰუავე": "huawei",
+  "პიქსელ": "pixel",
+  "გუგლ": "google",
+  "ვანფლას": "oneplus",
+  "თინქფად": "thinkpad",
+  "აიდიაფად": "ideapad",
+};
+
+function applyQueryTokenAlias(token: string) {
+  // Tokens arrive already stemmed of the nominative "-ი"; also try a stripped
+  // plural "-ებ" so "აიფონები" → "აიფონებ" → "აიფონ" resolves.
+  return (
+    QUERY_TOKEN_ALIASES[token] ??
+    (token.endsWith("ებ") ? QUERY_TOKEN_ALIASES[token.slice(0, -2)] : undefined) ??
+    token
+  );
 }
 
 // Georgian nouns carry a nominative "-ი" ending that product/category text may
