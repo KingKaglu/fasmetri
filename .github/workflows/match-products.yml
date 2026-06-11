@@ -1,4 +1,4 @@
-name: Match products (safe canonical matcher)
+﻿name: Match products (safe canonical matcher)
 
 # Manual-only: triggered from the admin sync page or the Actions tab.
 on:
@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci

@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24"
           cache: "npm"
 
       - run: npm ci
@@ -38,8 +38,16 @@ jobs:
 
       - name: Price sync
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'prices' || github.event_name == 'schedule' && github.event.schedule == '45 */3 * * *' }}
+        env:
+          NODE_USE_ENV_PROXY: "1"
+          HTTPS_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
+          HTTP_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
         run: npm run sync:ee:laptops
 
       - name: Full detail sync
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' || github.event_name == 'schedule' && github.event.schedule == '10 3 * * *' }}
+        env:
+          NODE_USE_ENV_PROXY: "1"
+          HTTPS_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
+          HTTP_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
         run: npm run scrape:ee:laptops:full
