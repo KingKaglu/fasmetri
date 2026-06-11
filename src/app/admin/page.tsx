@@ -1,76 +1,189 @@
 import Link from "next/link";
+import { ArrowDownUp, GitCompareArrows, RefreshCw } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
-import { AdminLoginShell, AdminMetricCard, AdminPageHeader, AdminPanel, AdminShell, AdminStatusPill } from "@/components/admin-ui";
+import {
+  AdminEmptyState,
+  AdminLoginShell,
+  AdminMetricCard,
+  AdminPageHeader,
+  AdminPanel,
+  AdminShell,
+  AdminStatusPill,
+} from "@/components/admin-ui";
+import { MatcherTriggerButton, StaleOfferCleanupButton } from "@/components/admin-sync-actions";
 import { isAdminRequest } from "@/lib/admin-auth";
-import { listProducts, listPublicCategories, listPublicShops } from "@/lib/catalog";
+import { githubConfigured } from "@/lib/admin-sync-status";
+import { formatGel, formatUpdated } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 
-export default async function AdminPage() {
-  if (!(await isAdminRequest())) return <AdminLoginShell><AdminLogin /></AdminLoginShell>;
+export const dynamic = "force-dynamic";
 
-  const [shops, products, categories, recentClicks] = await Promise.all([
-    listPublicShops(),
-    listProducts({ publicSafe: true, sort: "priority", pageSize: 120 }),
-    listPublicCategories(),
-    countRecentClicks(),
+const SYNC_FRESH_MS = 24 * 60 * 60 * 1000;
+const STALE_OFFER_MS = 7 * 24 * 60 * 60 * 1000;
+
+export default async function AdminDashboardPage() {
+  if (!(await isAdminRequest())) return <AdminLoginShell><AdminLogin /></AdminLoginShell>;
+  if (!prisma) {
+    return (
+      <AdminShell>
+        <AdminEmptyState title="DATABASE_URL არ არის მითითებული" description="ადმინ დაფას სჭირდება მონაცემთა ბაზა." />
+      </AdminShell>
+    );
+  }
+
+  const staleCutoff = new Date(Date.now() - STALE_OFFER_MS);
+  const [
+    canonicalCount,
+    activeOffers,
+    pendingReview,
+    outOfStock,
+    unlinkedOffers,
+    staleOffers,
+    shops,
+    offersByShop,
+    recentMatches,
+    recentPriceChanges,
+  ] = await Promise.all([
+    prisma.canonicalProduct.count(),
+    prisma.productOffer.count({ where: { isActive: true } }),
+    prisma.possibleMatch.count({ where: { status: "PENDING" } }),
+    prisma.productOffer.count({ where: { isActive: true, availability: "OUT_OF_STOCK" } }),
+    prisma.productOffer.count({ where: { isActive: true, canonicalProductId: null } }),
+    prisma.productOffer.count({ where: { isActive: true, lastSeenAt: { lt: staleCutoff } } }),
+    prisma.shop.findMany({ select: { id: true, slug: true, name: true, enabled: true } }),
+    prisma.productOffer.groupBy({
+      by: ["shopId"],
+      where: { isActive: true },
+      _count: { _all: true },
+      _max: { lastSeenAt: true },
+    }),
+    prisma.possibleMatch.findMany({
+      orderBy: { matchedAt: "desc" },
+      take: 5,
+      select: { id: true, rawTitle: true, candidateTitle: true, confidence: true, status: true, matchedAt: true, shop: { select: { name: true } } },
+    }),
+    prisma.priceHistory.findMany({
+      orderBy: { capturedAt: "desc" },
+      take: 5,
+      select: { id: true, price: true, oldPrice: true, capturedAt: true, offer: { select: { title: true, shop: { select: { name: true } } } } },
+    }),
   ]);
-  const visibleShops = shops.filter((shop) => shop.enabled && (shop.productCount ?? 0) > 0);
-  const needsReview = products.filter((product) => product.categoryNeedsReview || product.needsReview).length;
+
+  const shopStatus = shops
+    .map((shop) => {
+      const group = offersByShop.find((row) => row.shopId === shop.id);
+      const lastSeen = group?._max.lastSeenAt ?? null;
+      const online = Boolean(lastSeen && Date.now() - lastSeen.getTime() < SYNC_FRESH_MS);
+      return { ...shop, offerCount: group?._count._all ?? 0, lastSeen, online };
+    })
+    .filter((shop) => shop.offerCount > 0)
+    .sort((a, b) => b.offerCount - a.offerCount);
+  const onlineCount = shopStatus.filter((shop) => shop.online).length;
+
+  const activity = [
+    ...recentMatches.map((match) => ({
+      id: `match-${match.id}`,
+      at: match.matchedAt,
+      kind: "match" as const,
+      title: match.rawTitle,
+      detail: `${match.shop.name} → ${match.candidateTitle} (${match.confidence}%, ${match.status})`,
+    })),
+    ...recentPriceChanges.map((entry) => ({
+      id: `price-${entry.id}`,
+      at: entry.capturedAt,
+      kind: "sync" as const,
+      title: entry.offer.title,
+      detail: `${entry.offer.shop.name} — ფასი ${formatGel(Number(entry.price))}${entry.oldPrice ? ` (ძველი ${formatGel(Number(entry.oldPrice))})` : ""}`,
+    })),
+  ]
+    .sort((a, b) => b.at.getTime() - a.at.getTime())
+    .slice(0, 10);
 
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="site admin"
+        eyebrow="operations dashboard"
         title="საიტის მართვა"
-        description="აქ დარჩენილია მხოლოდ ის, რაც საჯარო ფასმეტრზე რეალურად ჩანს: პროდუქტები, კატეგორიები, მაღაზიები და მომხმარებლის გადასვლები."
+        description="კატალოგი, sync-ის ჯანმრთელობა და review queue ერთ ეკრანზე."
       >
-        <Link href="/" className="inline-flex h-11 items-center rounded-2xl bg-white px-4 text-sm font-black text-[#151713] hover:bg-[var(--accent)]">
-          საჯარო საიტი
+        <Link href="/admin/review" className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[#151713] hover:bg-[var(--accent)]">
+          <GitCompareArrows className="size-4" />
+          Review queue ({pendingReview})
         </Link>
       </AdminPageHeader>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <AdminMetricCard label="პროდუქტები" value={products.length} detail={`${needsReview} საჭიროებს გადახედვას`} tone={needsReview ? "warn" : "good"} />
-        <AdminMetricCard label="კატეგორიები" value={categories.length} detail="საჯარო კატალოგი" tone="info" />
-        <AdminMetricCard label="მაღაზიები" value={visibleShops.length} detail="საიტზე ჩანს" tone="good" />
-        <AdminMetricCard label="კლიკები" value={recentClicks} detail="ბოლო 30 დღე" tone="info" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <AdminMetricCard label="პროდუქტები" value={canonicalCount} detail="canonical კატალოგი" tone="info" />
+        <AdminMetricCard label="აქტიური შეთავაზებები" value={activeOffers} tone="good" />
+        <AdminMetricCard label="Review queue" value={pendingReview} detail="pending match" tone={pendingReview ? "warn" : "good"} />
+        <AdminMetricCard label="მარაგი ამოწურულია" value={outOfStock} detail="აქტიური, out of stock" tone={outOfStock ? "warn" : "good"} />
+        <AdminMetricCard label="მიუბმელი" value={unlinkedOffers} detail="canonical-ის გარეშე" tone={unlinkedOffers ? "warn" : "good"} />
+        <AdminMetricCard label="მაღაზიები" value={`${onlineCount}/${shopStatus.length}`} detail="sync ბოლო 24სთ-ში" tone={onlineCount === shopStatus.length ? "good" : "danger"} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_.85fr]">
-        <AdminPanel title="ძირითადი ფანჯრები" description="მოკლე, სუფთა admin მენიუ მხოლოდ რეალური საიტის ნაწილებისთვის.">
-          <div className="grid gap-3 p-3 sm:grid-cols-2">
-            {[
-              ["/admin/products", "პროდუქტები", "საჯარო პროდუქტის სახელი, კატეგორია და metadata"],
-              ["/admin/categories/review", "კატეგორიები", "პროდუქტის კატეგორიის გადამოწმება source link-ებით"],
-              ["/admin/shops", "მაღაზიები", "ჩართული მაღაზიები და საჯარო shop metadata"],
-              ["/admin/clicks", "კლიკები", "რომელ საიტზე და პროდუქტზე გადავიდა მომხმარებელი"],
-            ].map(([href, title, desc]) => (
-              <Link key={href} href={href} className="rounded-2xl border border-[#dbe5d3] bg-[#f8fbf4] p-4 hover:border-[#151713] hover:bg-white">
-                <p className="font-black text-[var(--brand)]">{title}</p>
-                <p className="mt-1 text-sm font-bold text-[var(--muted)]">{desc}</p>
-              </Link>
+        <AdminPanel title="მაღაზიების სტატუსი" description="ბოლო sync = ბოლოს ნანახი შეთავაზება ამ მაღაზიიდან.">
+          <div className="divide-y divide-[#edf2e8]">
+            {shopStatus.map((shop) => (
+              <div key={shop.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="font-black text-[var(--brand)]">{shop.name}</p>
+                  <p className="text-xs font-bold text-[var(--muted)]">
+                    {shop.offerCount} აქტიური შეთავაზება
+                    {shop.lastSeen ? ` — ბოლო sync ${formatUpdated(shop.lastSeen)}` : ""}
+                  </p>
+                </div>
+                <AdminStatusPill tone={shop.online ? "good" : "danger"}>{shop.online ? "online" : "offline"}</AdminStatusPill>
+              </div>
             ))}
+            {!shopStatus.length ? <div className="p-4"><AdminEmptyState title="აქტიური მაღაზია არ არის" /></div> : null}
           </div>
         </AdminPanel>
 
-        <AdminPanel title="საიტის კატეგორიები" description="ეს არის ის კატეგორიები, რომლებსაც public catalog იყენებს.">
-          <div className="grid gap-2 p-3">
-            {categories.slice(0, 10).map((category) => (
-              <Link key={category.id} href={`/categories/${category.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border border-[#dbe5d3] bg-[#f8fbf4] p-3 hover:border-[#151713] hover:bg-white">
-                <span className="min-w-0 truncate text-sm font-black text-[var(--brand)]">{category.nameKa}</span>
-                <AdminStatusPill tone="info">{category.slug}</AdminStatusPill>
-              </Link>
-            ))}
-            {categories.length > 10 ? <p className="px-2 text-xs font-bold text-[var(--muted)]">კიდევ {categories.length - 10} კატეგორია ჩანს კატალოგში.</p> : null}
+        <AdminPanel title="სწრაფი მოქმედებები" description="Sync-ის გაშვება GitHub Actions-ით; გასუფთავება პირდაპირ ბაზაში.">
+          <div className="grid gap-3 p-4">
+            <Link
+              href="/admin/sync"
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]"
+            >
+              <RefreshCw className="size-4" />
+              Sync-ის გაშვება მაღაზიების მიხედვით
+            </Link>
+            <MatcherTriggerButton configured={githubConfigured()} />
+            <StaleOfferCleanupButton staleCount={staleOffers} />
+            <Link
+              href="/admin/offers?view=unlinked"
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]"
+            >
+              <ArrowDownUp className="size-4" />
+              მიუბმელი შეთავაზებები ({unlinkedOffers})
+            </Link>
           </div>
         </AdminPanel>
       </div>
+
+      <AdminPanel title="ბოლო აქტივობა" description="ბოლო ფასის ცვლილებები sync-ებიდან და matcher-ის ბოლო გადაწყვეტილებები.">
+        {activity.length ? (
+          <div className="divide-y divide-[#edf2e8]">
+            {activity.map((item) => (
+              <div key={item.id} className="flex flex-wrap items-start justify-between gap-2 p-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <AdminStatusPill tone={item.kind === "match" ? "info" : "good"}>{item.kind === "match" ? "match" : "price"}</AdminStatusPill>
+                    <p className="break-words font-black text-[var(--brand)]">{item.title}</p>
+                  </div>
+                  <p className="mt-1 text-xs font-bold text-[var(--muted)]">{item.detail}</p>
+                </div>
+                <time className="shrink-0 text-xs font-black text-[var(--muted)]" dateTime={item.at.toISOString()}>
+                  {formatUpdated(item.at)}
+                </time>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4"><AdminEmptyState title="აქტივობა ჯერ არ არის" /></div>
+        )}
+      </AdminPanel>
     </AdminShell>
   );
-}
-
-async function countRecentClicks() {
-  if (!prisma) return 0;
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  return prisma.clickEvent.count({ where: { createdAt: { gte: since } } }).catch(() => 0);
 }

@@ -1,73 +1,214 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { Prisma } from "@prisma/client";
+import { ChevronDown, ExternalLink, Search } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
-import { MergeForm } from "@/components/merge-form";
-import { CategoryEditor, ProductEditor } from "@/components/admin-metadata-editors";
-import { AdminLoginShell, AdminMetricCard, AdminPageHeader, AdminPanel, AdminShell, AdminStatusPill } from "@/components/admin-ui";
+import {
+  AdminEmptyState,
+  AdminLoginShell,
+  AdminMetricCard,
+  AdminPageHeader,
+  AdminPanel,
+  AdminShell,
+  AdminStatusPill,
+} from "@/components/admin-ui";
+import { UnlinkOfferButton } from "@/components/admin-unlink-button";
 import { isAdminRequest } from "@/lib/admin-auth";
-import { listProducts, listPublicCategories } from "@/lib/catalog";
-import { formatUpdated } from "@/lib/format";
+import { formatGel, formatUpdated } from "@/lib/format";
+import { prisma } from "@/lib/prisma";
 
-export default async function AdminProductsPage() {
+export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 50;
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function AdminProductsPage({ searchParams }: { searchParams: SearchParams }) {
   if (!(await isAdminRequest())) return <AdminLoginShell><AdminLogin /></AdminLoginShell>;
-  const [products, categories] = await Promise.all([
-    listProducts({ publicSafe: true, sort: "newest", pageSize: 120 }),
-    listPublicCategories(),
+  if (!prisma) {
+    return (
+      <AdminShell>
+        <AdminEmptyState title="DATABASE_URL არ არის მითითებული" />
+      </AdminShell>
+    );
+  }
+
+  const params = await searchParams;
+  const q = firstParam(params.q)?.trim() || undefined;
+  const categoryParam = firstParam(params.category);
+  const category = categoryParam === "mobiles" || categoryParam === "laptops" ? categoryParam : undefined;
+  const page = Math.max(1, Number(firstParam(params.page)) || 1);
+
+  const where: Prisma.CanonicalProductWhereInput = {
+    categorySlug: category,
+    OR: q
+      ? [
+          { title: { contains: q, mode: "insensitive" } },
+          { normalizedTitle: { contains: q, mode: "insensitive" } },
+          { brand: { contains: q, mode: "insensitive" } },
+          { canonicalKey: { contains: q, mode: "insensitive" } },
+        ]
+      : undefined,
+  };
+
+  const [total, products] = await Promise.all([
+    prisma.canonicalProduct.count({ where }),
+    prisma.canonicalProduct.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        product: { select: { slug: true } },
+        offers: {
+          orderBy: [{ isActive: "desc" }, { currentPrice: "asc" }],
+          include: { shop: { select: { name: true, slug: true } } },
+        },
+      },
+    }),
   ]);
-  const locked = products.filter((product) => product.categoryLocked).length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const query = (overrides: Record<string, string | undefined>) => {
+    const next = new URLSearchParams();
+    const merged = { q, category, page: undefined, ...overrides };
+    for (const [key, value] of Object.entries(merged)) if (value) next.set(key, value);
+    const text = next.toString();
+    return text ? `/admin/products?${text}` : "/admin/products";
+  };
 
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="catalog maintenance"
+        eyebrow="canonical catalog"
         title="პროდუქტები"
-        description="საიტზე გამოჩენილი public პროდუქტების metadata, კატეგორია და ძირითადი ბმულები."
+        description="ყველა canonical პროდუქტი მიბმული შეთავაზებებით. გახსენი რიგი ყველა მაღაზიის შეთავაზების სანახავად ან ცუდი match-ის მოსახსნელად."
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <AdminMetricCard label="საიტზე ჩანს" value={products.length} tone="good" />
-        <AdminMetricCard label="კატეგორიები" value={categories.length} tone="info" />
-        <AdminMetricCard label="ჩაკეტილი" value={locked} tone="info" />
+        <AdminMetricCard label="ნაპოვნია" value={total} tone="info" detail={q ? `ძიება: ${q}` : "სრული კატალოგი"} />
+        <AdminMetricCard label="გვერდი" value={`${page}/${totalPages}`} />
+        <AdminMetricCard label="კატეგორია" value={category ?? "ყველა"} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
-        <div className="grid gap-3">
-          {products.map((product) => (
-            <AdminPanel key={product.id}>
-              <article className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
+      <AdminPanel>
+        <div className="flex flex-wrap items-center gap-2 p-4">
+          <form action="/admin/products" className="flex min-w-0 flex-1 items-center gap-2">
+            {category ? <input type="hidden" name="category" value={category} /> : null}
+            <span className="relative block min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
+              <input
+                name="q"
+                defaultValue={q ?? ""}
+                placeholder="ძიება სახელით, ბრენდით ან canonical key-თ"
+                className="h-11 w-full rounded-2xl border border-[#c8d7bd] bg-white pl-10 pr-3 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#151713]"
+              />
+            </span>
+            <button className="h-11 rounded-2xl bg-[#151713] px-4 text-sm font-black text-white hover:bg-black">ძიება</button>
+          </form>
+          <div className="flex gap-2">
+            {[
+              { href: query({ category: undefined }), label: "ყველა", active: !category },
+              { href: query({ category: "mobiles" }), label: "ტელეფონები", active: category === "mobiles" },
+              { href: query({ category: "laptops" }), label: "ლეპტოპები", active: category === "laptops" },
+            ].map((filter) => (
+              <Link
+                key={filter.label}
+                href={filter.href}
+                className={`inline-flex h-11 items-center rounded-2xl px-4 text-sm font-black ${
+                  filter.active ? "bg-[#151713] text-white" : "border border-[#c8d7bd] bg-white text-[var(--brand)] hover:border-[#151713]"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </AdminPanel>
+
+      <AdminPanel>
+        <div className="divide-y divide-[#edf2e8]">
+          {products.map((product) => {
+            const activeOffers = product.offers.filter((offer) => offer.isActive);
+            const storeCount = new Set(activeOffers.map((offer) => offer.shop.slug)).size;
+            const prices = activeOffers.map((offer) => Number(offer.currentPrice)).filter((price) => price > 0);
+            const minPrice = prices.length ? Math.min(...prices) : null;
+            const maxPrice = prices.length ? Math.max(...prices) : null;
+            return (
+              <details key={product.id} className="group">
+                <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-[#f8fbf4] sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,auto))_1.25rem]">
                   <div className="min-w-0">
-                    <h2 className="break-words text-lg font-black text-[var(--brand)]">{product.name}</h2>
-                    <p className="mt-1 text-sm font-bold text-[var(--muted)]">
-                      {product.category?.nameKa ?? "კატეგორიის გარეშე"} - {product.offers.length} შეთავაზება - განახლდა {formatUpdated(product.updatedAt)}
+                    <p className="break-words font-black leading-snug text-[var(--brand)]">{product.title}</p>
+                    <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
+                      {product.brand} — განახლდა {formatUpdated(product.updatedAt)}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <AdminStatusPill tone={product.isPublic ? "good" : "neutral"}>{product.isPublic ? "Public" : "Hidden"}</AdminStatusPill>
-                    {product.categoryNeedsReview ? <AdminStatusPill tone="warn">Category review</AdminStatusPill> : null}
+                  <div className="hidden sm:block"><AdminStatusPill tone="info">{product.categorySlug}</AdminStatusPill></div>
+                  <div className="hidden text-right text-sm font-black text-[var(--brand)] sm:block">
+                    {storeCount} მაღაზია / {activeOffers.length} შეთავაზება
                   </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href={`/products/${product.slug}`} target="_blank" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-[#f8fbf4] px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">
-                    Public page <ExternalLink className="size-3.5" />
-                  </Link>
-                  {product.offers.slice(0, 4).map((offer) => (
-                    <a key={offer.id} href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">
-                      {offer.shop.name} <ExternalLink className="size-3.5" />
-                    </a>
-                  ))}
-                </div>
-                <ProductEditor product={product} categories={categories} />
-              </article>
-            </AdminPanel>
-          ))}
-        </div>
+                  <div className="text-right text-sm font-black tabular-nums text-[#087d8f]">
+                    {minPrice == null ? "—" : maxPrice !== minPrice ? `${formatGel(minPrice)} – ${formatGel(maxPrice!)}` : formatGel(minPrice)}
+                  </div>
+                  <ChevronDown className="size-4 shrink-0 text-[var(--muted)] transition group-open:rotate-180" />
+                </summary>
 
-        <aside className="grid h-fit gap-4 lg:sticky lg:top-24">
-          <MergeForm products={products} />
-          <CategoryEditor categories={categories} />
-        </aside>
-      </div>
+                <div className="grid gap-2 border-t border-[#edf2e8] bg-[#f8fbf4] p-4">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-[var(--muted)]">
+                    <span className="break-all">key: {product.canonicalKey}</span>
+                    {product.product?.slug ? (
+                      <Link href={`/products/${product.product.slug}`} target="_blank" className="inline-flex items-center gap-1 font-black text-[var(--brand)] underline-offset-2 hover:underline">
+                        Public page <ExternalLink className="size-3" />
+                      </Link>
+                    ) : null}
+                  </div>
+                  {product.offers.map((offer) => (
+                    <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white p-3">
+                      <div className="min-w-0">
+                        <p className="break-words text-sm font-black text-[var(--brand)]">
+                          {offer.shop.name} — {offer.title}
+                        </p>
+                        <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
+                          {formatGel(Number(offer.currentPrice))} — {offer.availability}
+                          {offer.isActive ? "" : " — inactive"}
+                          {offer.matchConfidence != null ? ` — match ${offer.matchConfidence}%` : ""}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">
+                          ნახვა <ExternalLink className="size-3.5" />
+                        </a>
+                        <UnlinkOfferButton offerId={offer.id} offerTitle={`${offer.shop.name}: ${offer.title}`} />
+                      </div>
+                    </div>
+                  ))}
+                  {!product.offers.length ? <p className="text-sm font-bold text-[var(--muted)]">შეთავაზება არ აქვს.</p> : null}
+                </div>
+              </details>
+            );
+          })}
+        </div>
+        {!products.length ? <div className="p-4"><AdminEmptyState title="პროდუქტი ვერ მოიძებნა" /></div> : null}
+      </AdminPanel>
+
+      {totalPages > 1 ? (
+        <div className="flex items-center justify-center gap-2">
+          {page > 1 ? (
+            <Link href={query({ page: String(page - 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]">
+              წინა
+            </Link>
+          ) : null}
+          <span className="text-sm font-black text-[var(--muted)]">{page} / {totalPages}</span>
+          {page < totalPages ? (
+            <Link href={query({ page: String(page + 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]">
+              შემდეგი
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
     </AdminShell>
   );
 }

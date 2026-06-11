@@ -1,0 +1,28 @@
+name: Match products (safe canonical matcher)
+
+# Manual-only: triggered from the admin sync page or the Actions tab.
+on:
+  workflow_dispatch:
+
+jobs:
+  match:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Match phones
+        run: npm run match:phones -- --limit=5000
+
+      - name: Match laptops
+        run: npm run match:laptops -- --limit=5000
