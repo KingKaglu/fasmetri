@@ -8,6 +8,8 @@ import {
   SafeProductIdentity,
   identitySummary,
   normalizeSafeOffer,
+  readSafeIdentity,
+  scoreSafeMatch,
 } from "@/server/matching/safeProductMatcher";
 
 type Db = NonNullable<typeof prisma>;
@@ -114,7 +116,7 @@ async function ensureLegacyProduct(db: Db, canonical: CanonicalForLegacy, identi
   return productId;
 }
 
-export async function approvePossibleMatch(matchId: string) {
+export async function approvePossibleMatch(matchId: string, options?: { reason?: string }) {
   const db = requireDb();
   const match = await db.possibleMatch.findUnique({
     where: { id: matchId },
@@ -145,7 +147,7 @@ export async function approvePossibleMatch(matchId: string) {
     matchConfidence: match.confidence,
     verificationStatus: "CONFIRMED" as const,
     confidence: 100,
-    reason: `Manually approved in admin review (matcher confidence ${match.confidence}).`,
+    reason: options?.reason ?? `Manually approved in admin review (matcher confidence ${match.confidence}).`,
     matcherVersion: SAFE_MATCHER_VERSION,
     matchedAt: new Date(),
   } satisfies Prisma.ProductOfferUncheckedUpdateInput;
@@ -224,6 +226,122 @@ export async function bulkApprovePossibleMatches(minConfidence: number, category
     }
   }
   return { matched: pending.length, approved, skipped, failed: failures.length, failures: failures.slice(0, 5) };
+}
+
+export type AutoTriageDecision = {
+  matchId: string;
+  action: "approved" | "rejected" | "kept";
+  rawTitle: string;
+  candidateTitle: string;
+  storedConfidence: number;
+  confidence: number;
+  reason: string;
+};
+
+export type AutoTriageResult = {
+  dryRun: boolean;
+  scanned: number;
+  approved: number;
+  rejected: number;
+  kept: number;
+  failed: number;
+  failures: string[];
+  decisions: AutoTriageDecision[];
+};
+
+// Automatic triage of the PENDING review queue. Recomputes both identities
+// with the current safe matcher and applies conservative rules:
+//   1. Any hard conflict (brand, color, storage/RAM when both sides are
+//      explicit, suffix, CPU/GPU…) → REJECT. Conflicts win over everything,
+//      including a matching model code, because a full conflict means the
+//      offers are physically different variants.
+//   2. Exact model code match (e.g. SM-S926B, D10KGEA) with no conflicts → APPROVE.
+//   3. No conflicts and recomputed confidence ≥ 70 (REVIEW band) → APPROVE.
+//   4. Everything else stays PENDING for a human.
+export async function autoTriagePendingMatches(options: { limit?: number; dryRun?: boolean } = {}): Promise<AutoTriageResult> {
+  const db = requireDb();
+  const dryRun = options.dryRun ?? false;
+  const pending = await db.possibleMatch.findMany({
+    where: { status: "PENDING" },
+    orderBy: { confidence: "desc" },
+    take: options.limit ?? 1000,
+    include: { rawOffer: true, canonicalProduct: true },
+  });
+
+  const result: AutoTriageResult = {
+    dryRun,
+    scanned: pending.length,
+    approved: 0,
+    rejected: 0,
+    kept: 0,
+    failed: 0,
+    failures: [],
+    decisions: [],
+  };
+
+  for (const match of pending) {
+    const canonical = match.canonicalProduct;
+    const identity = rawIdentity(match.rawOffer);
+    // Canonical specsJson stores the SafeProductIdentity it was created from;
+    // fall back to re-deriving one from the canonical title.
+    const candidateIdentity =
+      readSafeIdentity(canonical.specsJson) ??
+      normalizeSafeOffer({ title: canonical.title, categorySlug: canonical.categorySlug, brand: canonical.brand });
+
+    let action: AutoTriageDecision["action"] = "kept";
+    let reason = "";
+    let confidence = match.confidence;
+
+    if (!identity || !candidateIdentity) {
+      reason = "could not derive identity for one side";
+    } else {
+      const decision = scoreSafeMatch(identity, candidateIdentity);
+      confidence = decision.confidence;
+      if (decision.band === "REJECTED" || decision.hardConflicts.length) {
+        action = "rejected";
+        reason = decision.hardConflicts.join("; ") || decision.reason;
+      } else if (identity.modelCode && candidateIdentity.modelCode && identity.modelCode === candidateIdentity.modelCode) {
+        action = "approved";
+        reason = `exact model code match (${identity.modelCode}), no conflicts`;
+      } else if (decision.confidence >= 70) {
+        action = "approved";
+        reason = `no conflicts, confidence ${decision.confidence}`;
+      } else {
+        reason = `kept for human review (confidence ${decision.confidence}, no conflicts but below 70)`;
+      }
+    }
+
+    try {
+      if (!dryRun && action === "approved") {
+        await approvePossibleMatch(match.id, {
+          reason: `Auto-triage approved: ${reason} (stored confidence ${match.confidence}).`,
+        });
+      } else if (!dryRun && action === "rejected") {
+        await rejectPossibleMatch(match.id);
+      }
+      if (action === "approved") result.approved += 1;
+      else if (action === "rejected") result.rejected += 1;
+      else result.kept += 1;
+      if (result.decisions.length < 100) {
+        result.decisions.push({
+          matchId: match.id,
+          action,
+          rawTitle: match.rawTitle,
+          candidateTitle: match.candidateTitle,
+          storedConfidence: match.confidence,
+          confidence,
+          reason,
+        });
+      }
+    } catch (error) {
+      result.failed += 1;
+      if (result.failures.length < 10) {
+        result.failures.push(`${match.id}: ${error instanceof Error ? error.message : "unknown error"}`);
+      }
+    }
+  }
+
+  return result;
 }
 
 // Undo a bad merge: give the offer its own canonical (raw_-suffixed key, the

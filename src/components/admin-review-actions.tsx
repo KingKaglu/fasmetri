@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, Wand2, X } from "lucide-react";
 
 export function ReviewRowActions({ matchId }: { matchId: string }) {
   const router = useRouter();
@@ -54,6 +54,50 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
         </button>
       </div>
       {error ? <p className="rounded-xl border border-[#f3bbb3] bg-[#fff1ef] px-3 py-2 text-xs font-bold text-[var(--danger)]">{error}</p> : null}
+    </div>
+  );
+}
+
+export function AutoTriageButton() {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState("");
+
+  async function run() {
+    if (!window.confirm("გაეშვას auto-triage? კონფლიქტები უარყოფა, model code/70+ match-ები დადასტურდება.")) return;
+    setBusy(true);
+    setStatus("");
+    try {
+      const response = await fetch("/api/admin/review/auto-triage", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const payload = await response.json().catch(() => null);
+      if (response.ok) {
+        setStatus(`დადასტურდა ${payload?.approved ?? 0}, უარყოფილია ${payload?.rejected ?? 0}, დარჩა ${payload?.kept ?? 0}, ვერ შესრულდა ${payload?.failed ?? 0}.`);
+        router.refresh();
+      } else {
+        setStatus(payload?.error ?? "Auto-triage ვერ შესრულდა.");
+      }
+    } catch {
+      setStatus("ქსელის შეცდომა — სცადე თავიდან.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={run}
+        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713] disabled:cursor-wait disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}
+        Run Auto-Triage
+      </button>
+      {status ? <p className="text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
     </div>
   );
 }
