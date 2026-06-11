@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
-import { BulkApproveForm, ReviewRowActions } from "@/components/admin-review-actions";
+import { AutoTriageButton, BulkApproveForm, ReviewRowActions } from "@/components/admin-review-actions";
 import {
   AdminEmptyState,
   AdminLoginShell,
@@ -120,7 +120,10 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
               </Link>
             ))}
           </div>
-          <BulkApproveForm category={category} />
+          <div className="flex flex-wrap items-center gap-3">
+            <AutoTriageButton />
+            <BulkApproveForm category={category} />
+          </div>
         </div>
       </AdminPanel>
 

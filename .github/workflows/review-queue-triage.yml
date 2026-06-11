@@ -1,0 +1,36 @@
+name: Review queue auto-triage
+
+# Daily pass over PENDING PossibleMatch rows: rejects hard conflicts
+# (brand/color/storage/RAM), approves exact model-code matches and
+# conflict-free REVIEW-band (70+) pairs. Same logic as the "Run Auto-Triage"
+# button on /admin/review.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no DB writes)"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 7 * * *"
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Auto-triage review queue
+        run: npx tsx scripts/auto-triage-review.ts ${{ inputs.dry_run && '--dry-run' || '' }}
