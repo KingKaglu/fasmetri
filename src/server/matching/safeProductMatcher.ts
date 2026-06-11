@@ -1,3 +1,4 @@
+import { COLOR_ALIASES } from "@/config/productAliases";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 import { extractVariantIdentity } from "@/lib/variantMatching";
 
@@ -298,12 +299,16 @@ function scorePhone(raw: SafeProductIdentity, candidate: SafeProductIdentity): S
     if (raw.simType && candidate.simType) hardConflicts.push(`phone SIM differs: ${raw.simType} vs ${candidate.simType}`);
   }
 
-  if (raw.color && candidate.color && raw.color === candidate.color) {
+  const rawPhoneColor = normalizeColor(raw.color);
+  const candidatePhoneColor = normalizeColor(candidate.color);
+  if (rawPhoneColor && candidatePhoneColor && rawPhoneColor === candidatePhoneColor) {
     confidence += 10;
     reasons.push("color +10");
+  } else if (rawPhoneColor && candidatePhoneColor) {
+    hardConflicts.push(`phone color differs: ${rawPhoneColor} vs ${candidatePhoneColor}`);
+    caps.push({ value: 0, reason: "color conflict score0" });
   } else {
     caps.push({ value: 82, reason: "color max82" });
-    if (raw.color && candidate.color) hardConflicts.push(`phone color differs: ${raw.color} vs ${candidate.color}`);
   }
 
   if (raw.fiveGSupport && candidate.fiveGSupport) {
@@ -400,11 +405,14 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
     caps.push({ value: 80, reason: "screen max80" });
   }
 
-  if (raw.color && candidate.color && raw.color === candidate.color) {
+  const rawLaptopColor = normalizeColor(raw.color);
+  const candidateLaptopColor = normalizeColor(candidate.color);
+  if (rawLaptopColor && candidateLaptopColor && rawLaptopColor === candidateLaptopColor) {
     confidence += 3;
     reasons.push("color +3");
-  } else if (raw.color && candidate.color) {
-    caps.push({ value: 94, reason: "color mismatch prevents auto" });
+  } else if (rawLaptopColor && candidateLaptopColor) {
+    hardConflicts.push(`laptop color differs: ${rawLaptopColor} vs ${candidateLaptopColor}`);
+    caps.push({ value: 0, reason: "color conflict score0" });
   }
 
   return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 65 });
@@ -664,46 +672,112 @@ function detectSimType(signal: string) {
 function normalizeColor(value?: string | null) {
   const normalized = normalizeValue(value);
   if (!normalized) return undefined;
+  // Identities stored in specsJson by earlier matcher runs carry the old tokens
+  // (black_titanium, gold_titanium, space_black) — keep mapping those so stored
+  // candidates and freshly normalized offers compare equal.
   const aliases: Record<string, string> = {
     grey: "gray",
     space_gray: "gray",
     space_grey: "gray",
+    space_black: "black",
     graphite: "gray",
     natural_titanium: "titanium",
-    black_titanium: "black_titanium",
-    white_titanium: "white_titanium",
-    blue_titanium: "blue_titanium",
-    desert_titanium: "gold_titanium",
+    black_titanium: "black",
+    white_titanium: "white",
+    blue_titanium: "blue",
+    pink_titanium: "pink",
+    gray_titanium: "gray",
+    desert_titanium: "desert",
+    gold_titanium: "desert",
   };
   return aliases[normalized] ?? normalized;
 }
 
+// Color names seen in store titles that COLOR_ALIASES does not cover: standalone
+// marketing names, Samsung's reversed "Titanium <color>" order, light/dark prefixes,
+// and Georgian words. Values use the same canonical tokens COLOR_ALIASES produces.
+const EXTRA_COLOR_NAMES: Record<string, string> = {
+  titanium: "titanium",
+  natural: "natural_titanium",
+  desert: "desert_titanium",
+  cosmic: "cosmic",
+  navy: "navy",
+  champagne: "champagne",
+  mist: "blue",
+  obsidian: "black",
+  porcelain: "white",
+  hazel: "hazel",
+  peony: "pink",
+  "titanium black": "black",
+  "titanium white": "white",
+  "titanium blue": "blue",
+  "titanium gray": "gray",
+  "titanium grey": "gray",
+  "titanium silver": "silver",
+  "titanium green": "green",
+  "titanium violet": "violet",
+  "titanium yellow": "yellow",
+  "titanium navy": "navy",
+  "cosmic gray": "gray",
+  "cosmic grey": "gray",
+  "cosmic silver": "silver",
+  "cosmic black": "black",
+  "midnight black": "black",
+  "midnight blue": "blue",
+  "midnight green": "green",
+  "jet black": "black",
+  "onyx black": "black",
+  "obsidian black": "black",
+  "deep purple": "purple",
+  "alpine green": "green",
+  "sierra blue": "blue",
+  "pacific blue": "blue",
+  "ocean blue": "blue",
+  "ice blue": "blue",
+  "light gold": "gold",
+  "light blue": "blue",
+  "light green": "green",
+  "light pink": "pink",
+  "dark blue": "blue",
+  "dark gray": "gray",
+  "dark grey": "gray",
+  "dark green": "green",
+  რუხი: "gray",
+  იისფერი: "purple",
+  ტიტანი: "titanium",
+  ტიტანის: "titanium",
+};
+
+type ColorPattern = { pattern: RegExp; canonical: string };
+
+let colorPatternsCache: ColorPattern[] | undefined;
+
+function colorPatterns(): ColorPattern[] {
+  if (!colorPatternsCache) {
+    const merged = new Map<string, string>();
+    for (const [name, canonical] of Object.entries(COLOR_ALIASES)) merged.set(name.replace(/_/g, " "), canonical);
+    for (const [name, canonical] of Object.entries(EXTRA_COLOR_NAMES)) merged.set(name.replace(/_/g, " "), canonical);
+    colorPatternsCache = [...merged.entries()]
+      .sort((left, right) => right[0].length - left[0].length || left[0].localeCompare(right[0]))
+      .map(([name, canonical]) => ({
+        // \b is ASCII-only and never matches around Georgian script, so use
+        // unicode letter/digit lookarounds as the word boundary.
+        pattern: new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(name)}(?![\\p{L}\\p{N}])`, "u"),
+        canonical,
+      }));
+  }
+  return colorPatternsCache;
+}
+
 function detectColor(signal: string) {
-  const colors = [
-    "black titanium",
-    "white titanium",
-    "blue titanium",
-    "natural titanium",
-    "desert titanium",
-    "titanium",
-    "black",
-    "white",
-    "blue",
-    "green",
-    "pink",
-    "purple",
-    "red",
-    "silver",
-    "gold",
-    "gray",
-    "grey",
-    "space gray",
-    "space black",
-  ];
-  for (const color of colors) {
-    if (new RegExp(`\\b${escapeRegExp(color)}\\b`).test(signal)) return normalizeColor(color);
+  for (const { pattern, canonical } of colorPatterns()) {
+    if (pattern.test(signal)) return normalizeColor(canonical);
   }
   return undefined;
+}
+
+export function detectColorInText(text: string) {
+  return detectColor(normalizeProductTitle(text));
 }
 
 function normalizeCpu(value?: string | null) {
