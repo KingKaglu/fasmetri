@@ -149,7 +149,7 @@ export default async function AdminDashboardPage() {
               <RefreshCw className="size-4" />
               Sync-ის გაშვება მაღაზიების მიხედვით
             </Link>
-            <MatcherTriggerButton configured={githubConfigured()} />
+            {githubConfigured() ? <MatcherTriggerButton /> : null}
             <StaleOfferCleanupButton staleCount={staleOffers} />
             <Link
               href="/admin/offers?view=unlinked"
