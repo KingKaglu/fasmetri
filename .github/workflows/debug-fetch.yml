@@ -1,0 +1,26 @@
+name: Debug store fetch (temporary)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe zoommer and ee with bot and browser UAs
+        run: |
+          probe() {
+            local label="$1" url="$2" ua="$3"
+            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 20 -H "user-agent: $ua" -H "accept-language: en,ka;q=0.8" "$url" || echo "ERR")
+            server=$(curl -s -o /dev/null -D - --max-time 20 -H "user-agent: $ua" "$url" | grep -i '^server:' | tr -d '\r' || true)
+            echo "RESULT $label -> $code ($server) body_bytes=$(wc -c < /tmp/body)"
+          }
+          BOT="FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+          CHROME="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+          probe "zoommer-html-bot"     "https://zoommer.ge/mobiluri-telefonebi-c855" "$BOT"
+          probe "zoommer-html-chrome"  "https://zoommer.ge/mobiluri-telefonebi-c855" "$CHROME"
+          probe "zoommer-api-bot"      "https://zoommer.ge/api/proxy/v1/Products/v3?CategoryId=855&Page=1&Limit=28" "$BOT"
+          probe "zoommer-api-chrome"   "https://zoommer.ge/api/proxy/v1/Products/v3?CategoryId=855&Page=1&Limit=28" "$CHROME"
+          probe "ee-bot"               "https://ee.ge/en/mobile-phones-c377t" "$BOT"
+          probe "ee-chrome"            "https://ee.ge/en/mobile-phones-c377t" "$CHROME"
