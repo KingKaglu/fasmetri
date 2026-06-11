@@ -565,6 +565,20 @@ model AlertEvent {
   @@index([alertId])
 }
 
+// Weekly catalog health snapshot (written by scripts/catalog-health.ts via
+// catalog-audit.yml). detailsJson carries capped sample lists per check.
+model CatalogHealthReport {
+  id                   String   @id @default(cuid())
+  orphanCanonicals     Int      @default(0)
+  unlinkedOffers       Int      @default(0)
+  staleOffers          Int      @default(0)
+  duplicateTitleGroups Int      @default(0)
+  detailsJson          Json?
+  createdAt            DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model SyncLog {
   id            String   @id @default(cuid())
   store         String // "ee" | "zoommer"

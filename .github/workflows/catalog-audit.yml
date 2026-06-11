@@ -1,0 +1,41 @@
+name: Catalog audit (weekly)
+
+# Weekly catalog quality sweep: safe-matcher validation, public catalog audit
+# (dry-run), and the catalog-health checks (orphans, unlinked offers, stale
+# prices, duplicate titles). Results land in the Actions summary and a
+# CatalogHealthReport DB row.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 0"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Ensure CatalogHealthReport table exists
+        run: npx prisma db execute --file prisma/migrations/20260611110000_add_catalog_health_report/migration.sql
+
+      - name: Validate matches
+        run: npm run validate:matches
+
+      - name: Audit public catalog (dry-run)
+        if: ${{ !cancelled() }}
+        run: npm run audit:public
+
+      - name: Catalog health checks
+        if: ${{ !cancelled() }}
+        run: npm run catalog:health
