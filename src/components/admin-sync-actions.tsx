@@ -23,12 +23,8 @@ function useTrigger() {
   return { busy, status, trigger };
 }
 
-export function SyncTriggerButtons({ workflow, configured }: { workflow: string; configured: boolean }) {
+export function SyncTriggerButtons({ workflow }: { workflow: string }) {
   const { busy, status, trigger } = useTrigger();
-
-  if (!configured) {
-    return <p className="text-xs font-bold text-[var(--muted)]">GITHUB_TOKEN არ არის მითითებული — გაშვება GitHub Actions-დან.</p>;
-  }
 
   return (
     <div className="grid gap-2">
@@ -57,16 +53,15 @@ export function SyncTriggerButtons({ workflow, configured }: { workflow: string;
   );
 }
 
-export function MatcherTriggerButton({ configured }: { configured: boolean }) {
+export function MatcherTriggerButton() {
   const { busy, status, trigger } = useTrigger();
 
   return (
     <div className="grid gap-2">
       <button
         type="button"
-        disabled={busy || !configured}
+        disabled={busy}
         onClick={() => trigger("match-products.yml")}
-        title={configured ? undefined : "GITHUB_TOKEN არ არის მითითებული"}
         className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-[#151713] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4 text-[var(--accent)]" />}

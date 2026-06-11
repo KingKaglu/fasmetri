@@ -71,14 +71,8 @@ export default async function AdminSyncPage() {
       <AdminPageHeader
         eyebrow="sync operations"
         title="სინქრონიზაცია"
-        description={`სინქები GitHub Actions-ში ეშვება (${githubRepo()}): ფასების სინქი ყოველ 3 საათში, სრული — ღამით. აქ ჩანს თითო მოდულის ჯანმრთელობა და ხელით გაშვების ღილაკები.`}
+        description={`სინქები GitHub Actions-ში ეშვება (${githubRepo()}): ფასების სინქი ყოველ 3 საათში, სრული — ღამით. აქ ჩანს თითო მოდულის ჯანმრთელობა${configured ? " და ხელით გაშვების ღილაკები" : ""}.`}
       />
-
-      {!configured ? (
-        <div className="rounded-[1rem] border border-[#ffdca6] bg-[var(--warn-soft)] p-4 text-sm font-bold text-[var(--warn)]">
-          GITHUB_TOKEN (ან GITHUB_SYNC_TOKEN) გარემოს ცვლადი არ არის მითითებული — ხელით გაშვება და run-ების ისტორია გამორთულია. ტოკენს სჭირდება repo Actions write უფლება.
-        </div>
-      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {modules.map((module) => {
@@ -158,7 +152,7 @@ export default async function AdminSyncPage() {
                 </div>
               ) : null}
 
-              <SyncTriggerButtons workflow={module.workflowFile} configured={configured} />
+              {configured ? <SyncTriggerButtons workflow={module.workflowFile} /> : null}
             </div>
           </AdminPanel>
         ))}
@@ -168,23 +162,29 @@ export default async function AdminSyncPage() {
         title="Cross-store matcher"
         description="აერთიანებს მაღაზიების შეთავაზებებს canonical პროდუქტებად. ეშვება მხოლოდ ხელით; შედეგი Review queue-ში ჩანს."
       >
-        <div className="grid gap-3 p-4 sm:grid-cols-[16rem_minmax(0,1fr)]">
-          <MatcherTriggerButton configured={configured} />
-          {matcherRuns?.length ? (
-            <div className="grid gap-1.5">
-              {matcherRuns.map((run) => (
-                <a key={run.id} href={run.htmlUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#151713]">
-                  <AdminStatusPill tone={run.conclusion === "success" ? "good" : run.conclusion === null ? "info" : "danger"}>{run.conclusion ?? run.status}</AdminStatusPill>
-                  <span>{formatUpdated(new Date(run.runStartedAt))}</span>
-                </a>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm font-bold text-[var(--muted)]">
-              ლოკალურად: <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
-            </p>
-          )}
-        </div>
+        {configured ? (
+          <div className="grid gap-3 p-4 sm:grid-cols-[16rem_minmax(0,1fr)]">
+            <MatcherTriggerButton />
+            {matcherRuns?.length ? (
+              <div className="grid gap-1.5">
+                {matcherRuns.map((run) => (
+                  <a key={run.id} href={run.htmlUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#151713]">
+                    <AdminStatusPill tone={run.conclusion === "success" ? "good" : run.conclusion === null ? "info" : "danger"}>{run.conclusion ?? run.status}</AdminStatusPill>
+                    <span>{formatUpdated(new Date(run.runStartedAt))}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm font-bold text-[var(--muted)]">
+                ლოკალურად: <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="p-4 text-sm font-bold text-[var(--muted)]">
+            ლოკალურად: <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
+          </p>
+        )}
       </AdminPanel>
     </AdminShell>
   );
