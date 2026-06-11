@@ -133,6 +133,9 @@ export async function approvePossibleMatch(matchId: string) {
   // confidence=100 + current matcherVersion keeps the matcher from silently
   // moving a manually approved offer to a different canonical later.
   const data = {
+    // rawOfferId is a no-op when the offer was found through raw.productOffer,
+    // but links the RawOffer when the offer was only found by (shopId, url).
+    rawOfferId: raw.id,
     productId,
     canonicalProductId: match.canonicalProductId,
     canonicalKey: identity?.exactKey ?? match.canonicalProduct.canonicalKey,
