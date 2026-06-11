@@ -508,6 +508,8 @@ async function upsertOffer(
 
 async function maybeWritePossible(raw: RawForMatch, item: CandidateDecision, dryRun: boolean) {
   if (dryRun) return;
+  // Hard-conflicted pairs (e.g. different colors) must never reach the review queue.
+  if (item.decision.band === "REJECTED" || item.decision.confidence <= 0) return;
   await db.possibleMatch.upsert({
     where: {
       rawOfferId_canonicalProductId_matcherVersion: {
