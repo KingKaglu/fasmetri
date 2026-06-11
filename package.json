@@ -24,6 +24,7 @@
     "match:phones": "tsx scripts/match-products.ts --category=mobiles",
     "match:laptops": "tsx scripts/match-products.ts --category=laptops",
     "validate:matches": "tsx scripts/validate-matches.ts",
+    "alerts:evaluate": "tsx scripts/evaluate-alerts.ts",
     "recategorize-products": "tsx scripts/recategorize-products.ts",
     "validate-category-assignments": "tsx scripts/validate-category-assignments.ts",
     "validate-variant-matching": "tsx scripts/validate-variant-matching.ts",

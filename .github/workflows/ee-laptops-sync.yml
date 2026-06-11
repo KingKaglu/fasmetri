@@ -39,6 +39,9 @@ jobs:
       - name: Ensure SyncLog table exists
         run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
 
+      - name: Ensure AlertEvent table exists
+        run: npx prisma db execute --file prisma/migrations/20260611100000_add_alert_event/migration.sql
+
       - name: Price sync
         id: price_sync
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'prices' || github.event_name == 'schedule' && github.event.schedule == '45 */3 * * *' }}
@@ -56,6 +59,11 @@ jobs:
           HTTPS_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
           HTTP_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
         run: npm run scrape:ee:laptops:full
+
+      - name: Evaluate price alerts
+        if: ${{ steps.price_sync.outcome == 'success' || steps.full_sync.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run alerts:evaluate
 
       - name: Log sync result
         if: ${{ always() && (steps.price_sync.outcome != 'skipped' || steps.full_sync.outcome != 'skipped') }}

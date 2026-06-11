@@ -546,6 +546,25 @@ model ScrapeRun {
   createdAt    DateTime     @default(now())
 }
 
+// One row per triggered price alert (written by src/server/alerts/evaluate.ts)
+// so admins can see what fired even when no email provider is configured.
+// Deliberately relation-free: alerts/products may be deleted later.
+model AlertEvent {
+  id          String   @id @default(cuid())
+  alertId     String
+  email       String
+  productId   String?
+  productName String
+  targetPrice Decimal  @db.Decimal(12, 2)
+  offerPrice  Decimal  @db.Decimal(12, 2)
+  shopName    String?
+  notifiedVia String   @default("none") // "none" | "console" | "resend"
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([alertId])
+}
+
 model SyncLog {
   id            String   @id @default(cuid())
   store         String // "ee" | "zoommer"
