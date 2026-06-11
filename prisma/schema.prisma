@@ -546,6 +546,23 @@ model ScrapeRun {
   createdAt    DateTime     @default(now())
 }
 
+model SyncLog {
+  id            String   @id @default(cuid())
+  store         String // "ee" | "zoommer"
+  category      String // "phones" | "laptops"
+  runType       String // "prices" | "full"
+  status        String // "success" | "failure" | "partial"
+  offersScraped Int      @default(0)
+  offersUpdated Int      @default(0)
+  errorMessage  String?
+  startedAt     DateTime
+  completedAt   DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([store, category])
+  @@index([createdAt])
+}
+
 model UserPriceAlert {
   id             String      @id @default(cuid())
   email          String
