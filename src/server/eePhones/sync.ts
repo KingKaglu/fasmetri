@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { OfferAvailability, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 
@@ -199,6 +200,7 @@ type PromotionReport = {
   totalPossiblyRemovedProducts: number;
   totalMarkedInactive: number;
   skippedCount: number;
+  priceAnomalyCount: number;
 };
 
 export type EePhoneSyncReport = {
@@ -650,6 +652,7 @@ async function promoteSnapshot(snapshot: EePhonesSnapshot): Promise<PromotionRep
   let totalUpdatedPrices = 0;
   let totalNewProducts = 0;
   let skippedCount = 0;
+  let priceAnomalyCount = 0;
 
   for (const item of snapshot.products) {
     if (item.currentPriceGel == null || !item.originalTitle) {
@@ -662,7 +665,22 @@ async function promoteSnapshot(snapshot: EePhonesSnapshot): Promise<PromotionRep
     const existing = existingOffers.get(item.productUrl);
     const existingPrice = existing ? Number(existing.currentPrice) : null;
     const existingOldPrice = existing?.oldPrice == null ? null : Number(existing.oldPrice);
-    const priceChanged = existingPrice !== currentPriceGel || existingOldPrice !== item.oldPriceGel;
+    const priceAnomalous = existingPrice != null && isAnomalousPriceChange(existingPrice, currentPriceGel);
+    if (priceAnomalous) {
+      priceAnomalyCount += 1;
+      console.warn(
+        `[ee-phones] Price anomaly: "${item.originalTitle}" ${existingPrice} -> ${currentPriceGel} GEL, keeping old price (${item.productUrl})`,
+      );
+      await recordPriceAnomaly(db, {
+        store: STORE,
+        category: "phones",
+        offerUrl: item.productUrl,
+        title: item.originalTitle,
+        previousPrice: existingPrice,
+        newPrice: currentPriceGel,
+      });
+    }
+    const priceChanged = !priceAnomalous && (existingPrice !== currentPriceGel || existingOldPrice !== item.oldPriceGel);
     const saleDetectedAt = item.discountPercent > 0 ? existing?.saleDetectedAt ?? new Date() : null;
 
     const rawOffer = await upsertRawOffer(shop.id, item, undefined);
@@ -683,12 +701,12 @@ async function promoteSnapshot(snapshot: EePhonesSnapshot): Promise<PromotionRep
             matchConfidence: 100,
             verificationStatus: "CONFIRMED",
             previousSeenPrice: priceChanged && existingPrice != null ? existingPrice : undefined,
-            currentPrice: currentPriceGel,
-            oldPrice: item.oldPriceGel,
-            discountAmount: item.discountAmountGel,
-            discountPercent: item.discountPercent,
-            isOnSale: item.discountPercent > 0,
-            saleDetectedAt,
+            currentPrice: priceAnomalous ? undefined : currentPriceGel,
+            oldPrice: priceAnomalous ? undefined : item.oldPriceGel,
+            discountAmount: priceAnomalous ? undefined : item.discountAmountGel,
+            discountPercent: priceAnomalous ? undefined : item.discountPercent,
+            isOnSale: priceAnomalous ? undefined : item.discountPercent > 0,
+            saleDetectedAt: priceAnomalous ? undefined : saleDetectedAt,
             availability: item.availability,
             imageUrl: item.imageUrl,
             lastSeenAt: new Date(item.scrapedAt),
@@ -768,6 +786,7 @@ async function promoteSnapshot(snapshot: EePhonesSnapshot): Promise<PromotionRep
     totalPossiblyRemovedProducts: removalResult.possiblyRemoved,
     totalMarkedInactive: removalResult.markedInactive,
     skippedCount,
+    priceAnomalyCount,
   };
 }
 
