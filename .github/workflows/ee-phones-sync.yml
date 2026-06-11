@@ -42,6 +42,9 @@ jobs:
       - name: Ensure AlertEvent table exists
         run: npx prisma db execute --file prisma/migrations/20260611100000_add_alert_event/migration.sql
 
+      - name: Ensure PriceAnomaly table exists
+        run: npx prisma db execute --file prisma/migrations/20260611120000_add_price_anomaly/migration.sql
+
       - name: Price sync
         id: price_sync
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'prices' || github.event_name == 'schedule' && github.event.schedule == '15 */3 * * *' }}
