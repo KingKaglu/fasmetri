@@ -12,16 +12,21 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
   async function act(action: "approve" | "reject") {
     setBusy(action);
     setError("");
-    const response = await fetch(`/api/admin/review/${matchId}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action }),
-    });
-    if (response.ok) {
-      router.refresh();
-    } else {
-      const payload = await response.json().catch(() => null);
-      setError(payload?.error ?? "მოქმედება ვერ შესრულდა.");
+    try {
+      const response = await fetch(`/api/admin/review/${matchId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const payload = await response.json().catch(() => null);
+        setError(payload?.error ?? "მოქმედება ვერ შესრულდა.");
+        setBusy(null);
+      }
+    } catch {
+      setError("ქსელის შეცდომა — სცადე თავიდან.");
       setBusy(null);
     }
   }

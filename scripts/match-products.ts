@@ -526,7 +526,8 @@ async function maybeWritePossible(raw: RawForMatch, item: CandidateDecision, dry
         candidateIdentity: item.identity,
         decision: item.decision,
       }),
-      status: "PENDING",
+      // Never reset status: an APPROVED/REJECTED decision from admin review
+      // must survive matcher re-runs.
       matchedAt: new Date(),
     },
     create: {
