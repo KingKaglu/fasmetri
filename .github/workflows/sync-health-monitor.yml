@@ -1,0 +1,32 @@
+name: Sync health monitor
+
+# Daily check that every store/category sync has succeeded recently.
+# Reads SyncLog (written by scripts/log-sync.ts at the end of each sync run)
+# and fails the job when a module has no success in the last 28 hours.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Ensure SyncLog table exists
+        run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
+
+      - name: Check sync health
+        run: npx tsx scripts/sync-health-check.ts

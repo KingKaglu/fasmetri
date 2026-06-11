@@ -45,12 +45,19 @@ export default async function AdminSyncPage() {
         shop: { slug: module.shopSlug },
         rawOffer: { categorySlug: module.categorySlug },
       };
-      const [activeCount, lastSeen, seen24h, missing, runs] = await Promise.all([
+      // SyncLog keys: store = shop slug, category = "phones" | "laptops".
+      const syncLogCategory = module.categorySlug === "mobiles" ? "phones" : "laptops";
+      const [activeCount, lastSeen, seen24h, missing, runs, syncLogs] = await Promise.all([
         db.productOffer.count({ where: { ...offerWhere, isActive: true } }),
         db.productOffer.aggregate({ where: offerWhere, _max: { lastSeenAt: true } }),
         db.productOffer.count({ where: { ...offerWhere, isActive: true, lastSeenAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
         db.productOffer.count({ where: { ...offerWhere, isActive: true, missedSyncCount: { gt: 0 } } }),
         fetchWorkflowRuns(module.workflowFile),
+        db.syncLog.findMany({
+          where: { store: module.shopSlug, category: syncLogCategory },
+          orderBy: { completedAt: "desc" },
+          take: 6,
+        }),
       ]);
       return {
         ...module,
@@ -59,6 +66,7 @@ export default async function AdminSyncPage() {
         seen24h,
         missing,
         runs,
+        syncLogs,
         report: readLatestReport(module.key),
         lock: lockStatus(module.key),
       };
@@ -123,6 +131,26 @@ export default async function AdminSyncPage() {
                   {module.report.validation?.hardFailures?.length ? (
                     <p className="mt-1 text-[var(--danger)]">Hard failures: {module.report.validation.hardFailures.join("; ")}</p>
                   ) : null}
+                </div>
+              ) : null}
+
+              {module.syncLogs.length ? (
+                <div className="grid gap-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">Sync ისტორია (DB)</p>
+                  {module.syncLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)]"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <AdminStatusPill tone={log.status === "success" ? "good" : log.status === "partial" ? "warn" : "danger"}>
+                          {log.status}
+                        </AdminStatusPill>
+                        {log.runType} — {log.offersScraped} ნაპოვნი, {log.offersUpdated} განახლდა
+                      </span>
+                      <span title={log.errorMessage ?? undefined}>{formatUpdated(log.completedAt)}</span>
+                    </div>
+                  ))}
                 </div>
               ) : null}
 

@@ -36,7 +36,11 @@ jobs:
       - name: Ensure sync columns exist
         run: npx prisma db execute --file prisma/migrations/20260605000000_zoommer_phone_sync_state/migration.sql
 
+      - name: Ensure SyncLog table exists
+        run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
+
       - name: Price sync
+        id: price_sync
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'prices' || github.event_name == 'schedule' && github.event.schedule == '0 */3 * * *' }}
         env:
           NODE_USE_ENV_PROXY: "1"
@@ -45,9 +49,18 @@ jobs:
         run: npm run sync:zoommer:laptops
 
       - name: Full detail sync
+        id: full_sync
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' || github.event_name == 'schedule' && github.event.schedule == '20 2 * * *' }}
         env:
           NODE_USE_ENV_PROXY: "1"
           HTTPS_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
           HTTP_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
         run: npm run scrape:zoommer:laptops:full
+
+      - name: Log sync result
+        if: ${{ always() && (steps.price_sync.outcome != 'skipped' || steps.full_sync.outcome != 'skipped') }}
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=zoommer --category=laptops
+          --run-type=${{ steps.full_sync.outcome != 'skipped' && 'full' || 'prices' }}
+          --status=${{ (steps.price_sync.outcome == 'success' || steps.full_sync.outcome == 'success') && 'success' || 'failure' }}
