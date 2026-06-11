@@ -6,8 +6,10 @@ type AdminTone = "neutral" | "good" | "warn" | "danger" | "info";
 export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <section className="shell py-4 sm:py-8">
-      <AdminNav />
-      <div className="grid gap-5">{children}</div>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+        <AdminNav />
+        <div className="grid min-w-0 flex-1 content-start gap-5">{children}</div>
+      </div>
     </section>
   );
 }
