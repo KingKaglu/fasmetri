@@ -521,6 +521,20 @@ model ClickEvent {
   @@index([category, createdAt])
 }
 
+// Fraud guard for ClickEvent: one row per (ip, product, hour-bucket) hash.
+// The unique constraint makes duplicate clicks a no-op; rows double as the
+// rate-limit counter (count by ipHash in the last minute). Old rows are
+// best-effort pruned by the click endpoint itself.
+model ClickDedup {
+  id        String   @id @default(cuid())
+  dedupKey  String   @unique
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
+}
+
 model PriceHistory {
   id           String            @id @default(cuid())
   offerId      String
