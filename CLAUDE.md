@@ -130,6 +130,29 @@ Canonical key format: `brand|model|ram|storage|color` (e.g. `xiaomi|poco_f7_ultr
 
 `ALERT_EMAIL_FROM` overrides the From address (falls back to `SMTP_USER`, then `Fasmetri <alerts@fasmetri.ge>`). Emails are only sent when the price dropped ≥5% vs the previous price (offer `oldPrice` or latest `PriceHistory`); smaller moves still trigger the alert + AlertEvent but skip the email to avoid spam. Send failures never block the alert from being recorded.
 
+### Environment Variables
+
+All env vars referenced by `src/`:
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Postgres connection (Supabase EU pooler in prod; CI maps `EU_DATABASE_URL` secret onto it) |
+| `DATABASE_POOL_MAX` | pg pool size; **must be `1` in CI** (Supabase pooler) |
+| `ADMIN_PASSWORD` | Admin login password (`/api/admin/session`); admin UI is locked without it |
+| `ADMIN_SESSION_SECRET` | HMAC secret for the admin session cookie (dev fallback exists; set in prod) |
+| `CRON_SECRET` | `Authorization: Bearer` token for `/api/sync/*` and headless `/api/admin/review/auto-triage` |
+| `GITHUB_SYNC_TOKEN` / `GITHUB_TOKEN` | PAT for triggering GitHub Actions workflows from the admin sync page (either works) |
+| `GITHUB_REPO` | `owner/repo` for workflow dispatch (defaults to `KingKaglu/fasmetri`) |
+| `RESEND_API_KEY`, `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS`/`SMTP_PORT`/`SMTP_SECURE`, `ALERT_EMAIL_FROM`, `ALERT_PROVIDER` | Price alert email delivery (see "Price Alert Emails") |
+| `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` | Canonical site origin (falls back to `VERCEL_PROJECT_PRODUCTION_URL`/`VERCEL_URL`) |
+| `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_TIKTOK_PIXEL_ID` | Analytics scripts (each optional; script only injected when set) |
+| `SCRAPER_ENABLED` | Legacy pipeline gate — `scrape.ts` requires `true` (the per-store sync pipeline ignores it) |
+| `SCRAPER_USER_AGENT` | Overrides the default `FasmetriPriceBot/0.1` UA |
+| `SCRAPER_MAX_PRODUCTS_PER_SHOP`, `SCRAPER_OFFSET` | Legacy runner batch limit/offset overrides |
+| `CONFIRM_PRODUCT_RESET` | Must be `true` for destructive catalog resets |
+
+CI-only (workflows, not `src/`): `EU_DATABASE_URL`, `SCRAPER_PROXY_URL` (+ `NODE_USE_ENV_PROXY=1`).
+
 ### Safety Constraints
 
 - Default mode must be dry-run for destructive catalog operations
