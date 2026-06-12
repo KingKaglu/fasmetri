@@ -58,7 +58,8 @@
     "sync:ee:laptops": "tsx scripts/ee-laptops.ts --mode=prices --promote",
     "validate:ee:laptops": "tsx scripts/ee-laptops.ts --mode=validate",
     "import:ee:laptops": "tsx scripts/ee-laptops.ts --mode=promote",
-    "store-category-coverage": "tsx scripts/store-category-coverage.ts"
+    "store-category-coverage": "tsx scripts/store-category-coverage.ts",
+    "intel": "tsx scripts/market-intel.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

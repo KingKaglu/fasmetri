@@ -221,3 +221,56 @@ There are two layers:
 - **Don't bypass validation**: `--mode=promote` re-reads the *last snapshot from disk* and still runs `validateSnapshot`. Hard failures intentionally exit 1 so the GitHub Action shows red.
 - **GitHub-hosted runners are IP-blocked by both stores**: zoommer.ge and ee.ge sit behind Cloudflare rules that 403 GitHub Actions runner IPs regardless of user agent (verified 2026-06-11; browser UA also gets 403). Scraping from CI requires a residential/Georgian egress. The sync steps set `NODE_USE_ENV_PROXY=1` (Node 24+) and read `HTTPS_PROXY`/`HTTP_PROXY` from the `SCRAPER_PROXY_URL` repo secret — e.g. an Apify residential proxy URL `http://groups-RESIDENTIAL,country-GE:<APIFY_PROXY_PASSWORD>@proxy.apify.com:8000`. The proxy env is step-scoped to the scrape steps only so `npm ci` and `prisma db execute` never route through the paid proxy. DB access from CI works fine without a proxy.
 - **`isExternalIdConflict` also matches plain-text errors** (the adapter-pg error path doesn't always produce a `PrismaClientKnownRequestError`), which is why it string-matches `"externalId"` in addition to checking `error.code === "P2002"`.
+
+## Agent-Reach MCP
+
+[Agent-Reach](https://github.com/Panniantong/Agent-Reach) is an open-source toolkit that gives AI agents zero-config internet access across Twitter, Reddit, YouTube, GitHub, RSS, and arbitrary web pages. It acts as an installer + health-check layer on top of platform-specific CLI tools.
+
+### Installation status
+
+`agent-reach` is **not published on PyPI** (`pip install agent-reach` fails). Installation requires cloning the repo and running `pip install /path/to/Agent-Reach`. Python 3.13 is available at `C:\Users\user\AppData\Local\Programs\Python\Python313\python.exe`. To install manually:
+
+```powershell
+git clone https://github.com/Panniantong/Agent-Reach.git $env:TEMP\Agent-Reach
+pip install "$env:TEMP\Agent-Reach"
+agent-reach install --env=auto
+agent-reach doctor
+```
+
+After install, the optional MCP server can be wired into Claude Code:
+```json
+// .claude/settings.json — add to mcpServers
+"agent-reach": {
+  "command": "python",
+  "args": ["-m", "agent_reach.integrations.mcp_server"]
+}
+```
+This exposes a single `get_status` tool that returns a channel health report.
+
+### What Agent-Reach actually enables
+
+| Channel | Tier | Requires | How to use |
+|---------|------|----------|------------|
+| Web (Jina Reader) | 0 — zero-config | Nothing | `curl https://r.jina.ai/{URL}` |
+| RSS/Atom | 0 — zero-config | `pip install feedparser` (included) | `agent-reach read {rss-url}` |
+| YouTube transcripts | 0 — zero-config | `yt-dlp` (included) | `yt-dlp --write-subs` |
+| GitHub | 0 — zero-config | `gh` CLI | `gh search repos ...` |
+| Twitter/X | 1 — requires login | `twitter-cli` + `TWITTER_AUTH_TOKEN`/`CT0` cookies | `twitter search "{query}"` |
+| Reddit | 1 — requires login | `rdt-cli` or `opencli` (anonymous API 403'd since 2024) | `rdt search "{query}"` |
+
+### How fasmetri benefits
+
+- **Brand monitoring**: search Twitter/Reddit for "fasmetri", "fasmetri.ge" to track user mentions and reviews
+- **Competitor signals**: watch zoommer.ge and eecom.ge social media announcements for new product launches or flash sales
+- **Georgian tech news**: pull RSS from forbes.ge, bm.ge, itpro.ge for relevant industry coverage
+- **Price intelligence**: Jina Reader can render any Georgian retailer's product page as clean text for ad-hoc price checking
+
+### market-intel.ts
+
+`scripts/market-intel.ts` (`npm run intel`) runs a market intelligence report using zero-config techniques directly — no agent-reach install needed:
+
+1. **Reddit JSON API** — searches for "fasmetri", "zoommer.ge", "eecom.ge" (soft-fails if blocked)
+2. **DuckDuckGo via Jina Reader** — brand mentions, competitor activity, news
+3. **RSS feeds** — forbes.ge, bm.ge, massmedia.ge, itpro.ge
+
+Twitter searches require `twitter-cli` to be installed and authenticated (see above).
