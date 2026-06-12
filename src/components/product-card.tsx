@@ -39,7 +39,7 @@ export function ProductCard({
     >
       {/* Image */}
       <Link href={`/products/${product.slug}`} className="relative block overflow-hidden bg-gray-50">
-        <ProductImage src={image} alt={product.name} priority={imagePriority} />
+        <ProductImage src={image} alt={product.name} priority={imagePriority} categorySlug={product.category?.slug} shopName={offer.shop.name} />
         {discount > 0 && (
           <span className="absolute left-2 top-2">
             <DiscountBadge percent={discount} />

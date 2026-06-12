@@ -12,9 +12,9 @@ import {
   Store,
   TrendingDown,
 } from "lucide-react";
-import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
+import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicShops, listRecentPriceChanges, RecentPriceChange } from "@/lib/catalog";
 import { ProductView } from "@/lib/catalog-types";
-import { formatGel } from "@/lib/format";
+import { formatGel, formatRelativeTime } from "@/lib/format";
 import { CategoryCard } from "@/components/category-card";
 import { ProductCard } from "@/components/product-card";
 import { ProductGrid } from "@/components/product-grid";
@@ -53,7 +53,7 @@ type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
 export default async function Home() {
   // One pool per public category so the front page always mixes phones and
   // laptops instead of whatever a single global sort happens to surface.
-  const [categoryDeals, categoryPopular, shops, stats, categories] = await Promise.all([
+  const [categoryDeals, categoryPopular, shops, stats, categories, priceChanges] = await Promise.all([
     Promise.all(
       PRIORITY_CATEGORIES.map((category) =>
         listPublicProducts({ category, dealsOnly: true, sort: "discount", pageSize: 60 }),
@@ -65,6 +65,7 @@ export default async function Home() {
     listPublicShops(),
     getCatalogStats(),
     listPublicCategories(),
+    listRecentPriceChanges(),
   ]);
   // listPublicShops already returns only publicly active shops (same list as
   // /shops and the filter dropdowns), sorted by product count.
@@ -174,6 +175,20 @@ export default async function Home() {
           <ProductGrid products={discounts} deal density="compact" resetHref="/deals" emptyTitle="აქციები მალე გამოჩნდება" emptyDescription="ფასმეტრი ახალი ფასდაკლებების დამატებისთანავე აჩვენებს საუკეთესო შეთავაზებებს." />
         )}
       </section>
+
+      {/* Recently updated prices */}
+      {priceChanges.length > 0 && (
+        <section className="shell pt-8 pb-4">
+          <SectionBar eyebrow="ფასების მონიტორინგი" title="ახლახანს განახლებული ფასები" href="/deals" action="ყველა აქცია" />
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <ul className="divide-y divide-gray-100">
+              {priceChanges.map((change) => (
+                <PriceChangeRow key={change.offerId} change={change} />
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Trending */}
       <section className="shell pt-8 pb-4">
@@ -337,6 +352,48 @@ function normalizeHomeKey(value: unknown) {
     .replace(/[^a-z0-9\u10a0-\u10ff\u1c90-\u1cbf]+/gi, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+
+function PriceChangeRow({ change }: { change: RecentPriceChange }) {
+  const dropped = change.previousPrice != null && change.previousPrice > change.currentPrice;
+  const delta = change.previousPrice != null ? Math.abs(change.previousPrice - change.currentPrice) : 0;
+
+  return (
+    <li>
+      <Link
+        href={`/products/${change.productSlug}`}
+        className="flex min-w-0 items-center gap-3 px-3 py-2.5 hover:bg-gray-50 sm:px-4"
+      >
+        <span className="grid size-8 shrink-0 place-items-center rounded-md border border-gray-200 bg-white text-[10px] font-semibold text-gray-500">
+          {change.shopName.slice(0, 1)}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-gray-900">{change.productName}</span>
+          <span className="block truncate text-[11px] text-gray-400">
+            {change.shopName} · {formatRelativeTime(change.changedAt)}
+          </span>
+        </span>
+        {delta > 0 && (
+          <span
+            className={`hidden shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold sm:inline-flex ${
+              dropped ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
+            }`}
+          >
+            <TrendingDown className={`size-3 ${dropped ? "" : "rotate-180"}`} />
+            {dropped ? "-" : "+"}{formatGel(delta)}
+          </span>
+        )}
+        <span className="shrink-0 text-right">
+          {change.previousPrice != null && (
+            <span className="block text-[11px] text-gray-400 line-through">{formatGel(change.previousPrice)}</span>
+          )}
+          <span className={`block text-sm font-bold ${dropped ? "text-green-700" : "text-gray-900"}`}>
+            {formatGel(change.currentPrice)}
+          </span>
+        </span>
+      </Link>
+    </li>
+  );
 }
 
 function HeroStat({ label, value }: { label: string; value: number | null | undefined }) {

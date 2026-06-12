@@ -19,7 +19,7 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
     availability === "IN_STOCK"
       ? { label: "მარაგშია", className: "border-green-200 bg-green-50 text-green-700" }
       : availability === "OUT_OF_STOCK"
-        ? { label: "ამოიწურა", className: "border-gray-200 bg-gray-50 text-gray-500" }
+        ? { label: "არ არის მარაგში", className: "border-gray-200 bg-gray-50 text-gray-500" }
         : { label: "მარაგი მოწმდება", className: "border-amber-200 bg-amber-50 text-amber-700" };
 
   return (

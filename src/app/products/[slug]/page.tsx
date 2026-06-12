@@ -132,7 +132,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Product hero */}
           <article className="grid min-w-0 gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5 md:grid-cols-[minmax(14rem,20rem)_minmax(0,1fr)]">
             <div className="overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-              <ProductImage src={product.imageUrl ?? cheapest.imageUrl} alt={product.name} priority />
+              <ProductImage src={product.imageUrl ?? cheapest.imageUrl} alt={product.name} priority categorySlug={product.category?.slug} shopName={cheapest.shop.name} />
             </div>
             <div className="flex min-w-0 flex-col">
               {/* Badges row */}
@@ -196,9 +196,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 price={cheapest.currentPrice}
                 sourceUrl={cheapest.url}
                 ariaLabel={`${cheapest.shop.name} შეთავაზება`}
-                className="mt-3 flex h-11 w-fit items-center gap-2 rounded-md bg-gray-900 px-5 text-sm font-semibold text-white hover:bg-black"
+                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gray-900 px-5 text-sm font-semibold text-white hover:bg-black sm:w-fit"
               >
-                შეთავაზების ნახვა
+                მაღაზიაში გადასვლა
                 <ArrowUpRight className="size-4" />
               </ShopClickLink>
             </div>
@@ -215,13 +215,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <div className="mt-3 grid gap-2">
               {offerDetails.map(({ offer, attributes, match }, index) => {
                 const offerDiscount = realDiscountPercent(offer);
+                const outOfStock = offer.availability === "OUT_OF_STOCK";
                 return (
                   <article
                     key={offer.id}
-                    className={`grid min-w-0 gap-3 rounded-lg border bg-white p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
+                    className={`grid min-w-0 gap-3 rounded-lg border p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
                       index === 0
-                        ? "border-blue-300 ring-1 ring-blue-200"
-                        : "border-gray-200"
+                        ? "border-green-300 bg-white ring-1 ring-green-200"
+                        : outOfStock
+                          ? "border-gray-200 bg-gray-50 opacity-70"
+                          : "border-gray-200 bg-white"
                     }`}
                   >
                     <div className="flex min-w-0 gap-3">
@@ -230,8 +233,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="text-sm font-semibold text-gray-900">{offer.shop.name}</p>
                           {index === 0 && (
-                            <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                              საუკეთესო
+                            <span className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                              საუკეთესო ფასი
                             </span>
                           )}
                           {offerDiscount > 0 && <DiscountBadge percent={offerDiscount} />}
