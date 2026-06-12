@@ -39,18 +39,28 @@ async function resolveCategoryForPage(slug: string) {
   return { category, publicCategories };
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Params;
+}): Promise<Metadata> {
   const slug = resolvePublicCategorySlug((await params).slug);
   // Removed (non-public) categories must not be indexed.
   if (!isPublicCategorySlug(slug)) return { title: "კატეგორია ვერ მოიძებნა", robots: { index: false, follow: false } };
   const { category } = await resolveCategoryForPage(slug);
-  return category
-    ? {
-        title: `${category.nameKa} ფასები და აქციები`,
-        description: `${category.nameKa} კატეგორიის პროდუქტების ფასები და აქციები ქართულ ონლაინ მაღაზიებში.`,
-        alternates: { canonical: `/categories/${category.slug}` },
-      }
-    : { title: "კატეგორია" };
+  if (!category) return { title: "კატეგორია" };
+
+  // Paginated listings self-canonicalize per page so page 2+ is not treated
+  // as duplicate content of page 1; filtered views canonicalize to the base.
+  const page = pageNumberParam((await searchParams).page);
+  const canonical = page > 1 ? `/categories/${category.slug}?page=${page}` : `/categories/${category.slug}`;
+  return {
+    title: `${category.nameKa} ფასები და აქციები`,
+    description: `${category.nameKa} კატეგორიის პროდუქტების ფასები და აქციები ქართულ ონლაინ მაღაზიებში.`,
+    alternates: { canonical },
+  };
 }
 
 export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Params }) {
