@@ -120,6 +120,16 @@ Canonical key format: `brand|model|ram|storage|color` (e.g. `xiaomi|poco_f7_ultr
 - **Checkpoint bug**: `--resume` shares a single `.codex-logs/checkpoints/{jobName}.json` across ALL categories. When looping over multiple categories, always reset offset to 0 and use `--offset=N` explicitly — never `--resume` across category boundaries.
 - **grep on Windows**: `grep -P` fails on Windows Git-bash. Use `grep -Eo 'pattern'` (POSIX extended) instead.
 
+### Price Alert Emails
+
+`src/server/alerts/evaluate.ts` (run via `npm run alerts:evaluate` at the end of each sync workflow) triggers ACTIVE `UserPriceAlert`s and sends emails through `src/server/alerts/email.ts`. Transport is picked automatically:
+
+1. **Resend** — set `RESEND_API_KEY` (uses Resend's HTTP API, no SDK)
+2. **SMTP** — set `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (optional: `SMTP_PORT`, default 587; `SMTP_SECURE=true` for implicit TLS — port 465 implies it) via nodemailer
+3. Neither set → no email; alerts are still recorded as `AlertEvent` rows (`notifiedVia="none"`), and `ALERT_PROVIDER=console` logs them instead.
+
+`ALERT_EMAIL_FROM` overrides the From address (falls back to `SMTP_USER`, then `Fasmetri <alerts@fasmetri.ge>`). Emails are only sent when the price dropped ≥5% vs the previous price (offer `oldPrice` or latest `PriceHistory`); smaller moves still trigger the alert + AlertEvent but skip the email to avoid spam. Send failures never block the alert from being recorded.
+
 ### Safety Constraints
 
 - Default mode must be dry-run for destructive catalog operations
