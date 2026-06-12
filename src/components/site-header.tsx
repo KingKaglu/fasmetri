@@ -40,10 +40,10 @@ export function SiteHeader() {
 
       {/* Main navbar */}
       <div className="shell flex h-[3.75rem] items-center gap-4">
-        {/* Logo */}
-        <Link href="/" className="shrink-0">
+        {/* Logo (BrandLogo renders its own link — nesting another <a> breaks hydration) */}
+        <div className="shrink-0">
           <BrandLogo compact />
-        </Link>
+        </div>
 
         {/* Search — desktop */}
         <div className="hidden min-w-0 flex-1 max-w-[34rem] md:block">
