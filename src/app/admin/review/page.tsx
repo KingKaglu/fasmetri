@@ -2,7 +2,9 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
 import { AutoTriageButton, BulkApproveForm, ReviewRowActions } from "@/components/admin-review-actions";
+import { ReviewKeyboardNav } from "@/components/admin-review-keyboard";
 import {
+  AdminConfidenceBar,
   AdminEmptyState,
   AdminLoginShell,
   AdminMetricCard,
@@ -13,7 +15,7 @@ import {
 } from "@/components/admin-ui";
 import { ProductImage } from "@/components/public-ui";
 import { isAdminRequest } from "@/lib/admin-auth";
-import { formatGel, formatUpdated } from "@/lib/format";
+import { formatGel, formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -83,14 +85,17 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
   // Offers already linked to this exact canonical (e.g. by a later matcher
   // run) don't need a decision — hide them from the queue.
   const rows = matches.filter((match) => match.rawOffer.productOffer?.canonicalProductId !== match.canonicalProductId);
+  const shownPending = category ? (category === "mobiles" ? mobilesPending : laptopsPending) : totalPending;
 
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="match review"
+        breadcrumbs={[{ label: "ადმინი", href: "/admin" }, { label: "Match review" }]}
         title="Match review queue"
-        description="Matcher-მა ეს წყვილები ვერ დაადასტურა ავტომატურად (confidence < 85). შეადარე ორი მხარე და გადაწყვიტე."
-      />
+        description={`Matcher-მა ეს წყვილები ვერ დაადასტურა ავტომატურად (confidence < 85). დარჩენილია ${shownPending} გადასაწყვეტი.`}
+      >
+        <AutoTriageButton />
+      </AdminPageHeader>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <AdminMetricCard label="Pending სულ" value={totalPending} tone={totalPending ? "warn" : "good"} />
@@ -105,9 +110,9 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
         <div className="flex flex-wrap items-center justify-between gap-3 p-4">
           <div className="flex flex-wrap gap-2">
             {[
-              { href: "/admin/review", label: "ყველა", active: !category },
-              { href: "/admin/review?category=mobiles", label: "ტელეფონები", active: category === "mobiles" },
-              { href: "/admin/review?category=laptops", label: "ლეპტოპები", active: category === "laptops" },
+              { href: "/admin/review", label: `ყველა (${totalPending})`, active: !category },
+              { href: "/admin/review?category=mobiles", label: `ტელეფონები (${mobilesPending})`, active: category === "mobiles" },
+              { href: "/admin/review?category=laptops", label: `ლეპტოპები (${laptopsPending})`, active: category === "laptops" },
             ].map((filter) => (
               <Link
                 key={filter.href}
@@ -120,10 +125,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
               </Link>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <AutoTriageButton />
-            <BulkApproveForm category={category} />
-          </div>
+          <BulkApproveForm category={category} />
         </div>
       </AdminPanel>
 
@@ -133,73 +135,77 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
           const canonical = match.canonicalProduct;
           const cheapest = canonical.offers[0];
           return (
-            <AdminPanel key={match.id}>
-              <article className="p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <AdminStatusPill tone={match.confidence >= 80 ? "warn" : "danger"}>
-                      Confidence {match.confidence}%
-                    </AdminStatusPill>
-                    <AdminStatusPill tone="info">{canonical.categorySlug}</AdminStatusPill>
-                    <AdminStatusPill>{match.shop.name}</AdminStatusPill>
-                  </div>
-                  <time className="text-xs font-black text-[var(--muted)]" dateTime={match.matchedAt.toISOString()}>
-                    {formatUpdated(match.matchedAt)}
-                  </time>
-                </div>
-
-                <p className="mt-2 rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{match.reason}</p>
-
-                <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_14rem]">
-                  <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
-                    <div className="overflow-hidden rounded-xl border border-[#dbe5d3] bg-white">
-                      <ProductImage src={raw.originalImageUrl} alt={raw.originalTitle} />
+            <div
+              key={match.id}
+              data-review-row={match.id}
+              className="rounded-[1.15rem] transition data-[selected=true]:ring-2 data-[selected=true]:ring-[#151713] data-[selected=true]:ring-offset-2"
+            >
+              <AdminPanel>
+                <article className="p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <AdminConfidenceBar value={match.confidence} />
+                      <AdminStatusPill tone="info">{canonical.categorySlug}</AdminStatusPill>
+                      <AdminStatusPill>{match.shop.name}</AdminStatusPill>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">{match.shop.name} — ახალი შეთავაზება</p>
-                      <p className="mt-1 break-words text-sm font-black leading-snug text-[var(--brand)]">{raw.originalTitle}</p>
-                      {raw.rawPrice != null ? <p className="mt-1 text-lg font-black tabular-nums text-[#087d8f]">{formatGel(Number(raw.rawPrice))}</p> : null}
-                      <a href={raw.originalUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-black text-[var(--brand)] underline-offset-2 hover:underline">
-                        მაღაზიაში ნახვა <ExternalLink className="size-3" />
-                      </a>
-                    </div>
+                    <time className="text-xs font-black text-[var(--muted)]" dateTime={match.matchedAt.toISOString()}>
+                      {formatRelativeTime(match.matchedAt)}
+                    </time>
                   </div>
 
-                  <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#dbe5d3] bg-white p-3">
-                    <div className="overflow-hidden rounded-xl border border-[#dbe5d3] bg-[#f8fbf4]">
-                      <ProductImage src={canonical.primaryImage} alt={canonical.title} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">არსებული პროდუქტი</p>
-                      <p className="mt-1 break-words text-sm font-black leading-snug text-[var(--brand)]">{canonical.title}</p>
-                      {cheapest ? (
-                        <p className="mt-1 text-lg font-black tabular-nums text-[#087d8f]">
-                          {formatGel(Number(cheapest.currentPrice))} <span className="text-xs font-bold text-[var(--muted)]">({cheapest.shop.name})</span>
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-xs font-bold text-[var(--muted)]">აქტიური შეთავაზება არ აქვს.</p>
-                      )}
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {canonical.product?.slug ? (
-                          <Link href={`/products/${canonical.product.slug}`} target="_blank" className="inline-flex items-center gap-1 text-xs font-black text-[var(--brand)] underline-offset-2 hover:underline">
-                            Public page <ExternalLink className="size-3" />
-                          </Link>
-                        ) : null}
-                        {canonical.offers.map((offer) => (
-                          <a key={offer.id} href={offer.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[var(--muted-strong)] underline-offset-2 hover:underline">
-                            {offer.shop.name} <ExternalLink className="size-3" />
-                          </a>
-                        ))}
+                  <p className="mt-2 rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{match.reason}</p>
+
+                  <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_14rem]">
+                    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+                      <div className="overflow-hidden rounded-xl border border-[#dbe5d3] bg-white">
+                        <ProductImage src={raw.originalImageUrl} alt={raw.originalTitle} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">{match.shop.name} — ახალი შეთავაზება</p>
+                        <p className="mt-1 break-words text-sm font-black leading-snug text-[var(--brand)]">{raw.originalTitle}</p>
+                        {raw.rawPrice != null ? <p className="mt-1 text-lg font-black tabular-nums text-[#087d8f]">{formatGel(Number(raw.rawPrice))}</p> : null}
+                        <a href={raw.originalUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-black text-[var(--brand)] underline-offset-2 hover:underline">
+                          მაღაზიაში ნახვა <ExternalLink className="size-3" />
+                        </a>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid content-center">
-                    <ReviewRowActions matchId={match.id} />
+                    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#dbe5d3] bg-white p-3">
+                      <div className="overflow-hidden rounded-xl border border-[#dbe5d3] bg-[#f8fbf4]">
+                        <ProductImage src={canonical.primaryImage} alt={canonical.title} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">არსებული პროდუქტი</p>
+                        <p className="mt-1 break-words text-sm font-black leading-snug text-[var(--brand)]">{canonical.title}</p>
+                        {cheapest ? (
+                          <p className="mt-1 text-lg font-black tabular-nums text-[#087d8f]">
+                            {formatGel(Number(cheapest.currentPrice))} <span className="text-xs font-bold text-[var(--muted)]">({cheapest.shop.name})</span>
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-xs font-bold text-[var(--muted)]">აქტიური შეთავაზება არ აქვს.</p>
+                        )}
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {canonical.product?.slug ? (
+                            <Link href={`/products/${canonical.product.slug}`} target="_blank" className="inline-flex items-center gap-1 text-xs font-black text-[var(--brand)] underline-offset-2 hover:underline">
+                              Public page <ExternalLink className="size-3" />
+                            </Link>
+                          ) : null}
+                          {canonical.offers.map((offer) => (
+                            <a key={offer.id} href={offer.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-[var(--muted-strong)] underline-offset-2 hover:underline">
+                              {offer.shop.name} <ExternalLink className="size-3" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid content-center">
+                      <ReviewRowActions matchId={match.id} />
+                    </div>
                   </div>
-                </div>
-              </article>
-            </AdminPanel>
+                </article>
+              </AdminPanel>
+            </div>
           );
         })}
         {!rows.length ? (
@@ -209,6 +215,8 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
           />
         ) : null}
       </div>
+
+      <ReviewKeyboardNav matchIds={rows.map((match) => match.id)} />
     </AdminShell>
   );
 }
