@@ -645,6 +645,100 @@ export async function getCatalogStats() {
   return (await getPublicCatalogSummary()).stats;
 }
 
+export type RecentPriceChange = {
+  offerId: string;
+  productSlug: string;
+  productName: string;
+  imageUrl: string | null;
+  categorySlug: string | null;
+  shopName: string;
+  shopLogoUrl: string | null;
+  currentPrice: number;
+  previousPrice: number | null;
+  changedAt: string;
+};
+
+// Latest real price movements across the public catalog (one entry per
+// product), for the homepage "recently updated prices" feed.
+async function loadRecentPriceChanges(): Promise<RecentPriceChange[]> {
+  if (!prisma) return [];
+  try {
+    const offers = await prisma.productOffer.findMany({
+      where: {
+        ...publicOfferWhere,
+        lastPriceChangedAt: { not: null },
+        previousSeenPrice: { not: null },
+        product: {
+          isPublic: true,
+          archivedAt: null,
+          needsReview: false,
+          categoryNeedsReview: false,
+          OR: [
+            { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
+            { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
+          ],
+        },
+      },
+      orderBy: { lastPriceChangedAt: "desc" },
+      take: 40,
+      select: {
+        id: true,
+        currentPrice: true,
+        previousSeenPrice: true,
+        imageUrl: true,
+        lastPriceChangedAt: true,
+        shop: { select: { name: true, logoUrl: true } },
+        product: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            imageUrl: true,
+            categorySuggestedSlug: true,
+            category: { select: { slug: true } },
+          },
+        },
+      },
+    });
+
+    const seenProducts = new Set<string>();
+    const changes: RecentPriceChange[] = [];
+    for (const offer of offers) {
+      if (seenProducts.has(offer.product.id)) continue;
+      const currentPrice = numberValue(offer.currentPrice) ?? 0;
+      const previousPrice = numberValue(offer.previousSeenPrice);
+      // Skip no-op entries where the recorded previous price equals current.
+      if (currentPrice <= 0 || previousPrice == null || previousPrice === currentPrice) continue;
+      seenProducts.add(offer.product.id);
+      changes.push({
+        offerId: offer.id,
+        productSlug: offer.product.slug,
+        productName: prettifyProductName(offer.product.name),
+        imageUrl: offer.imageUrl ?? offer.product.imageUrl,
+        categorySlug: offer.product.category?.slug ?? offer.product.categorySuggestedSlug,
+        shopName: offer.shop.name,
+        shopLogoUrl: offer.shop.logoUrl,
+        currentPrice,
+        previousPrice,
+        changedAt: offer.lastPriceChangedAt!.toISOString(),
+      });
+      if (changes.length >= 5) break;
+    }
+    return changes;
+  } catch {
+    return [];
+  }
+}
+
+const cachedRecentPriceChanges = unstable_cache(loadRecentPriceChanges, ["recent-price-changes-v1"], {
+  revalidate: 300,
+  tags: ["catalog"],
+});
+
+export async function listRecentPriceChanges(): Promise<RecentPriceChange[]> {
+  return cachedRecentPriceChanges();
+}
+
 export type PublicCatalogStats = Awaited<ReturnType<typeof getCatalogStats>>;
 
 type PublicCatalogSummary = {

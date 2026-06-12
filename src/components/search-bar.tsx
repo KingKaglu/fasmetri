@@ -207,6 +207,7 @@ export function SearchBar({
 
         <button
           type="submit"
+          aria-label="ძებნა"
           className={`shrink-0 font-semibold text-white ${
             isHeader
               ? "h-full rounded-r-md bg-[var(--accent)] px-4 text-sm hover:bg-[var(--accent-strong)]"
