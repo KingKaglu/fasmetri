@@ -16,13 +16,17 @@ import {
   PUBLIC_LIST_PAGE_SIZE,
 } from "@/lib/publicQueryParams";
 
-export const metadata: Metadata = {
-  title: "აქციები და ფასდაკლებები",
-  description: "დღის ფასდაკლებები და აქციები ქართულ ონლაინ მაღაზიებში.",
-  alternates: { canonical: "/deals" },
-};
-
 type Params = Promise<Record<string, string | string[] | undefined>>;
+
+export async function generateMetadata({ searchParams }: { searchParams: Params }): Promise<Metadata> {
+  // Paginated deal listings self-canonicalize per page (see categories/[slug]).
+  const page = pageNumberParam((await searchParams).page);
+  return {
+    title: "აქციები და ფასდაკლებები",
+    description: "დღის ფასდაკლებები და აქციები ქართულ ონლაინ მაღაზიებში.",
+    alternates: { canonical: page > 1 ? `/deals?page=${page}` : "/deals" },
+  };
+}
 
 export default async function DealsPage({ searchParams }: { searchParams: Params }) {
   const params = await searchParams;

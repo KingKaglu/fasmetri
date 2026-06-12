@@ -49,14 +49,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
+  const cheapest = product.offers[0];
+  const ogImage = product.imageUrl ?? cheapest?.imageUrl ?? "/brand/fasmetri-logo.png";
+  const description = cheapest
+    ? `${product.name} — საუკეთესო ფასი ${formatGel(cheapest.currentPrice)}. შეადარე ფასები ქართულ ონლაინ მაღაზიებში.`
+    : `${product.name} ფასები და შეთავაზებები ქართულ ონლაინ მაღაზიებში.`;
+
   return {
     title: `${product.name} ფასების შედარება`,
-    description: `${product.name} ფასები და შეთავაზებები ქართულ ონლაინ მაღაზიებში.`,
+    description,
     alternates: { canonical: `/products/${product.slug}` },
     openGraph: {
       title: `${product.name} ფასების შედარება — ფასმეტრი`,
-      description: `${product.name} ფასები და შეთავაზებები ქართულ ონლაინ მაღაზიებში.`,
+      description,
+      images: [{ url: ogImage, alt: product.name }],
     },
+    other: cheapest
+      ? {
+          "product:price:amount": String(cheapest.currentPrice),
+          "product:price:currency": "GEL",
+        }
+      : undefined,
   };
 }
 
