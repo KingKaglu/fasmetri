@@ -159,6 +159,12 @@ export default async function AdminSyncPage() {
                 </div>
               ) : null}
 
+              {!module.syncLogs.length && !module.lastSuccess ? (
+                <div className="rounded-xl border border-dashed border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2.5 text-sm font-bold text-[var(--muted)]">
+                  სინქრონიზაცია არ მომხდარა
+                </div>
+              ) : null}
+
               {module.syncLogs.length ? (
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">Sync ისტორია</p>
