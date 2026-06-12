@@ -13,6 +13,7 @@ import {
   AdminShopAvatar,
   AdminStatusPill,
 } from "@/components/admin-ui";
+import { ProductBulkBar, ProductBulkProvider, ProductSelectCheckbox } from "@/components/admin-products-bulk";
 import { UnlinkOfferButton } from "@/components/admin-unlink-button";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { formatGel, formatRelativeTime } from "@/lib/format";
@@ -103,10 +104,11 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
   return (
     <AdminShell>
+      <ProductBulkProvider>
       <AdminPageHeader
         breadcrumbs={[{ label: "ადმინი", href: "/admin" }, { label: "პროდუქტები" }]}
         title="პროდუქტები"
-        description="ყველა canonical პროდუქტი მიბმული შეთავაზებებით. გახსენი რიგი ყველა მაღაზიის შეთავაზების სანახავად ან ცუდი match-ის მოსახსნელად."
+        description="ყველა canonical პროდუქტი მიბმული შეთავაზებებით. გახსენი რიგი ყველა მაღაზიის შეთავაზების სანახავად, ცუდი match-ის მოსახსნელად ან მონიშნე რამდენიმე bulk მოქმედებისთვის (გაერთიანება, დაშლა, ობლების წაშლა)."
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -141,11 +143,13 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </AdminPanel>
 
       <AdminPanel>
-        <div className="hidden grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,auto))_1.25rem] gap-3 border-b border-[#dbe5d3] bg-[#f8fbf4] px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)] sm:grid">
+        <div className="hidden grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem] gap-3 border-b border-[#dbe5d3] bg-[#f8fbf4] px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)] sm:grid">
+          <span />
           <span>პროდუქტი</span>
           <span>კატეგორია</span>
           <span className="text-right">შეთავაზებები</span>
           <span className="text-right">ფასი</span>
+          <span className="text-right">ფასი განახლდა</span>
           <span />
         </div>
         <div className="divide-y divide-[#edf2e8]">
@@ -155,9 +159,14 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
             const prices = activeOffers.map((offer) => Number(offer.currentPrice)).filter((price) => price > 0);
             const minPrice = prices.length ? Math.min(...prices) : null;
             const maxPrice = prices.length ? Math.max(...prices) : null;
+            const priceChangeTimes = product.offers
+              .map((offer) => offer.lastPriceChangedAt?.getTime())
+              .filter((time): time is number => Boolean(time));
+            const lastPriceUpdate = priceChangeTimes.length ? new Date(Math.max(...priceChangeTimes)) : null;
             return (
               <details key={product.id} className="group">
-                <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-[#f8fbf4] sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,auto))_1.25rem]">
+                <summary className="grid cursor-pointer list-none grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-[#f8fbf4] sm:grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem]">
+                  <ProductSelectCheckbox id={product.id} title={product.title} activeOffers={activeOffers.length} />
                   <div className="min-w-0">
                     <p className="break-words font-black leading-snug text-[var(--brand)]">{product.title}</p>
                     <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
@@ -168,6 +177,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                       <AdminStatusPill tone={activeOffers.length ? "good" : "warn"}>
                         {storeCount} მაღაზია / {activeOffers.length} შეთავაზება
                       </AdminStatusPill>
+                      <AdminStatusPill tone="neutral">ფასი: {lastPriceUpdate ? formatRelativeTime(lastPriceUpdate) : "—"}</AdminStatusPill>
                     </div>
                   </div>
                   <div className="hidden sm:block"><AdminStatusPill tone="info">{product.categorySlug}</AdminStatusPill></div>
@@ -176,6 +186,9 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   </div>
                   <div className="text-right text-sm font-black tabular-nums text-[#087d8f]">
                     {minPrice == null ? "—" : maxPrice !== minPrice ? `${formatGel(minPrice)} – ${formatGel(maxPrice!)}` : formatGel(minPrice)}
+                  </div>
+                  <div className="hidden text-right text-xs font-bold text-[var(--muted)] sm:block">
+                    {lastPriceUpdate ? formatRelativeTime(lastPriceUpdate) : "—"}
                   </div>
                   <ChevronDown className="size-4 shrink-0 text-[var(--muted)] transition group-open:rotate-180" />
                 </summary>
@@ -189,29 +202,43 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                       </Link>
                     ) : null}
                   </div>
-                  {product.offers.map((offer) => (
-                    <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white p-3">
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <AdminShopAvatar name={offer.shop.name} slug={offer.shop.slug} />
-                        <div className="min-w-0">
-                          <p className="break-words text-sm font-black text-[var(--brand)]">
-                            {offer.shop.name} — {offer.title}
-                          </p>
-                          <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
-                            {formatGel(Number(offer.currentPrice))} — {offer.availability}
-                            {offer.isActive ? "" : " — inactive"}
-                            {offer.matchConfidence != null ? ` — match ${offer.matchConfidence}%` : ""}
-                          </p>
+                  {product.offers.map((offer) => {
+                    const availabilityTone =
+                      offer.availability === "IN_STOCK" ? "good" : offer.availability === "OUT_OF_STOCK" ? "danger" : "warn";
+                    return (
+                      <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white p-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <AdminShopAvatar name={offer.shop.name} slug={offer.shop.slug} />
+                          <div className="min-w-0">
+                            <p className="break-words text-sm font-black text-[var(--brand)]">
+                              {offer.shop.name} — {offer.title}
+                            </p>
+                            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
+                              <span className="tabular-nums">{formatGel(Number(offer.currentPrice))}</span>
+                              <AdminStatusPill tone={availabilityTone}>{offer.availability}</AdminStatusPill>
+                              {offer.isActive ? null : <AdminStatusPill tone="danger">inactive</AdminStatusPill>}
+                              {offer.matchConfidence != null ? <AdminStatusPill tone="info">match {offer.matchConfidence}%</AdminStatusPill> : null}
+                              {offer.lastPriceChangedAt ? <span>ფასი განახლდა {formatRelativeTime(offer.lastPriceChangedAt)}</span> : null}
+                            </p>
+                            <a
+                              href={offer.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-1 block max-w-md truncate text-xs font-bold text-[#087d8f] underline-offset-2 hover:underline"
+                            >
+                              {offer.url}
+                            </a>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">
+                            ნახვა <ExternalLink className="size-3.5" />
+                          </a>
+                          <UnlinkOfferButton offerId={offer.id} offerTitle={`${offer.shop.name}: ${offer.title}`} />
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">
-                          ნახვა <ExternalLink className="size-3.5" />
-                        </a>
-                        <UnlinkOfferButton offerId={offer.id} offerTitle={`${offer.shop.name}: ${offer.title}`} />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {!product.offers.length ? <p className="text-sm font-bold text-[var(--muted)]">შეთავაზება არ აქვს.</p> : null}
                 </div>
               </details>
@@ -236,6 +263,9 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
           ) : null}
         </div>
       ) : null}
+
+      <ProductBulkBar />
+      </ProductBulkProvider>
     </AdminShell>
   );
 }
