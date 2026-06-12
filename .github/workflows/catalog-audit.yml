@@ -11,7 +11,7 @@ on:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 45
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}

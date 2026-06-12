@@ -10,7 +10,7 @@ on:
 
 jobs:
   health:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
