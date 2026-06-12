@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { Clock3, ExternalLink, Globe2, MousePointerClick, PackageSearch, Store } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
+import { AdminProductThumb } from "@/components/admin-product-thumb";
 import { AdminEmptyState, AdminLoginShell, AdminMetricCard, AdminPageHeader, AdminPanel, AdminShell, AdminStatusPill } from "@/components/admin-ui";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { formatGel, formatUpdated } from "@/lib/format";
@@ -30,6 +31,7 @@ type ClickRow = {
   offer: {
     title: string;
     url: string;
+    imageUrl: string | null;
     shop: { name: string; slug: string };
     product: { name: string; slug: string };
   } | null;
@@ -62,6 +64,7 @@ export default async function AdminClicksPage() {
             select: {
               title: true,
               url: true,
+              imageUrl: true,
               shop: { select: { name: true, slug: true } },
               product: { select: { name: true, slug: true } },
             },
@@ -143,7 +146,10 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
                     </span>
                     {row.category ? <AdminStatusPill>{row.category}</AdminStatusPill> : null}
                   </div>
-                  <h2 className="mt-2 break-words text-lg font-black leading-snug text-[var(--brand)]">{productTitle}</h2>
+                  <div className="mt-2 flex items-center gap-3">
+                    <AdminProductThumb src={row.offer?.imageUrl} alt={productTitle} size={48} />
+                    <h2 className="min-w-0 break-words text-lg font-black leading-snug text-[var(--brand)]">{productTitle}</h2>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs font-black">
                     {productSlug ? (
                       <Link href={`/products/${productSlug}`} target="_blank" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-[#f8fbf4] px-3 text-[var(--brand)] hover:border-[#151713]">

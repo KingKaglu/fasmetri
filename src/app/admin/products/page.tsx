@@ -13,6 +13,7 @@ import {
   AdminShopAvatar,
   AdminStatusPill,
 } from "@/components/admin-ui";
+import { AdminProductThumb } from "@/components/admin-product-thumb";
 import { ProductBulkBar, ProductBulkProvider, ProductSelectCheckbox } from "@/components/admin-products-bulk";
 import { UnlinkOfferButton } from "@/components/admin-unlink-button";
 import { isAdminRequest } from "@/lib/admin-auth";
@@ -167,7 +168,9 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
               <details key={product.id} className="group">
                 <summary className="grid cursor-pointer list-none grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-[#f8fbf4] sm:grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem]">
                   <ProductSelectCheckbox id={product.id} title={product.title} activeOffers={activeOffers.length} />
-                  <div className="min-w-0">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <AdminProductThumb src={product.primaryImage} alt={product.title} />
+                    <div className="min-w-0">
                     <p className="break-words font-black leading-snug text-[var(--brand)]">{product.title}</p>
                     <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
                       {product.brand} — განახლდა {formatRelativeTime(product.updatedAt)}
@@ -178,6 +181,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                         {storeCount} მაღაზია / {activeOffers.length} შეთავაზება
                       </AdminStatusPill>
                       <AdminStatusPill tone="neutral">ფასი: {lastPriceUpdate ? formatRelativeTime(lastPriceUpdate) : "—"}</AdminStatusPill>
+                    </div>
                     </div>
                   </div>
                   <div className="hidden sm:block"><AdminStatusPill tone="info">{product.categorySlug}</AdminStatusPill></div>
@@ -208,6 +212,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                     return (
                       <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white p-3">
                         <div className="flex min-w-0 items-center gap-2.5">
+                          <AdminProductThumb src={offer.imageUrl} alt={offer.title} size={36} />
                           <AdminShopAvatar name={offer.shop.name} slug={offer.shop.slug} />
                           <div className="min-w-0">
                             <p className="break-words text-sm font-black text-[var(--brand)]">
