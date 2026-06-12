@@ -1,25 +1,29 @@
 import Link from "next/link";
-import { ArrowDownUp, GitCompareArrows, RefreshCw } from "lucide-react";
+import { ArrowDownUp, GitCompareArrows, PackageSearch, RefreshCw, Tags } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
 import {
+  AdminActionCard,
   AdminEmptyState,
   AdminLoginShell,
   AdminMetricCard,
   AdminPageHeader,
   AdminPanel,
   AdminShell,
+  AdminStatusDot,
   AdminStatusPill,
 } from "@/components/admin-ui";
 import { MatcherTriggerButton, StaleOfferCleanupButton } from "@/components/admin-sync-actions";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { githubConfigured } from "@/lib/admin-sync-status";
-import { formatGel, formatUpdated } from "@/lib/format";
+import { formatGel, formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 const SYNC_FRESH_MS = 24 * 60 * 60 * 1000;
+const SYNC_WARN_MS = 6 * 60 * 60 * 1000;
 const STALE_OFFER_MS = 7 * 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default async function AdminDashboardPage() {
   if (!(await isAdminRequest())) return <AdminLoginShell><AdminLogin /></AdminLoginShell>;
@@ -31,7 +35,11 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const staleCutoff = new Date(Date.now() - STALE_OFFER_MS);
+  const now = Date.now();
+  const staleCutoff = new Date(now - STALE_OFFER_MS);
+  const weekAgo = new Date(now - WEEK_MS);
+  const twoWeeksAgo = new Date(now - 2 * WEEK_MS);
+
   const [
     canonicalCount,
     activeOffers,
@@ -43,6 +51,12 @@ export default async function AdminDashboardPage() {
     offersByShop,
     recentMatches,
     recentPriceChanges,
+    productsThisWeek,
+    productsLastWeek,
+    offersThisWeek,
+    offersLastWeek,
+    matchesThisWeek,
+    matchesLastWeek,
   ] = await Promise.all([
     prisma.canonicalProduct.count(),
     prisma.productOffer.count({ where: { isActive: true } }),
@@ -59,26 +73,33 @@ export default async function AdminDashboardPage() {
     }),
     prisma.possibleMatch.findMany({
       orderBy: { matchedAt: "desc" },
-      take: 5,
+      take: 6,
       select: { id: true, rawTitle: true, candidateTitle: true, confidence: true, status: true, matchedAt: true, shop: { select: { name: true } } },
     }),
     prisma.priceHistory.findMany({
       orderBy: { capturedAt: "desc" },
-      take: 5,
+      take: 6,
       select: { id: true, price: true, oldPrice: true, capturedAt: true, offer: { select: { title: true, shop: { select: { name: true } } } } },
     }),
+    prisma.canonicalProduct.count({ where: { createdAt: { gte: weekAgo } } }),
+    prisma.canonicalProduct.count({ where: { createdAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
+    prisma.productOffer.count({ where: { firstSeenAt: { gte: weekAgo } } }),
+    prisma.productOffer.count({ where: { firstSeenAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
+    prisma.possibleMatch.count({ where: { matchedAt: { gte: weekAgo } } }),
+    prisma.possibleMatch.count({ where: { matchedAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
   ]);
 
   const shopStatus = shops
     .map((shop) => {
       const group = offersByShop.find((row) => row.shopId === shop.id);
       const lastSeen = group?._max.lastSeenAt ?? null;
-      const online = Boolean(lastSeen && Date.now() - lastSeen.getTime() < SYNC_FRESH_MS);
-      return { ...shop, offerCount: group?._count._all ?? 0, lastSeen, online };
+      const age = lastSeen ? now - lastSeen.getTime() : Infinity;
+      const tone: "good" | "warn" | "danger" = age < SYNC_WARN_MS ? "good" : age < SYNC_FRESH_MS ? "warn" : "danger";
+      return { ...shop, offerCount: group?._count._all ?? 0, lastSeen, tone };
     })
     .filter((shop) => shop.offerCount > 0)
     .sort((a, b) => b.offerCount - a.offerCount);
-  const onlineCount = shopStatus.filter((shop) => shop.online).length;
+  const healthyCount = shopStatus.filter((shop) => shop.tone === "good").length;
 
   const activity = [
     ...recentMatches.map((match) => ({
@@ -113,27 +134,78 @@ export default async function AdminDashboardPage() {
       </AdminPageHeader>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <AdminMetricCard label="პროდუქტები" value={canonicalCount} detail="canonical კატალოგი" tone="info" />
-        <AdminMetricCard label="აქტიური შეთავაზებები" value={activeOffers} tone="good" />
-        <AdminMetricCard label="Review queue" value={pendingReview} detail="pending match" tone={pendingReview ? "warn" : "good"} />
+        <AdminMetricCard
+          label="პროდუქტები"
+          value={canonicalCount}
+          detail="canonical კატალოგი"
+          tone="info"
+          trend={{ delta: productsThisWeek - productsLastWeek, label: "კვირასთან" }}
+        />
+        <AdminMetricCard
+          label="აქტიური შეთავაზებები"
+          value={activeOffers}
+          tone="good"
+          trend={{ delta: offersThisWeek - offersLastWeek, label: "კვირასთან" }}
+        />
+        <AdminMetricCard
+          label="Review queue"
+          value={pendingReview}
+          detail="pending match"
+          tone={pendingReview ? "warn" : "good"}
+          trend={{ delta: matchesThisWeek - matchesLastWeek, label: "კვირასთან", downIsGood: true }}
+        />
         <AdminMetricCard label="მარაგი ამოწურულია" value={outOfStock} detail="აქტიური, out of stock" tone={outOfStock ? "warn" : "good"} />
         <AdminMetricCard label="მიუბმელი" value={unlinkedOffers} detail="canonical-ის გარეშე" tone={unlinkedOffers ? "warn" : "good"} />
-        <AdminMetricCard label="მაღაზიები" value={`${onlineCount}/${shopStatus.length}`} detail="sync ბოლო 24სთ-ში" tone={onlineCount === shopStatus.length ? "good" : "danger"} />
+        <AdminMetricCard label="მაღაზიები" value={`${healthyCount}/${shopStatus.length}`} detail="sync ბოლო 6სთ-ში" tone={healthyCount === shopStatus.length ? "good" : "danger"} />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <AdminActionCard
+          href="/admin/review"
+          icon={<GitCompareArrows className="size-5" />}
+          title="Match review"
+          description="დაადასტურე ან უარყავი matcher-ის წყვილები"
+          badge={pendingReview ? <AdminStatusPill tone="warn">{pendingReview}</AdminStatusPill> : <AdminStatusPill tone="good">სუფთაა</AdminStatusPill>}
+        />
+        <AdminActionCard
+          href="/admin/sync"
+          icon={<RefreshCw className="size-5" />}
+          title="Sync-ის გაშვება"
+          description="ფასების ან სრული სინქი მაღაზიების მიხედვით"
+        />
+        <AdminActionCard
+          href="/admin/offers?view=unlinked"
+          icon={<ArrowDownUp className="size-5" />}
+          title="მიუბმელი შეთავაზებები"
+          description="შეთავაზებები canonical პროდუქტის გარეშე"
+          badge={unlinkedOffers ? <AdminStatusPill tone="warn">{unlinkedOffers}</AdminStatusPill> : null}
+        />
+        <AdminActionCard
+          href="/admin/products"
+          icon={<PackageSearch className="size-5" />}
+          title="კატალოგის დათვალიერება"
+          description="canonical პროდუქტები მიბმული შეთავაზებებით"
+        />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_.85fr]">
-        <AdminPanel title="მაღაზიების სტატუსი" description="ბოლო sync = ბოლოს ნანახი შეთავაზება ამ მაღაზიიდან.">
+        <AdminPanel title="მაღაზიების სტატუსი" description="🟢 sync ბოლო 6სთ-ში · 🟡 ბოლო 24სთ-ში · 🔴 24სთ+">
           <div className="divide-y divide-[#edf2e8]">
             {shopStatus.map((shop) => (
               <div key={shop.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
-                  <p className="font-black text-[var(--brand)]">{shop.name}</p>
-                  <p className="text-xs font-bold text-[var(--muted)]">
+                  <div className="flex items-center gap-2.5">
+                    <AdminStatusDot tone={shop.tone} pulse={shop.tone !== "good"} />
+                    <p className="font-black text-[var(--brand)]">{shop.name}</p>
+                  </div>
+                  <p className="mt-0.5 pl-5 text-xs font-bold text-[var(--muted)]">
                     {shop.offerCount} აქტიური შეთავაზება
-                    {shop.lastSeen ? ` — ბოლო sync ${formatUpdated(shop.lastSeen)}` : ""}
+                    {shop.lastSeen ? ` — ბოლო sync ${formatRelativeTime(shop.lastSeen)}` : ""}
                   </p>
                 </div>
-                <AdminStatusPill tone={shop.online ? "good" : "danger"}>{shop.online ? "online" : "offline"}</AdminStatusPill>
+                <Link href="/admin/sync" className="text-xs font-black text-[var(--muted)] underline-offset-2 hover:text-[var(--brand)] hover:underline">
+                  დეტალები
+                </Link>
               </div>
             ))}
             {!shopStatus.length ? <div className="p-4"><AdminEmptyState title="აქტიური მაღაზია არ არის" /></div> : null}
@@ -142,21 +214,14 @@ export default async function AdminDashboardPage() {
 
         <AdminPanel title="სწრაფი მოქმედებები" description="Sync-ის გაშვება GitHub Actions-ით; გასუფთავება პირდაპირ ბაზაში.">
           <div className="grid gap-3 p-4">
-            <Link
-              href="/admin/sync"
-              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]"
-            >
-              <RefreshCw className="size-4" />
-              Sync-ის გაშვება მაღაზიების მიხედვით
-            </Link>
             {githubConfigured() ? <MatcherTriggerButton /> : null}
             <StaleOfferCleanupButton staleCount={staleOffers} />
             <Link
-              href="/admin/offers?view=unlinked"
+              href="/admin/offers?view=oos"
               className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]"
             >
-              <ArrowDownUp className="size-4" />
-              მიუბმელი შეთავაზებები ({unlinkedOffers})
+              <Tags className="size-4" />
+              Out-of-stock შეთავაზებები ({outOfStock})
             </Link>
           </div>
         </AdminPanel>
@@ -174,8 +239,8 @@ export default async function AdminDashboardPage() {
                   </div>
                   <p className="mt-1 text-xs font-bold text-[var(--muted)]">{item.detail}</p>
                 </div>
-                <time className="shrink-0 text-xs font-black text-[var(--muted)]" dateTime={item.at.toISOString()}>
-                  {formatUpdated(item.at)}
+                <time className="shrink-0 text-xs font-black text-[var(--muted)]" dateTime={item.at.toISOString()} title={item.at.toISOString()}>
+                  {formatRelativeTime(item.at)}
                 </time>
               </div>
             ))}

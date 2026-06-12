@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
-import { ChevronDown, ExternalLink, Search } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
+import { AdminDebouncedSearch } from "@/components/admin-search";
 import {
   AdminEmptyState,
   AdminLoginShell,
@@ -9,11 +10,12 @@ import {
   AdminPageHeader,
   AdminPanel,
   AdminShell,
+  AdminShopAvatar,
   AdminStatusPill,
 } from "@/components/admin-ui";
 import { UnlinkOfferButton } from "@/components/admin-unlink-button";
 import { isAdminRequest } from "@/lib/admin-auth";
-import { formatGel, formatUpdated } from "@/lib/format";
+import { formatGel, formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -40,10 +42,19 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
   const q = firstParam(params.q)?.trim() || undefined;
   const categoryParam = firstParam(params.category);
   const category = categoryParam === "mobiles" || categoryParam === "laptops" ? categoryParam : undefined;
+  const shopSlug = firstParam(params.shop) || undefined;
+  const linkedParam = firstParam(params.linked);
+  const linked = linkedParam === "orphan" || linkedParam === "linked" ? linkedParam : undefined;
   const page = Math.max(1, Number(firstParam(params.page)) || 1);
+
+  const offerFilters: Prisma.CanonicalProductWhereInput[] = [];
+  if (shopSlug) offerFilters.push({ offers: { some: { isActive: true, shop: { slug: shopSlug } } } });
+  if (linked === "orphan") offerFilters.push({ offers: { none: { isActive: true } } });
+  if (linked === "linked") offerFilters.push({ offers: { some: { isActive: true } } });
 
   const where: Prisma.CanonicalProductWhereInput = {
     categorySlug: category,
+    AND: offerFilters.length ? offerFilters : undefined,
     OR: q
       ? [
           { title: { contains: q, mode: "insensitive" } },
@@ -54,7 +65,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       : undefined,
   };
 
-  const [total, products] = await Promise.all([
+  const [total, products, shops] = await Promise.all([
     prisma.canonicalProduct.count({ where }),
     prisma.canonicalProduct.findMany({
       where,
@@ -69,21 +80,31 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
         },
       },
     }),
+    prisma.shop.findMany({
+      where: { offers: { some: { isActive: true } } },
+      select: { slug: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const query = (overrides: Record<string, string | undefined>) => {
     const next = new URLSearchParams();
-    const merged = { q, category, page: undefined, ...overrides };
+    const merged = { q, category, shop: shopSlug, linked, page: undefined, ...overrides };
     for (const [key, value] of Object.entries(merged)) if (value) next.set(key, value);
     const text = next.toString();
     return text ? `/admin/products?${text}` : "/admin/products";
   };
 
+  const chip = (active: boolean) =>
+    `inline-flex h-9 items-center gap-1.5 rounded-2xl px-3 text-xs font-black transition ${
+      active ? "bg-[#151713] text-white" : "border border-[#c8d7bd] bg-white text-[var(--brand)] hover:border-[#151713]"
+    }`;
+
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="canonical catalog"
+        breadcrumbs={[{ label: "ადმინი", href: "/admin" }, { label: "პროდუქტები" }]}
         title="პროდუქტები"
         description="ყველა canonical პროდუქტი მიბმული შეთავაზებებით. გახსენი რიგი ყველა მაღაზიის შეთავაზების სანახავად ან ცუდი match-ის მოსახსნელად."
       />
@@ -95,34 +116,24 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </div>
 
       <AdminPanel>
-        <div className="flex flex-wrap items-center gap-2 p-4">
-          <form action="/admin/products" className="flex min-w-0 flex-1 items-center gap-2">
-            {category ? <input type="hidden" name="category" value={category} /> : null}
-            <span className="relative block min-w-0 flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--muted)]" />
-              <input
-                name="q"
-                defaultValue={q ?? ""}
-                placeholder="ძიება სახელით, ბრენდით ან canonical key-თ"
-                className="h-11 w-full rounded-2xl border border-[#c8d7bd] bg-white pl-10 pr-3 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#151713]"
-              />
-            </span>
-            <button className="h-11 rounded-2xl bg-[#151713] px-4 text-sm font-black text-white hover:bg-black">ძიება</button>
-          </form>
-          <div className="flex gap-2">
-            {[
-              { href: query({ category: undefined }), label: "ყველა", active: !category },
-              { href: query({ category: "mobiles" }), label: "ტელეფონები", active: category === "mobiles" },
-              { href: query({ category: "laptops" }), label: "ლეპტოპები", active: category === "laptops" },
-            ].map((filter) => (
-              <Link
-                key={filter.label}
-                href={filter.href}
-                className={`inline-flex h-11 items-center rounded-2xl px-4 text-sm font-black ${
-                  filter.active ? "bg-[#151713] text-white" : "border border-[#c8d7bd] bg-white text-[var(--brand)] hover:border-[#151713]"
-                }`}
-              >
-                {filter.label}
+        <div className="grid gap-3 p-4">
+          <AdminDebouncedSearch placeholder="ძიება სახელით, ბრენდით ან canonical key-თ…" />
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)]">კატეგორია</span>
+            <Link href={query({ category: undefined })} className={chip(!category)}>ყველა</Link>
+            <Link href={query({ category: "mobiles" })} className={chip(category === "mobiles")}>ტელეფონები</Link>
+            <Link href={query({ category: "laptops" })} className={chip(category === "laptops")}>ლეპტოპები</Link>
+            <span className="ml-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)]">სტატუსი</span>
+            <Link href={query({ linked: undefined })} className={chip(!linked)}>ყველა</Link>
+            <Link href={query({ linked: "linked" })} className={chip(linked === "linked")}>აქტიური შეთავაზებით</Link>
+            <Link href={query({ linked: "orphan" })} className={chip(linked === "orphan")}>ობოლი</Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)]">მაღაზია</span>
+            <Link href={query({ shop: undefined })} className={chip(!shopSlug)}>ყველა</Link>
+            {shops.map((shop) => (
+              <Link key={shop.slug} href={query({ shop: shop.slug })} className={chip(shopSlug === shop.slug)}>
+                {shop.name}
               </Link>
             ))}
           </div>
@@ -130,6 +141,13 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </AdminPanel>
 
       <AdminPanel>
+        <div className="hidden grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,auto))_1.25rem] gap-3 border-b border-[#dbe5d3] bg-[#f8fbf4] px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)] sm:grid">
+          <span>პროდუქტი</span>
+          <span>კატეგორია</span>
+          <span className="text-right">შეთავაზებები</span>
+          <span className="text-right">ფასი</span>
+          <span />
+        </div>
         <div className="divide-y divide-[#edf2e8]">
           {products.map((product) => {
             const activeOffers = product.offers.filter((offer) => offer.isActive);
@@ -143,8 +161,14 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   <div className="min-w-0">
                     <p className="break-words font-black leading-snug text-[var(--brand)]">{product.title}</p>
                     <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
-                      {product.brand} — განახლდა {formatUpdated(product.updatedAt)}
+                      {product.brand} — განახლდა {formatRelativeTime(product.updatedAt)}
                     </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:hidden">
+                      <AdminStatusPill tone="info">{product.categorySlug}</AdminStatusPill>
+                      <AdminStatusPill tone={activeOffers.length ? "good" : "warn"}>
+                        {storeCount} მაღაზია / {activeOffers.length} შეთავაზება
+                      </AdminStatusPill>
+                    </div>
                   </div>
                   <div className="hidden sm:block"><AdminStatusPill tone="info">{product.categorySlug}</AdminStatusPill></div>
                   <div className="hidden text-right text-sm font-black text-[var(--brand)] sm:block">
@@ -167,15 +191,18 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   </div>
                   {product.offers.map((offer) => (
                     <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white p-3">
-                      <div className="min-w-0">
-                        <p className="break-words text-sm font-black text-[var(--brand)]">
-                          {offer.shop.name} — {offer.title}
-                        </p>
-                        <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
-                          {formatGel(Number(offer.currentPrice))} — {offer.availability}
-                          {offer.isActive ? "" : " — inactive"}
-                          {offer.matchConfidence != null ? ` — match ${offer.matchConfidence}%` : ""}
-                        </p>
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <AdminShopAvatar name={offer.shop.name} slug={offer.shop.slug} />
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-black text-[var(--brand)]">
+                            {offer.shop.name} — {offer.title}
+                          </p>
+                          <p className="mt-0.5 text-xs font-bold text-[var(--muted)]">
+                            {formatGel(Number(offer.currentPrice))} — {offer.availability}
+                            {offer.isActive ? "" : " — inactive"}
+                            {offer.matchConfidence != null ? ` — match ${offer.matchConfidence}%` : ""}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">

@@ -19,7 +19,7 @@ export default async function AdminCategoryReviewPage() {
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="category review"
+        breadcrumbs={[{ label: "ადმინი", href: "/admin" }, { label: "კატეგორიები" }]}
         title="კატეგორიის review"
         description="დაბალი confidence მქონე პროდუქტები გადაამოწმე source link-ებით და შემდეგ ჩაკეტე სწორი კატეგორია."
       />

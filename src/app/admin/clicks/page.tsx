@@ -86,7 +86,7 @@ export default async function AdminClicksPage() {
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="click intelligence"
+        breadcrumbs={[{ label: "ადმინი", href: "/admin" }, { label: "კლიკები" }]}
         title="გადასვლების ანგარიში"
         description={`პირველი მხარის shop_click მონაცემები ბოლო 30 დღეში${rows ? ` - სულ ${rows.length} გადასვლა` : ""}.`}
       />

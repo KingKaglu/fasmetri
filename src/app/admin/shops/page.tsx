@@ -14,7 +14,7 @@ export default async function AdminShopsPage() {
   return (
     <AdminShell>
       <AdminPageHeader
-        eyebrow="store operations"
+        breadcrumbs={[{ label: "ადმინი", href: "/admin" }, { label: "მაღაზიები" }]}
         title="მაღაზიების მართვა"
         description="აქ ჩანს მხოლოდ ის მაღაზიები, რომლებიც საჯარო საიტზე რეალურად მონაწილეობენ."
       />
