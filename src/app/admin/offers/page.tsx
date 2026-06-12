@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { ExternalLink } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
+import { AdminProductThumb } from "@/components/admin-product-thumb";
 import { AdminDebouncedSearch } from "@/components/admin-search";
 import {
   AdminEmptyState,
@@ -189,6 +190,7 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                   className={`flex flex-wrap items-center justify-between gap-2 p-4 ${unlinked ? "border-l-4 border-l-[#f59e0b] bg-[#fffbeb]/60" : ""}`}
                 >
                   <div className="flex min-w-0 items-start gap-2.5">
+                    <AdminProductThumb src={offer.imageUrl} alt={offer.title} />
                     <AdminShopAvatar name={offer.shop.name} slug={offer.shop.slug} />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
