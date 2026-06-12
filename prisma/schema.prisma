@@ -572,7 +572,7 @@ model AlertEvent {
   targetPrice Decimal  @db.Decimal(12, 2)
   offerPrice  Decimal  @db.Decimal(12, 2)
   shopName    String?
-  notifiedVia String   @default("none") // "none" | "console" | "resend"
+  notifiedVia String   @default("none") // "none" | "console" | "resend" | "smtp"
   createdAt   DateTime @default(now())
 
   @@index([createdAt])

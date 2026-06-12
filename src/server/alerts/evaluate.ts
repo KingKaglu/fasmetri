@@ -1,36 +1,14 @@
 import { AlertStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/config/site";
+import { activeEmailProvider, priceDropEmailHtml, sendAlertEmail } from "@/server/alerts/email";
 
-type NotifiedVia = "none" | "console" | "resend";
+type NotifiedVia = "none" | "console" | "resend" | "smtp";
 
-// Sends one alert email through Resend's plain HTTP API when RESEND_API_KEY
-// is configured. Returns false (and logs) on any failure so the alert is
-// still recorded as an AlertEvent and marked TRIGGERED.
-async function sendResendEmail(to: string, subject: string, html: string): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return false;
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        from: process.env.ALERT_EMAIL_FROM ?? "Fasmetri <alerts@fasmetri.ge>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-    if (!response.ok) {
-      console.error(`[alerts] Resend send failed (${response.status}): ${(await response.text().catch(() => "")).slice(0, 200)}`);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error("[alerts] Resend send failed:", error);
-    return false;
-  }
-}
+// An email is only worth sending for a real price drop. Tiny moves that happen
+// to cross the target threshold trigger the alert (recorded as AlertEvent,
+// visible in /admin) but skip the email.
+const MIN_DROP_PERCENT_FOR_EMAIL = 5;
 
 export async function prepareTriggeredAlerts() {
   if (!prisma) return [];
@@ -43,7 +21,10 @@ export async function prepareTriggeredAlerts() {
             where: { isActive: true },
             orderBy: { currentPrice: "asc" },
             take: 1,
-            include: { shop: { select: { name: true } } },
+            include: {
+              shop: { select: { name: true } },
+              histories: { orderBy: { capturedAt: "desc" }, take: 1, select: { oldPrice: true } },
+            },
           },
         },
       },
@@ -53,19 +34,29 @@ export async function prepareTriggeredAlerts() {
 
   for (const alert of triggered) {
     const offer = alert.product.offers[0];
+    const currentPrice = Number(offer.currentPrice);
+    const targetPrice = Number(alert.targetPrice);
+    const previousPrice = resolvePreviousPrice(offer, currentPrice);
+    const dropPercent = previousPrice ? ((previousPrice - currentPrice) / previousPrice) * 100 : null;
     const unsubscribeUrl = `${siteUrl()}/alerts/unsubscribe/${alert.id}`;
     let notifiedVia: NotifiedVia = "none";
 
-    if (process.env.RESEND_API_KEY) {
-      const price = Number(offer.currentPrice).toFixed(2);
-      const sent = await sendResendEmail(
-        alert.email,
-        `ფასი დაიკლო: ${alert.product.name} — ${price} ₾`,
-        `<p>${alert.product.name} ახლა ${price} ₾ ღირს (${offer.shop.name}) — შენი სამიზნე ფასი იყო ${Number(alert.targetPrice).toFixed(2)} ₾.</p>` +
-          `<p><a href="${offer.url}">მაღაზიაში ნახვა</a></p>` +
-          `<p><a href="${unsubscribeUrl}">გამოწერის გაუქმება</a></p>`,
-      );
-      if (sent) notifiedVia = "resend";
+    // Unknown previous price means "target reached" — still worth the email.
+    const meaningfulDrop = dropPercent === null || dropPercent >= MIN_DROP_PERCENT_FOR_EMAIL;
+
+    if (activeEmailProvider() && meaningfulDrop) {
+      const displayOldPrice = previousPrice ?? targetPrice;
+      const html = priceDropEmailHtml({
+        productName: alert.product.name,
+        productUrl: `${siteUrl()}/products/${alert.product.slug}`,
+        shopName: offer.shop.name,
+        oldPrice: displayOldPrice,
+        newPrice: currentPrice,
+        savingPercent: dropPercent ?? Math.max(0, ((displayOldPrice - currentPrice) / displayOldPrice) * 100),
+        unsubscribeUrl,
+      });
+      const provider = await sendAlertEmail(alert.email, `ფასი დაიკლო: ${alert.product.name} — ${currentPrice.toFixed(2)} ₾`, html);
+      if (provider) notifiedVia = provider;
     } else if (process.env.ALERT_PROVIDER === "console") {
       console.log(`Alert ready for ${alert.email}: ${alert.product.name}; unsubscribe=${unsubscribeUrl}`);
       notifiedVia = "console";
@@ -91,4 +82,16 @@ export async function prepareTriggeredAlerts() {
     data: { status: AlertStatus.TRIGGERED, lastNotifiedAt: new Date() },
   });
   return triggered;
+}
+
+// Previous price for the drop calculation: the store's strike-through price
+// when present, otherwise the price recorded before the latest change.
+function resolvePreviousPrice(
+  offer: { oldPrice: unknown; histories: { oldPrice: unknown }[] },
+  currentPrice: number,
+): number | null {
+  const candidates = [offer.oldPrice, offer.histories[0]?.oldPrice]
+    .map((value) => (value == null ? null : Number(value)))
+    .filter((value): value is number => value !== null && Number.isFinite(value) && value > currentPrice);
+  return candidates.length ? Math.max(...candidates) : null;
 }
