@@ -1,3 +1,5 @@
+import next from "eslint-config-next";
+
 const eslintConfig = [
   {
     ignores: [
@@ -5,13 +7,12 @@ const eslintConfig = [
       ".next/**",
       "out/**",
       "build/**",
+      ".codex-logs/**",
+      "reports/**",
       "next-env.d.ts",
     ],
   },
-  {
-    files: ["**/*.{js,jsx,ts,tsx}"],
-    rules: {},
-  },
+  ...next,
 ];
 
 export default eslintConfig;
