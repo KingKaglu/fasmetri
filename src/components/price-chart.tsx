@@ -14,6 +14,11 @@ const shortDate = new Intl.DateTimeFormat("en-GB", {
   month: "2-digit",
 });
 
+// Fixed pixel height — must match the container div's height.
+// Using a number (not "100%") on ResponsiveContainer prevents the
+// ResizeObserver feedback loop in Recharts 3 that hangs the browser tab.
+const CHART_HEIGHT = 224;
+
 export function PriceChart({ history }: { history: HistoryPoint[] }) {
   const data = prepareHistory(history);
 
@@ -30,7 +35,12 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
   const minPrice = Math.min(...data.map((point) => point.price));
   const maxPrice = Math.max(...data.map((point) => point.price));
 
-  if (data.length === 1) {
+  // Guard: single point OR all timestamps identical → static display.
+  // A zero-range time domain on the XAxis makes Recharts loop computing
+  // tick positions, which hangs the browser tab.
+  const hasTimeSpread = data.length >= 2 && latestPoint.timestamp > firstPoint.timestamp;
+
+  if (!hasTimeSpread) {
     return (
       <div className="grid min-h-56 w-full gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
         <HistorySummary firstPoint={firstPoint} latestPoint={latestPoint} minPrice={minPrice} maxPrice={maxPrice} />
@@ -46,19 +56,27 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
     );
   }
 
+  // Explicit numeric domain so Recharts never receives a zero-range time scale.
+  const tsDomain: [number, number] = [firstPoint.timestamp, latestPoint.timestamp];
+  // Pre-compute up to 6 tick positions so D3's auto-tick algorithm never runs
+  // (it can generate thousands of intermediate values for long time ranges).
+  const xTicks = spreadTicks(data, 6);
+
   return (
     <div className="grid min-h-64 w-full gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
       <HistorySummary firstPoint={firstPoint} latestPoint={latestPoint} minPrice={minPrice} maxPrice={maxPrice} />
-      <div className="h-56 w-full min-w-0">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 720, height: 224 }}>
+      <div className="w-full min-w-0 overflow-hidden" style={{ height: CHART_HEIGHT }}>
+        {/* debounce throttles ResizeObserver callbacks; fixed height number
+            avoids the height="100%" → container-resize → re-measure loop. */}
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT} debounce={50}>
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 4 }}>
             <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
               type="number"
               scale="time"
-              domain={["dataMin", "dataMax"]}
-              minTickGap={24}
+              domain={tsDomain}
+              ticks={xTicks}
               tickFormatter={formatShortDate}
               tickLine={false}
               axisLine={false}
@@ -66,6 +84,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             />
             <YAxis
               domain={priceDomain(data)}
+              tickCount={6}
               tickFormatter={(value) => formatGel(Number(value))}
               width={80}
               tickLine={false}
@@ -93,7 +112,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               stroke="#2563eb"
               strokeWidth={2}
               activeDot={{ r: 5, fill: "#2563eb", stroke: "#ffffff", strokeWidth: 2 }}
-              dot={{ r: 3, fill: "#2563eb", stroke: "#2563eb" }}
+              dot={data.length > 60 ? false : { r: 3, fill: "#2563eb", stroke: "#2563eb" }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -151,4 +170,19 @@ function priceDomain(data: ChartPoint[]): [number, number] {
   const padding = Math.max((maximum - minimum) * 0.16, maximum * 0.04, 1);
 
   return [Math.max(0, Math.floor(minimum - padding)), Math.ceil(maximum + padding)];
+}
+
+// Returns at most `count` evenly-spaced timestamps from the dataset,
+// always including the first and last points. Providing explicit ticks
+// prevents Recharts from delegating to D3's time-scale auto-tick
+// algorithm, which can generate thousands of intermediate values for
+// long date ranges and stall the browser.
+function spreadTicks(data: ChartPoint[], count: number): number[] {
+  if (data.length <= count) return data.map((p) => p.timestamp);
+  const result: number[] = [data[0].timestamp];
+  for (let i = 1; i < count - 1; i++) {
+    result.push(data[Math.round((i * (data.length - 1)) / (count - 1))].timestamp);
+  }
+  result.push(data[data.length - 1].timestamp);
+  return [...new Set(result)];
 }
