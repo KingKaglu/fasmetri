@@ -4,7 +4,14 @@ import { cookies } from "next/headers";
 const cookieName = "fasmetri_admin";
 
 function secret() {
-  return process.env.ADMIN_SESSION_SECRET ?? "development-admin-session-secret";
+  const configured = process.env.ADMIN_SESSION_SECRET;
+  if (configured) return configured;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "ADMIN_SESSION_SECRET must be set in production. Refusing to sign admin sessions with the public dev fallback.",
+    );
+  }
+  return "development-admin-session-secret";
 }
 
 function signature(value: string) {
