@@ -324,7 +324,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   href={product.category ? `/categories/${product.category.slug}` : "/categories"}
                   action="კატეგორია"
                 />
-                <ProductGrid products={section.products} density="compact" />
+                <ProductGrid products={section.products} density="compact" priorityImages={0} />
               </div>
             ))
           ) : (

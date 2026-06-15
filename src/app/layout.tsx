@@ -57,6 +57,16 @@ export default function RootLayout({
 
   return (
     <html lang="ka" className="h-full antialiased">
+      <head>
+        {/*
+          Every product image (incl. the LCP hero + first listing cards) is served
+          through the wsrv.nl image proxy. Warming the DNS + TLS connection here
+          removes that handshake from the LCP image's critical path. crossOrigin is
+          required because next/image fetches the optimized image anonymously.
+        */}
+        <link rel="preconnect" href="https://wsrv.nl" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://wsrv.nl" />
+      </head>
       <body className="flex min-h-full flex-col">
         <JsonLd data={siteJsonLd} />
         <CompareProvider>

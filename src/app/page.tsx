@@ -193,7 +193,7 @@ export default async function Home() {
       {/* Trending */}
       <section className="shell pt-8 pb-4">
         <SectionBar eyebrow="ხშირად შედარებული" title="პოპულარული პროდუქტები" href="/search?sort=priority" action="ყველა" />
-        <ProductGrid products={trending} density="compact" resetHref="/search" emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
+        <ProductGrid products={trending} density="compact" resetHref="/search" priorityImages={0} emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
       </section>
 
       {/* Shops */}
