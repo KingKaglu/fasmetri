@@ -113,7 +113,7 @@ export function ProductCard({
         <div className="grid grid-cols-2 gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="flex h-9 items-center justify-center gap-1 rounded-md bg-gray-900 px-2 text-[11px] font-semibold text-white hover:bg-black"
+            className="flex h-9 items-center justify-center gap-1 rounded-md border border-[var(--accent)]/30 bg-blue-50 px-2 text-[11px] font-semibold text-[var(--accent)] hover:border-[var(--accent)]/50 hover:bg-blue-100"
           >
             <BarChart2 className="size-3 shrink-0" />
             <span className="truncate">შედარება</span>
