@@ -10,6 +10,8 @@ import { ActiveFilterChips } from "@/components/active-filter-chips";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { TrackView } from "@/components/track-view";
+import { JsonLd } from "@/components/json-ld";
+import { buildCategoryBreadcrumbJsonLd, buildCategoryItemListJsonLd } from "@/lib/structured-data";
 import { isCategoryAlias, resolvePublicCategorySlug } from "@/lib/categoryNormalization";
 import { cleanSlugParam, finiteNumberParam, firstParam, pageNumberParam, PUBLIC_LIST_PAGE_SIZE } from "@/lib/publicQueryParams";
 
@@ -104,8 +106,12 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const totalProductCount = matchingProducts ? matchingProducts.length : category.productCount ?? 0;
   const totalDealCount = matchingProducts ? matchingProducts.filter(hasActiveDeal).length : category.dealCount ?? 0;
 
+  const breadcrumbJsonLd = buildCategoryBreadcrumbJsonLd(category);
+  const itemListJsonLd = buildCategoryItemListJsonLd(category, products);
+
   return (
     <section className="shell py-5 sm:py-7">
+      <JsonLd data={itemListJsonLd ? [breadcrumbJsonLd, itemListJsonLd] : [breadcrumbJsonLd]} />
       <TrackView event="category_view" signature={`category_view:${category.slug}`} params={{ category: category.slug }} />
 
       {/* Page header */}
