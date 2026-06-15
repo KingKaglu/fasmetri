@@ -4,6 +4,7 @@ import { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
 import { extractProductAttributes } from "@/lib/productNormalization";
 import { ShopClickLink } from "@/components/shop-click-link";
+import { CompareToggle } from "@/components/compare-toggle";
 import {
   AvailabilityBadge,
   DiscountBadge,
@@ -35,8 +36,11 @@ export function ProductCard({
   return (
     <article
       data-kind={deal ? "deal" : "product"}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-card)] transition-all duration-150 hover:border-gray-300 hover:shadow-[var(--shadow-card-hover)]"
+      className="group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-card)] transition-all duration-150 hover:border-gray-300 hover:shadow-[var(--shadow-card-hover)]"
     >
+      {/* Compare toggle — additive, sits above the image link, never navigates */}
+      <CompareToggle slug={product.slug} name={product.name} />
+
       {/* Image */}
       <Link href={`/products/${product.slug}`} className="relative block overflow-hidden bg-gray-50">
         <ProductImage src={image} alt={product.name} priority={imagePriority} categorySlug={product.category?.slug} shopName={offer.shop.name} />
@@ -46,7 +50,7 @@ export function ProductCard({
           </span>
         )}
         {offer.availability !== "UNKNOWN" ? (
-          <span className="absolute right-2 top-2">
+          <span className="absolute right-2 top-11">
             <AvailabilityBadge availability={offer.availability} hideUnknown />
           </span>
         ) : null}
