@@ -6,6 +6,7 @@ import { listPublicCategories, listPublicProducts, listPublicShops } from "@/lib
 import { ProductGrid } from "@/components/product-grid";
 import { SearchBar } from "@/components/search-bar";
 import { CatalogFilters } from "@/components/catalog-filters";
+import { ActiveFilterChips } from "@/components/active-filter-chips";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { TrackView } from "@/components/track-view";
@@ -93,6 +94,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
 
           {hasSearchIntent ? (
             <>
+              <ActiveFilterChips basePath="/search" categories={categories} shops={shops} />
               {products.length ? (
                 <ProductGrid products={products} resetHref="/search" />
               ) : (

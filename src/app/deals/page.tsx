@@ -4,6 +4,7 @@ import { BadgePercent, Flame } from "lucide-react";
 import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
+import { ActiveFilterChips } from "@/components/active-filter-chips";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { filterCuratedProducts } from "@/config/productCuration";
@@ -92,6 +93,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
                 <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts variant="drawer" />
               </MobileFilterDrawer>
             </div>
+            <ActiveFilterChips basePath="/deals" categories={categories} shops={shops} />
             <ProductGrid
               products={products}
               deal
