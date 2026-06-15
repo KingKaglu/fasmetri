@@ -5,6 +5,8 @@ import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { CompareProvider } from "@/lib/use-compare";
+import { CompareTray } from "@/components/compare-tray";
 import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -57,10 +59,13 @@ export default function RootLayout({
     <html lang="ka" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
         <JsonLd data={siteJsonLd} />
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-        <MobileBottomNav />
+        <CompareProvider>
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+          <MobileBottomNav />
+          <CompareTray />
+        </CompareProvider>
         <AnalyticsScripts />
       </body>
     </html>
