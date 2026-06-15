@@ -11,7 +11,7 @@ import {
   Store,
   Tags,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CategoryView, ShopView } from "@/lib/catalog-types";
 import { trackEvent } from "@/lib/analytics";
 
@@ -163,6 +163,7 @@ export function CatalogFilters({
           {!fixedCategory && (
             <FilterSection label="კატეგორია" icon={<Tags className="size-3.5" />}>
               <Select
+                label="კატეგორია"
                 value={values.category ?? ""}
                 options={categoryOptions}
                 onChange={(v) => setParam("category", v)}
@@ -172,7 +173,7 @@ export function CatalogFilters({
 
           {/* Shop */}
           <FilterSection label="მაღაზია" icon={<Store className="size-3.5" />}>
-            <Select value={values.shop ?? ""} options={shopOptions} onChange={(v) => setParam("shop", v)} />
+            <Select label="მაღაზია" value={values.shop ?? ""} options={shopOptions} onChange={(v) => setParam("shop", v)} />
           </FilterSection>
 
           {/* Deals only toggle */}
@@ -230,6 +231,7 @@ export function CatalogFilters({
               <div>
                 <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">მარაგი</label>
                 <Select
+                  label="მარაგი"
                   value={values.availability ?? ""}
                   options={availabilityOptions}
                   onChange={(v) => setParam("availability", v)}
@@ -241,6 +243,7 @@ export function CatalogFilters({
           {/* Sort */}
           <FilterSection label="დალაგება" icon={<ArrowDownUp className="size-3.5" />}>
             <Select
+              label="დალაგება"
               value={values.sort ?? (dealsOnly ? "deal-priority" : "recommended")}
               options={sortOptions}
               onChange={(v) => setParam("sort", v)}
@@ -346,24 +349,142 @@ function NumberFilter({
 }
 
 function Select({
+  label,
   value,
   options,
   onChange,
 }: {
+  label: string;
   value: string;
   options: Array<{ value: string; label: string }>;
   onChange: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = options.find((o) => o.value === value) ?? options[0];
+  // Index of the keyboard-highlighted option while the listbox is open.
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  // Stable id base so options get deterministic ids for aria-activedescendant.
+  const baseId = useId();
+
+  const selectedIndex = options.findIndex((o) => o.value === value);
+  const selected = options[selectedIndex] ?? options[0];
+  const optionId = (index: number) => `${baseId}-opt-${index}`;
+
+  const openMenu = (highlight: number) => {
+    setActiveIndex(highlight);
+    setOpen(true);
+  };
+
+  const closeMenu = (refocus = true) => {
+    setOpen(false);
+    setActiveIndex(-1);
+    if (refocus) triggerRef.current?.focus();
+  };
+
+  const commit = (index: number) => {
+    const option = options[index];
+    if (!option) return;
+    if (option.value !== value) onChange(option.value);
+    closeMenu();
+  };
+
+  // Close on outside click / focus leaving the widget (acts as Tab-away close).
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+        setActiveIndex(-1);
+      }
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+        setActiveIndex(-1);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, [open]);
+
+  // Move focus into the listbox when it opens so it receives key events and the
+  // screen reader announces the aria-activedescendant option.
+  useEffect(() => {
+    if (open) listRef.current?.focus();
+  }, [open]);
+
+  // Keep the highlighted option scrolled into view for keyboard users.
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    listRef.current?.querySelector(`#${CSS.escape(optionId(activeIndex))}`)?.scrollIntoView({ block: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeIndex]);
+
+  const onTriggerKeyDown = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case "Enter":
+      case " ":
+      case "ArrowDown":
+        event.preventDefault();
+        openMenu(selectedIndex >= 0 ? selectedIndex : 0);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        openMenu(selectedIndex >= 0 ? selectedIndex : options.length - 1);
+        break;
+    }
+  };
+
+  const onListKeyDown = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        setActiveIndex((i) => (i + 1) % options.length);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        setActiveIndex((i) => (i <= 0 ? options.length - 1 : i - 1));
+        break;
+      case "Home":
+        event.preventDefault();
+        setActiveIndex(0);
+        break;
+      case "End":
+        event.preventDefault();
+        setActiveIndex(options.length - 1);
+        break;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        if (activeIndex >= 0) commit(activeIndex);
+        break;
+      case "Escape":
+        event.preventDefault();
+        closeMenu();
+        break;
+      case "Tab":
+        // Let focus move naturally; just close the popup.
+        closeMenu(false);
+        break;
+    }
+  };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
-        aria-expanded={open}
         aria-haspopup="listbox"
-        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={`${label}: ${selected?.label ?? ""}`}
+        onClick={() => (open ? closeMenu(false) : openMenu(selectedIndex >= 0 ? selectedIndex : 0))}
+        onKeyDown={onTriggerKeyDown}
         className="flex w-full min-h-10 items-center justify-between gap-2 rounded-md border border-gray-200 bg-white px-3 text-left text-sm font-medium text-gray-900 hover:border-gray-300 focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/10 outline-none"
       >
         <span className="min-w-0 truncate">{selected?.label}</span>
@@ -371,31 +492,35 @@ function Select({
       </button>
       {open && (
         <div
-          className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-lg)]"
+          ref={listRef}
+          className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-lg)] outline-none"
           role="listbox"
+          tabIndex={-1}
+          aria-label={label}
+          aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
+          onKeyDown={onListKeyDown}
         >
           <div className="max-h-60 overflow-y-auto py-1">
-            {options.map((option) => {
+            {options.map((option, index) => {
               const active = option.value === value;
+              const highlighted = index === activeIndex;
               return (
-                <button
+                <div
                   key={`opt-${option.value}`}
-                  type="button"
+                  id={optionId(index)}
                   role="option"
                   aria-selected={active}
-                  onClick={() => {
-                    setOpen(false);
-                    if (option.value !== value) onChange(option.value);
-                  }}
-                  className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                  onClick={() => commit(index)}
+                  onMouseMove={() => setActiveIndex(index)}
+                  className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors ${
                     active
                       ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                      : "text-gray-700"
+                  } ${highlighted ? "bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]" : "hover:bg-gray-50"}`}
                 >
                   <span className="min-w-0 truncate">{option.label}</span>
                   {active && <Check className="size-3.5 shrink-0 text-[var(--accent)]" />}
-                </button>
+                </div>
               );
             })}
           </div>
