@@ -14,11 +14,19 @@ export const metadata: Metadata = {
   title: { default: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში", template: "%s — ფასმეტრი" },
   description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   openGraph: {
-    title: "ფასმეტრი",
+    title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
     description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
+    siteName: "ფასმეტრი",
     locale: "ka_GE",
     type: "website",
-    images: ["/brand/fasmetri-logo.png"],
+    // The social image is supplied by the file-based src/app/opengraph-image.tsx
+    // (dynamic 1200x630). Leaving `images` unset lets every route inherit it and
+    // override it with their own opengraph-image when present.
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
+    description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   },
 };
 

@@ -357,10 +357,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 // Historical-low callout: reads the SAME daily-lowest series that feeds the
 // price chart (no extra query) and compares the current cheapest offer to the
 // lowest tracked price in the observed window. Renders nothing when there is
-// too little history (<3 distinct day points) so we never fabricate a "low".
+// too little history (<2 distinct day points) so we never fabricate a "low".
 function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number; history: HistoryPoint[] }) {
   const prices = history.map((point) => point.price).filter((price) => Number.isFinite(price) && price > 0);
-  if (prices.length < 3 || !Number.isFinite(currentPrice) || currentPrice <= 0) return null;
+  if (prices.length < 2 || !Number.isFinite(currentPrice) || currentPrice <= 0) return null;
 
   const historicalLow = Math.min(...prices);
   if (!Number.isFinite(historicalLow) || historicalLow <= 0) return null;
