@@ -9,6 +9,8 @@ import { AlertForm } from "@/components/alert-form";
 import { ProductGrid } from "@/components/product-grid";
 import { ShopClickLink } from "@/components/shop-click-link";
 import { TrackView } from "@/components/track-view";
+import { JsonLd } from "@/components/json-ld";
+import { buildProductJsonLd, buildProductBreadcrumbJsonLd } from "@/lib/structured-data";
 import {
   AvailabilityBadge,
   DiscountBadge,
@@ -110,9 +112,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ? (await listPublicProductMatches({ category: product.category.slug })).filter((item) => item.id !== product.id)
     : [];
   const similarSections = buildSimilarSections(product, categoryPool);
+  const productJsonLd = buildProductJsonLd(product);
+  const breadcrumbJsonLd = buildProductBreadcrumbJsonLd(product);
 
   return (
     <section className="shell py-5 sm:py-8">
+      <JsonLd data={productJsonLd ? [productJsonLd, breadcrumbJsonLd] : [breadcrumbJsonLd]} />
       <TrackView
         event="product_view"
         signature={`product_view:${product.id}`}
