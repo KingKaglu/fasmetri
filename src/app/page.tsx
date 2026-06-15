@@ -147,9 +147,9 @@ export default async function Home() {
       {categories.length > 0 && (
         <section className="shell pt-8 pb-4">
           <SectionBar eyebrow="კატეგორიები" title="პოპულარული კატეგორიები" href="/categories" action="ყველა კატეგორია" />
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3">
             {categories.slice(0, 2).map((category) => (
-              <CategoryCard key={category.id} category={category} />
+              <CategoryCard key={category.id} category={category} layout="row" />
             ))}
           </div>
         </section>
