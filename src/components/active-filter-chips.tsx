@@ -64,15 +64,17 @@ export function ActiveFilterChips({
         <button
           key={chip.keys.join("-")}
           type="button"
+          aria-label={`ფილტრის მოშორება: ${chip.label}`}
           onClick={() => navigate((p) => chip.keys.forEach((k) => p.delete(k)))}
           className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white py-1 pl-3 pr-2 text-xs font-medium text-gray-700 shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
         >
           {chip.label}
-          <X className="size-3.5 text-gray-400" />
+          <X className="size-3.5 text-gray-400" aria-hidden="true" />
         </button>
       ))}
       <button
         type="button"
+        aria-label="ყველა ფილტრის გასუფთავება"
         onClick={() =>
           navigate((p) =>
             ["category", "shop", "minPrice", "maxPrice", "minDiscount", "availability", "dealsOnly", "inStockOnly", "popularOnly", "techOnly", "largeDiscountOnly"].forEach((k) => {
