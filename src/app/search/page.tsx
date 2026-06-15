@@ -160,7 +160,7 @@ function SearchDiscovery({
       {products.length > 0 && (
         <section>
           <SectionTitle title="პოპულარული პროდუქტები" href="/search?sort=priority" />
-          <ProductGrid products={products} density="compact" />
+          <ProductGrid products={products} density="compact" priorityImages={0} />
         </section>
       )}
     </div>
