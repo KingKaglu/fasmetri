@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { getPublicProduct, listPublicProductMatches } from "@/lib/catalog";
-import { isPublicMatchStatus, ProductView } from "@/lib/catalog-types";
+import { HistoryPoint, isPublicMatchStatus, ProductView } from "@/lib/catalog-types";
 import { PriceChart } from "@/components/price-chart";
 import { AlertForm } from "@/components/alert-form";
 import { ProductGrid } from "@/components/product-grid";
@@ -171,6 +171,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">საუკეთესო ფასი</p>
                 <PriceDisplay price={cheapest.currentPrice} oldPrice={cheapest.oldPrice} strong deal={cheapestDiscount > 0} />
+                <PriceHistoryLowBadge currentPrice={cheapest.currentPrice} history={history} />
               </div>
 
               {/* Price stats */}
@@ -350,6 +351,42 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </aside>
       </div>
     </section>
+  );
+}
+
+// Historical-low callout: reads the SAME daily-lowest series that feeds the
+// price chart (no extra query) and compares the current cheapest offer to the
+// lowest tracked price in the observed window. Renders nothing when there is
+// too little history (<3 distinct day points) so we never fabricate a "low".
+function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number; history: HistoryPoint[] }) {
+  const prices = history.map((point) => point.price).filter((price) => Number.isFinite(price) && price > 0);
+  if (prices.length < 3 || !Number.isFinite(currentPrice) || currentPrice <= 0) return null;
+
+  const historicalLow = Math.min(...prices);
+  if (!Number.isFinite(historicalLow) || historicalLow <= 0) return null;
+
+  // Within ~1% of the tracked low (or below it) counts as "at its lowest".
+  const atLow = currentPrice <= historicalLow * 1.01;
+  const percentAbove = Math.round(((currentPrice - historicalLow) / historicalLow) * 100);
+
+  return (
+    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+      <span className="text-gray-500">
+        ისტორიული მინიმუმი: <strong className="font-semibold text-gray-700">{formatGel(historicalLow)}</strong>
+      </span>
+      {atLow ? (
+        <span
+          className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold"
+          style={{ borderColor: "var(--accent)", color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 10%, white)" }}
+        >
+          დაბალ ფასში
+        </span>
+      ) : (
+        <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+          ისტორიულ მინიმუმზე +{percentAbove}%
+        </span>
+      )}
+    </div>
   );
 }
 
