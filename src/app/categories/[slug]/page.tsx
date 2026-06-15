@@ -6,6 +6,7 @@ import { listCategories, listPublicCategories, listPublicProductMatches, listPub
 import { CategoryView } from "@/lib/catalog-types";
 import { ProductGrid } from "@/components/product-grid";
 import { CatalogFilters } from "@/components/catalog-filters";
+import { ActiveFilterChips } from "@/components/active-filter-chips";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { TrackView } from "@/components/track-view";
@@ -151,6 +152,8 @@ export default async function CategoryPage({ params, searchParams }: { params: P
             )}
             <button className="h-full shrink-0 bg-gray-900 px-4 text-xs font-semibold text-white hover:bg-black">ძებნა</button>
           </form>
+
+          <ActiveFilterChips basePath={`/categories/${category.slug}`} categories={categories} shops={shops} fixedCategory={category.slug} />
 
           <ProductGrid products={products} resetHref={`/categories/${category.slug}`} emptyTitle="კატეგორიაში პროდუქტი ვერ მოიძებნა" emptyDescription="სცადე სხვა ფილტრები ან მოგვიანებით გადაამოწმე ახალი შეთავაზებები." />
           <CatalogPager baseHref={`/categories/${category.slug}`} params={raw} page={page} hasNext={products.length === PUBLIC_LIST_PAGE_SIZE} />
