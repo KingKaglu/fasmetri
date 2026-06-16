@@ -13,7 +13,7 @@
  * Bump CACHE when this file changes so the old cache is purged on activate.
  */
 
-const CACHE = "fasmetri-v1";
+const CACHE = "fasmetri-v2";
 
 // Content-hashed static asset prefixes + stable static file extensions.
 const STATIC_PREFIXES = ["/_next/static/"];
@@ -183,5 +183,44 @@ self.addEventListener("fetch", (event) => {
   // (No respondWith → browser performs its normal fetch.)
 });
 
-// --- push handlers added in a later step ---
-// Phase 2 will add `push` and `notificationclick` handlers here.
+// --- Web Push (price alerts) ---
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (err) {
+    payload = {};
+  }
+  const title = payload.title || "ფასმეტრი";
+  const body = payload.body || "ფასი განახლდა";
+  const url = payload.url || "/";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "/icon.svg",
+      badge: "/icon.svg",
+      data: { url },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of all) {
+        try {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.pathname === target || client.url === target) {
+            return client.focus();
+          }
+        } catch (err) {
+          // ignore malformed client URLs
+        }
+      }
+      return self.clients.openWindow(target);
+    })()
+  );
+});

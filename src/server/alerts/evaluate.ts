@@ -2,6 +2,7 @@ import { AlertStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/config/site";
 import { activeEmailProvider, priceDropEmailHtml, sendAlertEmail } from "@/server/alerts/email";
+import { sendPushToEmail } from "@/lib/push";
 
 type NotifiedVia = "none" | "console" | "resend" | "smtp";
 
@@ -74,6 +75,14 @@ export async function prepareTriggeredAlerts() {
         shopName: offer.shop.name,
         notifiedVia,
       },
+    });
+
+    // Best-effort Web Push to any browser subscriptions for this email.
+    // No-ops when VAPID isn't configured; never throws.
+    await sendPushToEmail(alert.email, {
+      title: "ფასი დაიკლო — ფასმეტრი",
+      body: `${alert.product.name}: ${currentPrice.toFixed(2)} ₾`,
+      url: `/products/${alert.product.slug}`,
     });
   }
 

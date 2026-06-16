@@ -546,6 +546,20 @@ model LoginAttempt {
   @@index([ipHash, createdAt])
 }
 
+// Web Push subscriptions for price-alert notifications. Keyed to the same email
+// a user enters when creating a UserPriceAlert; prepareTriggeredAlerts() pushes
+// to every subscription matching that email when an alert fires.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  email     String?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 model PriceHistory {
   id           String            @id @default(cuid())
   offerId      String
