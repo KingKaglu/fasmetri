@@ -39,7 +39,7 @@ export default async function OpengraphImage() {
   if (regular) fonts.push({ name: "Noto Sans Georgian", data: regular, weight: 400, style: "normal" });
   if (bold) fonts.push({ name: "Noto Sans Georgian", data: bold, weight: 700, style: "normal" });
 
-  // Brand palette from globals.css: --brand #111827, --brand-soft #1f2937, --accent #2563eb.
+  // Brand palette from globals.css: --brand #15172b, --brand-soft #232544, --accent #4f46e5.
   return new ImageResponse(
     (
       <div
@@ -49,7 +49,7 @@ export default async function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(135deg, #0b1220 0%, #111827 55%, #1f2937 100%)",
+          background: "linear-gradient(135deg, #0b1220 0%, #15172b 55%, #232544 100%)",
           color: "#ffffff",
           padding: "72px 80px",
           fontFamily: fonts.length ? "Noto Sans Georgian" : "sans-serif",
@@ -65,7 +65,7 @@ export default async function OpengraphImage() {
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "#2563eb",
+              background: "#4f46e5",
               fontSize: 40,
               fontWeight: 700,
             }}
@@ -87,7 +87,7 @@ export default async function OpengraphImage() {
 
         {/* Bottom accent bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 120, height: 6, borderRadius: 999, background: "#2563eb" }} />
+          <div style={{ width: 120, height: 6, borderRadius: 999, background: "#4f46e5" }} />
           <div style={{ fontSize: 26, color: "#94a3b8", fontWeight: 400 }}>
             მობილურები · ლეპტოპები · ფასების ისტორია
           </div>

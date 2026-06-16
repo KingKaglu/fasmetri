@@ -92,7 +92,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               tick={{ fill: "#64748b", fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
-              cursor={{ stroke: "#0f172a", strokeDasharray: "3 3" }}
+              cursor={{ stroke: "#15172b", strokeDasharray: "3 3" }}
               formatter={(value) => [formatGel(Number(value)), "ფასი"]}
               labelFormatter={(_, payload) => {
                 const timestamp = Number(payload?.[0]?.payload?.timestamp);
@@ -109,10 +109,10 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             <Line
               type="monotone"
               dataKey="price"
-              stroke="#2563eb"
+              stroke="#4f46e5"
               strokeWidth={2}
-              activeDot={{ r: 5, fill: "#2563eb", stroke: "#ffffff", strokeWidth: 2 }}
-              dot={data.length > 60 ? false : { r: 3, fill: "#2563eb", stroke: "#2563eb" }}
+              activeDot={{ r: 5, fill: "#4f46e5", stroke: "#ffffff", strokeWidth: 2 }}
+              dot={data.length > 60 ? false : { r: 3, fill: "#4f46e5", stroke: "#4f46e5" }}
               isAnimationActive={false}
             />
           </LineChart>
