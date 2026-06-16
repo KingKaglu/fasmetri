@@ -96,6 +96,17 @@ DB writes (but it acquires a Postgres advisory lock, so it needs a reachable DB 
   unauthorized and unclear, surface to the user rather than guess.
 
 ## Lessons learned (newest first — append every session, keep it deduped)
+- 2026-06-16: **Security audit (commit `27cd49b`).** Fixed: admin-login brute-force (added DB-backed
+  per-IP failed-attempt limit, 10/15min → 429, new `LoginAttempt` table + idempotent migration applied
+  to prod via `$executeRawUnsafe` since the `prisma db execute` CLI flagged out on Prisma 7); login
+  password `!==` → `timingSafeEqual`; `/api/alerts` email-bombing → dedup active alert + per-email cap
+  50; added HSTS header. Verified live (HSTS header present; login 11th attempt → 429). **Already
+  solid (don't re-flag):** all admin routes call `isAdminRequest()`, all sync routes `authorizeCron`,
+  `/api/out` redirect validates protocol + blocks private IPs (SSRF), json-ld escapes `<`, `/api/scrape`
+  is 410-disabled. **Residual (backlog):** the rate-limit keys on the FIRST `x-forwarded-for` entry,
+  which a client can spoof to rotate past the limit — the robust complement is a Vercel Firewall
+  rate-limit rule on `/api/admin/session` (config, not code). npm-audit's 5 moderate are dev/build-chain
+  (postcss via Next, @hono via @prisma/dev) — `fix --force` downgrades Next→9/Prisma→6 (breaking); left.
 - 2026-06-16: **Broken store images = wsrv.nl can't fetch that host.** Site renders all images via
   `wsrv.nl` (`product-image.tsx`); wsrv **404s** pcshop.ge (raw URL is 200), and the old fallback used
   `/_next/image` which **400s for every host on this deploy** → placeholder. Fix (`7dca0db`):
@@ -121,6 +132,9 @@ DB writes (but it acquires a Postgres advisory lock, so it needs a reachable DB 
   42 phones auto-merged, images fixed (`7dca0db`). Residual: ~7 weak-identity + a few SIM-unknown
   iPhones in admin review; PCShop has no nightly auto-refresh (legacy import is manual — add a sync
   module + GitHub Action if continuous PCShop pricing is wanted).
+- [ ] **Security follow-ups:** add a Vercel Firewall rate-limit rule on `/api/admin/session` (the app
+  limiter's XFF key is client-spoofable); consider nonce-based CSP to drop `script-src 'unsafe-inline'
+  'unsafe-eval'`; revisit the dev-chain npm-audit moderates when Next/Prisma majors are upgraded anyway.
 - [ ] Home `FeaturedDeal` still uses a heavy black CTA (`page.tsx`) — soften like product-card.
 - [ ] Mobile: hero search vs header search redundancy — evaluate.
 - [ ] Historical-low badge: now ≥2 points; revisit once catalog has more daily history.
