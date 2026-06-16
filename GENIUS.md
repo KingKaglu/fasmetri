@@ -136,6 +136,16 @@ DB writes (but it acquires a Postgres advisory lock, so it needs a reachable DB 
   unauthorized and unclear, surface to the user rather than guess.
 
 ## Lessons learned (newest first — append every session, keep it deduped)
+- 2026-06-16: **Palette is token-driven — recolor via `globals.css :root` (commit `22450bf`).** Changing
+  the `:root` vars (`--accent`, `--brand`, `--background`, `--price-deal`, `--savings`, …) cascades the
+  whole site because components use `var(--…)`. BUT some literals can't read CSS vars and must be swapped
+  by hand: `opengraph-image.tsx`, recharts in `price-chart.tsx`, the price-alert HTML email
+  (`server/alerts/email.ts`), and Tailwind arbitrary values like `bg-[#0f172a]` in `site-footer.tsx`.
+  Always `grep src/` for the old brand hex (`#2563eb`,`#0f172a`,…) to catch stragglers; leave intentional
+  multi-color sets (admin `SHOP_AVATAR_COLORS`). **Preview before shipping:** local fixture DB is empty,
+  so start `next start` with `$env:DATABASE_URL` = prod (`.env.eu`) to screenshot real cards/prices in the
+  new palette before deploy. Shipped "Modern Indigo": accent #2563eb→#4f46e5, brand #111827→#15172b, bg
+  #f4f6f9→#f5f5f7, deal→rose #e11d48, savings→emerald #059669, hero gradient deepened to indigo.
 - 2026-06-16: **Security audit (commit `27cd49b`).** Fixed: admin-login brute-force (added DB-backed
   per-IP failed-attempt limit, 10/15min → 429, new `LoginAttempt` table + idempotent migration applied
   to prod via `$executeRawUnsafe` since the `prisma db execute` CLI flagged out on Prisma 7); login
