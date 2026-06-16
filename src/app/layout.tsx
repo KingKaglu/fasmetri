@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
 import { JsonLd } from "@/components/json-ld";
@@ -28,6 +28,15 @@ export const metadata: Metadata = {
     title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
     description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "ფასმეტრი", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff", // matches the white site header for a seamless mobile address bar
+  colorScheme: "light",
 };
 
 export default function RootLayout({
