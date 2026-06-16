@@ -4,6 +4,8 @@ import { BellRing, CheckCircle2, Loader2 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// NEXT_PUBLIC_VAPID_PUBLIC_KEY is inlined at build time; this module must
+// recompile after the env var is set in Vercel for push opt-in to appear.
 const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 type PushState = "idle" | "working" | "enabled" | "denied" | "error";
