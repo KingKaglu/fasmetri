@@ -1,86 +1,126 @@
 # GENIUS.md — Orchestrator playbook (the "brain")
 
-Role: **Genius** = main thread. Audits, thinks critically, plans, writes precise numbered
-tasks for **Coder** (the `fasmetri-dev` subagent), reviews + TESTS Coder's output, and loops
-until the goal is provably done. Genius does **not** write feature code itself — it instructs,
-verifies, and ships. Pairs with [CODER.md](CODER.md).
+Role: **Genius** = main thread. Audits, thinks critically, plans, writes precise tasks for
+**Coder** (the `fasmetri-dev` subagent), reviews + TESTS Coder's output, and loops until the goal
+is *provably* done. Genius does **not** write feature code — it recons, instructs, verifies, ships.
+Pairs with [CODER.md](CODER.md). Together they follow the shared **Handoff Protocol** below.
 
 ## Operating loop
-1. **Recon first.** Establish ground truth (DB counts, live screenshots, store totals) before
-   issuing any task. Never instruct from assumption.
+1. **Recon first.** Establish ground truth (DB counts, live screenshots, store totals, the actual
+   file) before issuing any task. Never instruct from assumption.
 2. **Prioritize by severity:** Critical bug → Broken feature → Design/UX → Optimization.
-3. **Write precise tasks:** exact files, line refs, acceptance criteria, and "do NOT" guardrails.
-   One batch at a time. Coder executes; Genius does not pre-write the code.
-4. **Test the result, don't trust the report.** Re-run the gate, re-screenshot, re-query the DB.
-   Verify the *riskiest* claim with your own eyes (e.g. rendered the OG PNG, counted grid columns).
+3. **Delegate the edit, not the thinking.** Genius does recon/run/test itself (read-only scripts,
+   screenshots, curl, git, deploys). Code edits go to Coder via a Task Spec. One batch at a time.
+4. **Test the result — don't trust the report.** Re-run the gate, re-screenshot, re-query the DB.
+   Verify the *riskiest* claim with your own eyes (render the OG PNG, count grid columns, load the image).
 5. **Ship + verify live.** Commit → push `main` → Vercel auto-deploys prod → confirm on
    `fasmetri.vercel.app`. Keep the prior deploy as a rollback candidate.
 
-## Verified tooling (works on this machine)
-- **Read-only prod DB query:** point a read-only script at prod by setting `DATABASE_URL` from
-  `.env.eu` + `DATABASE_POOL_MAX=1`, then `npx tsx scripts/<script>.ts`. `.env`→localhost (empty
-  fixture DB); `.env.eu`→Supabase EU = prod. `@next/env` does NOT override an already-set
-  `process.env.DATABASE_URL`, so the inline override wins. `validate-counts.ts` is read-only and
-  prints per-category + per-store counts — the go-to completeness check.
-- **Design QA:** headless Chrome screenshots at mobile (390) + desktop (1366). Command +
-  `--virtual-time-budget=10000` gotcha documented in [[project-fasmetri]] memory.
-- **Store completeness check:** `npx tsx scripts/<store>-<cat>.ts --mode=discover` prints the LIVE
-  website product count with **no DB writes** — compare to `validate-counts` to see what's missing.
-- **This machine has a Georgian IP** → can scrape zoommer/ee/etc. directly (CI runners are
-  Cloudflare-403'd; that's why prod sync runs on the self-hosted Windows runner here).
+## Genius does inline vs. delegates to Coder
+- **Genius does itself:** recon, read-only DB queries, `--dry-run` pipeline runs, screenshots, curl
+  probes, diff review, commits, pushes, deploy verification, memory/playbook updates.
+- **Delegate to Coder:** any source-code edit/创建, multi-file refactors, new components, parser/adapter
+  changes. Give a Task Spec; never pre-write the code for them.
+- **Don't spawn a subagent** for a one-line read or a question you can answer from the repo. Spawning
+  is the expensive path — only delegate real code work.
+
+## Handoff Protocol (Genius → Coder Task Spec)
+Every delegated task uses this shape so Coder never has to guess:
+```
+CONTEXT:    one-paragraph diagnosis — the symptom + the verified root cause (with evidence).
+FILES:      exact path(s) to edit. "likely the only file" if confident.
+TASK:       numbered, concrete steps. What to change and to WHAT.
+DO NOT:     explicit out-of-scope guardrails (don't touch X, don't refactor Y, don't commit).
+VERIFY:     the gates + the specific proof to produce (tsc, next build, a before/after value).
+REPORT:     "return exact diff summary + gate results + anything noticed-but-untouched."
+```
+Coder returns findings as **text** (no summary `.md` files), leaves changes in the working tree, and
+flags ambiguity instead of guessing. Genius then runs the Acceptance checklist before shipping.
+
+## Acceptance checklist (Genius runs BEFORE shipping Coder's work)
+- [ ] `npx tsc --noEmit` clean (independently, not just Coder's word).
+- [ ] `git diff` reviewed — only the intended files/lines changed, no scope creep, no stray debug.
+- [ ] The riskiest behavior verified with my own eyes (screenshot / curl / DB count / rendered PNG).
+- [ ] No guardrail violated (prod-write rules, status-gating, "Stop at EE").
+- [ ] If risky: `npx next build --webpack` exits 0.
+
+## Ship checklist (Definition of Done)
+- [ ] Commit with a clear conventional message (`git commit -F <file>` — PS here-strings break `-m`).
+- [ ] `git push origin main` → confirm `HEAD == origin/main`.
+- [ ] Vercel deploy reaches `READY`, aliased to `fasmetri.vercel.app` (check via the vercel MCP
+      `get_deployment`); prior prod deploy retained as rollback candidate.
+- [ ] Verified the change LIVE on prod (not just local) — data changes need ≤300s cache (pages on
+      `/shops` etc. are 10-min ISR, lag longer).
+- [ ] Lesson appended here; durable facts saved to `[[project-fasmetri]]` memory.
+
+## Verified tooling — copy-paste ready
+**Read-only / write prod-DB script (PowerShell — NOT the Bash tool; git-bash can't parse `.env.eu`):**
+```powershell
+$d="C:\Users\user\Desktop\fasmetri"; Set-Location $d
+$raw = Get-Content "$d\.env.eu" -Raw
+if($raw -match 'DATABASE_URL\s*=\s*"?([^"\r\n]+)'){ $env:DATABASE_URL = $Matches[1].Trim() } else { throw "no url" }
+$env:DATABASE_POOL_MAX = "1"
+npx tsx scripts/validate-counts.ts   # read-only; per-category + per-store counts = go-to completeness check
+$env:DATABASE_URL=$null
+```
+`.env`→localhost (empty fixture DB); `.env.eu`→Supabase EU = prod. `@next/env` does NOT override an
+already-set `process.env.DATABASE_URL`. For a throwaway query, write `scripts/_tmp.ts` (imports
+resolve from `scripts/`), run, then delete it — don't put temp scripts outside the repo.
+
+**Design/visual QA (headless Chrome; `--virtual-time-budget` is REQUIRED or it shoots blank):**
+```powershell
+$c="C:\Program Files\Google\Chrome\Application\chrome.exe"; $t=$env:TEMP
+& $c --headless=new --disable-gpu --no-sandbox --hide-scrollbars --virtual-time-budget=11000 `
+  --window-size=1366,1700 --screenshot="$t\shot.png" --user-data-dir="$t\cr1" "https://fasmetri.vercel.app/"
+```
+Then `Read` the PNG. Mobile = `--window-size=390,2200`. One `--user-data-dir` per parallel shot.
+
+**Image-rendering debug (broken store images):** compare three fetches —
+`curl <rawUrl>` (store), `curl 'https://wsrv.nl/?url=<rawUrl>'` (proxy), `curl '<prod>/_next/image?url=<enc>'`
+(optimizer). On this deploy wsrv works for most hosts but 404s some (pcshop.ge); `/_next/image` 400s
+for everything. Blocked host → add to `wsrvBlockedHosts` in `product-image.tsx` (raw unoptimized load).
+
+**Store completeness:** `npx tsx scripts/<store>-<cat>.ts --mode=discover` prints LIVE site count, no
+DB writes (but it acquires a Postgres advisory lock, so it needs a reachable DB — point at `.env.eu`).
+**This machine has a Georgian IP** → can scrape directly (CI runners are Cloudflare-403'd).
 
 ## Hard guardrails (from CLAUDE.md — never violate)
-- Prod-DB writes happen ONLY via `--promote` and never with `--dry-run`. Always dry-run + read the
-  `reports/` hardFailures first. The 70%-of-active-count guard is a feature; don't bypass it.
-- Don't scrape all stores simultaneously. Destructive ops need `CONFIRM_PRODUCT_RESET=true`.
+- Prod-DB writes ONLY via `--promote`, never `--dry-run`. Always dry-run + read `reports/` hardFailures
+  first. The 70%-of-active-count guard is a feature; don't bypass it.
+- Don't scrape all stores at once. Destructive ops need `CONFIRM_PRODUCT_RESET=true`. **Stop at EE**
+  (don't enable new stores without explicit instruction — PCShop was explicitly authorized).
 - Public visibility is status-gated (`PUBLIC_OFFER_MATCH_STATUSES`) — when any new match status is
   introduced, grep EVERY public `where` for hard-coded status strings (this once hid 946 products).
 - `npm run lint` = `tsc` is the only build gate; `next build` does not run ESLint.
+- Outward-facing/irreversible acts (prod deploy, scrape promote) follow the goal's authorization; when
+  unauthorized and unclear, surface to the user rather than guess.
 
-## Lessons learned (append every session — don't repeat mistakes)
-- 2026-06-16: **Broken store images = the wsrv.nl proxy can't fetch that host.** PCShop images were
-  blank because the site renders ALL images through `wsrv.nl` (`product-image.tsx` `wsrvLoader`), and
-  wsrv **404s** pcshop.ge (IP/hotlink blocked) — even though the raw pcshop URL returns 200. The old
-  fallback routed through Next's optimizer `/_next/image`, which **400s for every host on this deploy**
-  (site is wsrv-only), so it died → placeholder. Fix (commit `7dca0db`): a `wsrvBlockedHosts` set in
-  product-image.tsx; blocked hosts load the raw URL **unoptimized** (next/image `unoptimized`, no wsrv,
-  no /_next/image) from first render. To debug image issues: `curl` the raw URL, then
-  `curl 'https://wsrv.nl/?url=<raw>'`, then `curl '<prod>/_next/image?url=<enc>'` — compare codes.
-- 2026-06-16: **Prod-DB CLI scripts: use PowerShell, not the Bash tool.** `.env.eu` is encoded such
-  that `grep -m1 '^DATABASE_URL=' .env.eu` in git-bash returns EMPTY (extraction len=0), so the
-  inline `DATABASE_URL=…` never reaches node and `prisma` is null ("DATABASE_URL is required").
-  PowerShell `Get-Content -Raw` + regex `DATABASE_URL\s*=\s*"?([^"\r\n]+)` works reliably — set
-  `$env:DATABASE_URL` + `$env:DATABASE_POOL_MAX="1"`, then `npx tsx scripts/…`. This is the proven
-  path for validate-counts, import-store dry-runs, and real imports against prod.
-- 2026-06-16: **Adding PCShop didn't need new sync modules.** PCShop is WooCommerce and already has
-  a legacy `ShopAdapter` (`src/server/scrapers/shops/pcshop.ts`) wired into `scrapers/shops/index`.
-  The legacy ingestion pipeline (`scripts/import-store.ts --shop=pcshop --category=… [--dry-run]`
-  → `normalize-raw-offers` → `match-products`) handles it. `--dry-run` fetches ~5 live pages, NO DB
-  writes, and prints parsed identity/canonicalKey/category — the perfect pre-promote test. PCShop
-  laptops+mobiles parsed clean (canonicalKey format matches the cross-store matcher), so ingestion
-  needed zero code changes; the iteration risk is at the cross-store MATCH stage, not ingestion.
-- 2026-06-16: discover mode still acquires a Postgres advisory lock (`$queryRawUnsafe`), so it needs
-  a reachable DB even though it writes nothing — point it at prod (`.env.eu`) when local PG is down.
-- 2026-06-16: PowerShell here-strings with inner `"` / Georgian chars break `git commit -m`. Use
-  `git commit -F <file>` instead.
-- 2026-06-16: `PowerShell Start-Process "npx"` fails ("not a valid Win32 application") — npx is a
-  shell script. Use the Bash tool (`npx … &`) or call `node` directly for background servers.
-- 2026-06-16: local build renders empty home "popular categories" — fixture DB has product
-  fixtures but ZERO category rows. Verify home-category UI on **prod** after deploy, not locally.
-- 2026-06-16: `.env.eu` `DATABASE_URL` parse — match `DATABASE_URL\s*=\s*"?([^"\r\n]+)` (anchored
-  `^…$` multiline match failed in PowerShell).
+## Lessons learned (newest first — append every session, keep it deduped)
+- 2026-06-16: **Broken store images = wsrv.nl can't fetch that host.** Site renders all images via
+  `wsrv.nl` (`product-image.tsx`); wsrv **404s** pcshop.ge (raw URL is 200), and the old fallback used
+  `/_next/image` which **400s for every host on this deploy** → placeholder. Fix (`7dca0db`):
+  `wsrvBlockedHosts` set; blocked hosts load raw **unoptimized** (no wsrv, no /_next/image). Note: this
+  RENAMED the old `nextOptimizedHosts` set and inverted its meaning.
+- 2026-06-16: **Prod-DB CLI scripts: use PowerShell, not Bash.** git-bash `grep '^DATABASE_URL=' .env.eu`
+  returns empty (encoding) → `DATABASE_URL` never reaches node → `prisma` null. Use the PS block above.
+- 2026-06-16: **Adding PCShop needed no new sync modules** — it's WooCommerce with an existing legacy
+  `ShopAdapter`; the legacy `import-store → normalize-raw-offers → match-products` pipeline handled it.
+  `import-store --dry-run` fetches ~5 live pages (no DB writes) and prints parsed identity — the perfect
+  pre-promote test. The coverage win came from parsing the detail-page spec table into the offer
+  `description` (the field `extractProductAttributes` reads): weak-identity 106→7, AUTO-matches 0→42.
+- 2026-06-16: discover mode acquires a PG advisory lock (`$queryRawUnsafe`) — needs a reachable DB even
+  though it writes nothing; point at `.env.eu` when local PG is down.
+- 2026-06-16: PowerShell here-strings with inner `"`/Georgian break `git commit -m` → use `git commit -F <file>`.
+- 2026-06-16: `Start-Process "npx"` fails (npx is a shell script) — use the Bash tool (`npx … &`) or
+  `node` directly for background servers.
+- 2026-06-16: local build renders empty home "popular categories" — fixture DB has product fixtures but
+  ZERO category rows. Verify home-category UI on **prod** after deploy, not locally.
 
-## Current backlog / improvement ideas (most recent first)
-- [x] **PCShop added + fully integrated (2026-06-16).** Reused the legacy `import-store` pipeline (no
-  new sync modules). After a spec-parser fix (commit `2a60c6c`): **235 public products** (93% of 252),
-  catalog 1031→1227, **42 phones auto-merged** with Zoommer/EE (~35 shared multi-store pages, PCShop
-  price beside the others — verified live). Key lesson: when a store omits specs in titles, parse its
-  detail-page spec table (PCShop = WooCommerce `table.shop_attributes`) into the offer `description`
-  (the field `extractProductAttributes` reads) — lifted weak-identity 106→7 and AUTO-matches 0→42.
-  - Residual: ~7 weak-identity + a few SIM-unknown iPhones in admin review queue (correct conservative
-    behavior — don't globally loosen the matcher). Nightly auto-refresh for PCShop not wired (the
-    legacy import is manual; the cron syncs only cover zoommer/ee). Add a PCShop sync later if wanted.
-- [ ] Add one more fully-scrapable Georgian store (phones + laptops only) — DONE via PCShop.
-- [ ] Home `FeaturedDeal` still uses a heavy black CTA (page.tsx) — soften like product-card.
+## Backlog / improvement ideas (newest first)
+- [x] **PCShop fully integrated (2026-06-16)** — 235 public products (93% of 252), catalog 1031→1227,
+  42 phones auto-merged, images fixed (`7dca0db`). Residual: ~7 weak-identity + a few SIM-unknown
+  iPhones in admin review; PCShop has no nightly auto-refresh (legacy import is manual — add a sync
+  module + GitHub Action if continuous PCShop pricing is wanted).
+- [ ] Home `FeaturedDeal` still uses a heavy black CTA (`page.tsx`) — soften like product-card.
 - [ ] Mobile: hero search vs header search redundancy — evaluate.
 - [ ] Historical-low badge: now ≥2 points; revisit once catalog has more daily history.

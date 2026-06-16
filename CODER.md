@@ -15,6 +15,33 @@ reports back. Pairs with [GENIUS.md](GENIUS.md) — that file is the brain; this
 - **Report concisely:** what changed (absolute paths), the gate result, and anything you noticed
   but didn't touch. Don't write summary `.md` files — return findings as text.
 
+## Inbound task shape (from Genius)
+Genius delegates via a Task Spec (`CONTEXT / FILES / TASK / DO NOT / VERIFY / REPORT`). The full shape
+lives in the shared **Handoff Protocol** in [GENIUS.md](GENIUS.md) — read it there, don't restate it.
+If any field is missing or contradicts the repo, STOP and flag it rather than guessing.
+
+## Report-back template
+Report to Genius as **text** (never a `.md` file), using this block so the review/ship loop is fast:
+```
+Files changed:
+  - <abs path> — <one line: what changed and to what>
+Gates:
+  - tsc (npm run lint): PASS | FAIL <error>
+  - next build: PASS | FAIL | not run (markdown/docs only)
+Verified:
+  - <the specific proof produced — count, curl result, rendered PNG, before/after value>
+Noticed but did NOT touch:
+  - <anything out of scope worth Genius knowing; "nothing" if clean>
+```
+
+## Self-check before reporting
+- [ ] `npx tsc --noEmit` clean (skip only for docs/markdown-only changes).
+- [ ] Only the named files changed — confirm with `git diff --stat` (no scope creep).
+- [ ] No stray debug / `console.log` / commented-out experiments left behind.
+- [ ] If a pipeline/sync script was touched: ran the relevant `--dry-run` / `--mode=discover` and it
+      behaved (never `--promote` to prove a change).
+- [ ] Anything ambiguous or that looked wrong is **flagged to Genius**, not silently guessed.
+
 ## The gates that actually matter
 - `npm run lint` → `tsc --noEmit`. **This is the ONLY real build gate** — run it after every
   change set. Type errors here = not done.
@@ -57,10 +84,18 @@ Distilled from CLAUDE.md "Adding a New Store" (sync pipeline). Follow in order:
 3. **Create CLI wrapper** `scripts/{store}-{cat}.ts` (copy an existing one, swap the import).
 4. **Add `package.json` scripts**: `sync:{store}:{cat}` (`--mode=prices --promote`) and
    `scrape:{store}:{cat}:full` (`--mode=full --promote`).
-5. **Allowlist the image CDN in BOTH places** (else `<ProductImage>` breaks):
-   - `next.config.ts` → `images.remotePatterns`
-   - `src/components/product-image.tsx` → `nextOptimizedHosts` (currently: `s3.zoommer.ge`,
-     `zoommer.ge`, `alta.ge`, `ee.ge`, `veli.store`, `pcshop.ge`, `extra.ge`).
+5. **Make sure the store's images render** — the site loads every external image through the
+   **wsrv.nl** proxy by default (the `wsrvLoader` in `src/components/product-image.tsx`); most hosts
+   work through it with NO allowlist. There is no "optimized-hosts" list anymore (`7dca0db` renamed
+   and inverted that set). For a new store:
+   - **Verify wsrv can fetch the host first:** `curl 'https://wsrv.nl/?url=<a real product image url>'`.
+     If wsrv returns the image → nothing to add in `product-image.tsx`.
+   - **If wsrv 404s it** (WordPress/WooCommerce CDNs often do — e.g. pcshop.ge) → add that host to the
+     `wsrvBlockedHosts` set in `src/components/product-image.tsx` (currently `{"pcshop.ge"}`). Blocked
+     hosts load the raw URL **unoptimized** instead. The Next optimizer (`/_next/image`) is NOT usable
+     on this deploy — it 400s every host — so "blocked" never falls back to it.
+   - Either way, **still list the host in `next.config.ts` → `images.remotePatterns`** (required for any
+     external src to render at all).
 6. **GitHub Action**: copy `.github/workflows/zoommer-phones-sync.yml`. Needs `EU_DATABASE_URL`
    secret mapped to `DATABASE_URL` (plain URL, **no `sslmode=no-verify`** — Prisma 7 CLI rejects
    it with P1013), `DATABASE_POOL_MAX: "1"`, and the "Ensure sync columns exist" `prisma db execute`
@@ -110,8 +145,14 @@ Distilled from CLAUDE.md "Adding a New Store" (sync pipeline). Follow in order:
   empty home category rows (fixture DB has product fixtures but zero category rows) — verify category
   UI on prod, not locally.
 
-## Expected catalog reference
-1,138 offers / 1,091 public products (697 mobiles + 394 laptops). Use as the completeness sanity check.
+## Expected catalog reference (living sanity-floor — re-derive, don't trust the constant)
+These are reference floors, not invariants — the catalog grows. Use them only to sniff out a
+regression (a sudden drop = something broke status-gating or a partial scrape promoted).
+- **Zoommer + EE baseline:** ~1,091 public products (697 mobiles + 394 laptops).
+- **Post-PCShop:** ~1,227 public products (697 mobiles + 514 laptops; ~235 of them PCShop).
+
+Re-derive the **live** number before relying on it — run `validate-counts` (per-category + per-store,
+read-only) via the PowerShell block in [GENIUS.md](GENIUS.md); never quote a hardcoded total back.
 
 ## Lessons learned (newest first — append every session)
 - 2026-06-16: Design batch shipped (commit **d7e7e17**): richer home category-row cards, desktop grid
@@ -119,5 +160,8 @@ Distilled from CLAUDE.md "Adding a New Store" (sync pipeline). Follow in order:
   real wide viewport — Tailwind breakpoint guesses are error-prone.
 - 2026-06-16: Dynamic OG social card + loosened historical-low badge (now ≥2 points) shipped (commit
   **cc101f2**). When a task involves the OG image, render the actual PNG to confirm — don't trust the route compiling.
-- 2026-06-16: Verified `nextOptimizedHosts` and `next.config.ts` are the TWO image-allowlist spots;
-  missing either breaks `<ProductImage>` silently (falls back / 404s through wsrv.nl).
+- 2026-06-16: **Image rendering = wsrv.nl by default; allowlist is now `wsrvBlockedHosts`** (commit
+  `7dca0db` renamed `nextOptimizedHosts` and inverted it). Hosts wsrv can fetch need nothing in
+  `product-image.tsx`; hosts wsrv 404s (pcshop.ge / WooCommerce CDNs) go in `wsrvBlockedHosts` to load
+  raw **unoptimized** — `/_next/image` 400s every host on this deploy and is never a fallback. The host
+  still needs a `next.config.ts` `remotePatterns` entry to render at all.
