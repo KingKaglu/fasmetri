@@ -19,10 +19,11 @@ Pairs with [CODER.md](CODER.md). Together they follow the shared **Handoff Proto
 ## Genius does inline vs. delegates to Coder
 - **Genius does itself:** recon, read-only DB queries, `--dry-run` pipeline runs, screenshots, curl
   probes, diff review, commits, pushes, deploy verification, memory/playbook updates.
-- **Delegate to Coder:** any source-code edit/创建, multi-file refactors, new components, parser/adapter
-  changes. Give a Task Spec; never pre-write the code for them.
-- **Don't spawn a subagent** for a one-line read or a question you can answer from the repo. Spawning
-  is the expensive path — only delegate real code work.
+- **Delegate to Coder:** any source-code edit/creation, multi-file refactors, new components,
+  parser/adapter changes. Give a Task Spec; never pre-write the code for them.
+- **Don't spawn a subagent** for a one-line read, a doc/markdown tweak, or a question you can answer
+  from the repo. Spawning is the expensive path — only delegate real code work. (These two playbooks
+  are docs — Genius edits them inline; don't spawn Coder for a `.md` change.)
 
 ## Handoff Protocol (Genius → Coder Task Spec)
 Every delegated task uses this shape so Coder never has to guess:
@@ -40,18 +41,57 @@ flags ambiguity instead of guessing. Genius then runs the Acceptance checklist b
 ## Acceptance checklist (Genius runs BEFORE shipping Coder's work)
 - [ ] `npx tsc --noEmit` clean (independently, not just Coder's word).
 - [ ] `git diff` reviewed — only the intended files/lines changed, no scope creep, no stray debug.
+      For a big/multi-file diff, run the **`/code-review`** skill (or spawn **`cavecrew-reviewer`**) for
+      a second pass; for security-relevant changes run **`/security-review`**.
 - [ ] The riskiest behavior verified with my own eyes (screenshot / curl / DB count / rendered PNG).
+      For end-to-end "does it actually work" use the **`/verify`** or **`/run`** skill.
 - [ ] No guardrail violated (prod-write rules, status-gating, "Stop at EE").
 - [ ] If risky: `npx next build --webpack` exits 0.
 
 ## Ship checklist (Definition of Done)
 - [ ] Commit with a clear conventional message (`git commit -F <file>` — PS here-strings break `-m`).
-- [ ] `git push origin main` → confirm `HEAD == origin/main`.
+      End the message with the `Co-Authored-By:` line.
+- [ ] `git push origin main` → confirm `HEAD == origin/main`. (Or run the **`/fasmetri-ship`** skill,
+      which builds + verifies + deploys in one step — prefer it for a routine code ship.)
 - [ ] Vercel deploy reaches `READY`, aliased to `fasmetri.vercel.app` (check via the vercel MCP
-      `get_deployment`); prior prod deploy retained as rollback candidate.
+      `get_deployment` / `list_deployments`); prior prod deploy retained as rollback candidate.
+- [ ] If the change includes a Prisma schema change: apply the **additive, idempotent** migration to
+      prod FIRST (CLAUDE.md pattern). The Prisma 7 `prisma db execute` CLI can flag out here — fall back
+      to a tiny repo `scripts/_*.ts` running `$executeRawUnsafe` (then delete it).
 - [ ] Verified the change LIVE on prod (not just local) — data changes need ≤300s cache (pages on
       `/shops` etc. are 10-min ISR, lag longer).
-- [ ] Lesson appended here; durable facts saved to `[[project-fasmetri]]` memory.
+- [ ] Lesson appended here; durable facts saved to `[[project-fasmetri]]` memory (or run **`/save-md`**).
+
+## Skills, subagents & MCP tools available (use the right one — don't reinvent)
+Genius can invoke skills via the Skill tool and spawn subagents via the Agent tool. Map the job → tool:
+
+**Skills (Genius runs these):**
+- **`/fasmetri-ship`** — build + verify + deploy Fasmetri to prod in one step. The routine ship path.
+- **`/code-review`** — review the current diff for correctness + reuse/simplification. Run on big diffs
+  before shipping. `/simplify` applies quality cleanups (no bug-hunting).
+- **`/security-review`** — security pass over pending changes; use for auth/crypto/route changes.
+- **`/verify`** / **`/run`** — drive the real app to confirm a change works end-to-end (not just tsc).
+- **`/save-md`** — update persistent memory at session end / after meaningful progress.
+- **`/daily-check`** — start-of-session: confirm best model + tooling updates.
+- Docs: **context7 MCP** (`resolve-library-id` → `query-docs`) for current Next/Prisma/Tailwind/etc. API
+  — prefer over guessing; training data lags.
+
+**Subagents (Genius spawns via Agent tool):**
+- **`fasmetri-dev`** = **Coder** — the default executor for Fasmetri code edits, builds, syncs, deploys.
+- **`cavecrew-investigator`** — read-only code locator ("where is X", "what calls Y"); ~60% cheaper
+  than vanilla Explore. Use for cheap recon before writing a Task Spec.
+- **`cavecrew-builder`** — surgical 1–2 file edit (typo, single-function rewrite, mechanical rename).
+  Cheaper than fasmetri-dev for a tiny bounded change; it hard-refuses 3+ file scope.
+- **`cavecrew-reviewer`** — one-line-per-finding diff/branch review; second opinion on Coder's diff.
+- **`web-researcher`** — anything time-sensitive (current prices, model/version availability, live facts)
+  — searches + cross-checks instead of answering from memory.
+- **`vercel:deployment-expert` / `vercel:performance-optimizer`** — deep Vercel deploy/perf questions.
+
+**MCP tools:** vercel (`get_deployment`, `list_deployments`, build/runtime logs) for deploy verification;
+apify (store-scraping actors) if a store needs a residential-proxy scrape the local runner can't do.
+
+Rule: a bounded 1–2-file change → `cavecrew-builder`; a real multi-file feature/fix → `fasmetri-dev`
+(Coder); pure read/locate → `cavecrew-investigator`; never spawn anything for a doc/markdown tweak.
 
 ## Verified tooling — copy-paste ready
 **Read-only / write prod-DB script (PowerShell — NOT the Bash tool; git-bash can't parse `.env.eu`):**
