@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { CompareProvider } from "@/lib/use-compare";
 import { CompareTray } from "@/components/compare-tray";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -94,6 +95,7 @@ export default function RootLayout({
           <CompareTray />
         </CompareProvider>
         <AnalyticsScripts />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
