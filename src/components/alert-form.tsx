@@ -4,9 +4,6 @@ import { BellRing, CheckCircle2, Loader2 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-// NEXT_PUBLIC_VAPID_PUBLIC_KEY is inlined at build time (Production env set);
-// recompile picks up the key so the push opt-in button renders.
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 type PushState = "idle" | "working" | "enabled" | "denied" | "error";
 
@@ -19,7 +16,15 @@ function urlBase64ToUint8Array(base64String: string) {
   return output;
 }
 
-export function AlertForm({ productId }: { productId: string }) {
+export function AlertForm({
+  productId,
+  vapidPublicKey,
+}: {
+  productId: string;
+  // Passed from the server (page is ISR) so it works regardless of NEXT_PUBLIC
+  // client-bundle inlining; null when push isn't configured.
+  vapidPublicKey: string | null;
+}) {
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -32,9 +37,9 @@ export function AlertForm({ productId }: { productId: string }) {
   // the browser supports Service Worker + Push. Checked after mount (no SSR mismatch).
   useEffect(() => {
     setPushSupported(
-      Boolean(VAPID_PUBLIC) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
+      Boolean(vapidPublicKey) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
     );
-  }, []);
+  }, [vapidPublicKey]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,7 +85,7 @@ export function AlertForm({ productId }: { productId: string }) {
   }
 
   async function enablePush() {
-    if (!VAPID_PUBLIC) return;
+    if (!vapidPublicKey) return;
     setPushState("working");
     try {
       const permission = await Notification.requestPermission();
@@ -91,7 +96,7 @@ export function AlertForm({ productId }: { productId: string }) {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
       });
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
