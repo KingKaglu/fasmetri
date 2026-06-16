@@ -1,15 +1,38 @@
 "use client";
 
 import { BellRing, CheckCircle2, Loader2 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+type PushState = "idle" | "working" | "enabled" | "denied" | "error";
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+  return output;
+}
 
 export function AlertForm({ productId }: { productId: string }) {
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [unsubscribeHref, setUnsubscribeHref] = useState("");
+  const [emailUsed, setEmailUsed] = useState("");
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushState, setPushState] = useState<PushState>("idle");
+
+  // Push is a progressive enhancement: only offered when VAPID is configured and
+  // the browser supports Service Worker + Push. Checked after mount (no SSR mismatch).
+  useEffect(() => {
+    setPushSupported(
+      Boolean(VAPID_PUBLIC) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
+    );
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,6 +63,8 @@ export function AlertForm({ productId }: { productId: string }) {
       if (response.ok) {
         const payload = await response.json().catch(() => null);
         setUnsubscribeHref(payload?.alert?.unsubscribeUrl ?? "");
+        setEmailUsed(email);
+        setPushState("idle");
         setSuccess(true);
         formElement.reset();
       } else {
@@ -50,6 +75,31 @@ export function AlertForm({ productId }: { productId: string }) {
       setError("ქსელის შეცდომა — სცადე თავიდან.");
     }
     setBusy(false);
+  }
+
+  async function enablePush() {
+    if (!VAPID_PUBLIC) return;
+    setPushState("working");
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushState("denied");
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+      });
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subscription: sub.toJSON(), email: emailUsed || undefined }),
+      });
+      setPushState(res.ok ? "enabled" : "error");
+    } catch {
+      setPushState("error");
+    }
   }
 
   return (
@@ -101,6 +151,29 @@ export function AlertForm({ productId }: { productId: string }) {
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
           შეტყობინება დაყენებულია — ფასის დაკლებისას ელფოსტაზე მოგწერთ.
         </p>
+      ) : null}
+      {success && pushSupported && pushState !== "enabled" ? (
+        <button
+          type="button"
+          onClick={enablePush}
+          disabled={pushState === "working"}
+          className="flex h-9 items-center justify-center gap-1.5 rounded-md border text-xs font-semibold disabled:cursor-wait disabled:opacity-60"
+          style={{ borderColor: "var(--accent)", color: "var(--accent)", background: "var(--accent-soft)" }}
+        >
+          {pushState === "working" ? <Loader2 className="size-3.5 animate-spin" /> : <BellRing className="size-3.5" />}
+          ჩართე ბრაუზერის შეტყობინებები
+        </button>
+      ) : null}
+      {pushState === "enabled" ? (
+        <p role="status" className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+          ბრაუზერის შეტყობინებები ჩართულია.
+        </p>
+      ) : null}
+      {pushState === "denied" ? (
+        <p className="text-[11px] leading-5 text-gray-500">შეტყობინებები დაბლოკილია ბრაუზერში — ჩართე პარამეტრებიდან.</p>
+      ) : null}
+      {pushState === "error" ? (
+        <p className="text-[11px] leading-5 text-gray-500">შეტყობინების ჩართვა ვერ მოხერხდა — სცადე თავიდან.</p>
       ) : null}
       {error ? (
         <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
