@@ -63,16 +63,15 @@ verifies, and ships. Pairs with [CODER.md](CODER.md).
   `^…$` multiline match failed in PowerShell).
 
 ## Current backlog / improvement ideas (most recent first)
-- [x] **PCShop added (2026-06-16).** 252 RawOffers (162 laptops + 90 phones) imported → normalized →
-  matched. **82 PCShop products now public** (25 phone + 57 laptop new canonicals); catalog 1031→1113.
-  Shop row enabled. NO new code needed — reused legacy `import-store` pipeline.
-  - **Open item:** 85 PCShop iPhone-type offers landed as `PossibleMatch` (admin review), NOT
-    auto-linked — capped at confidence 70 by `SIM max80` because PCShop titles omit SIM type
-    (physical/esim). This is the matcher being correctly conservative (avoids merging onto the wrong
-    SIM variant). To surface PCShop price on EXISTING iPhone pages, approve them in the admin review
-    queue. Do NOT globally loosen the matcher — it risks false merges across the whole 1k-product
-    catalog. If pursued, the only safe lever is recovering SIM from PCShop detail pages (likely absent
-    on a PC-focused shop) or an admin bulk-approve for exact model+storage+color review matches.
+- [x] **PCShop added + fully integrated (2026-06-16).** Reused the legacy `import-store` pipeline (no
+  new sync modules). After a spec-parser fix (commit `2a60c6c`): **235 public products** (93% of 252),
+  catalog 1031→1227, **42 phones auto-merged** with Zoommer/EE (~35 shared multi-store pages, PCShop
+  price beside the others — verified live). Key lesson: when a store omits specs in titles, parse its
+  detail-page spec table (PCShop = WooCommerce `table.shop_attributes`) into the offer `description`
+  (the field `extractProductAttributes` reads) — lifted weak-identity 106→7 and AUTO-matches 0→42.
+  - Residual: ~7 weak-identity + a few SIM-unknown iPhones in admin review queue (correct conservative
+    behavior — don't globally loosen the matcher). Nightly auto-refresh for PCShop not wired (the
+    legacy import is manual; the cron syncs only cover zoommer/ee). Add a PCShop sync later if wanted.
 - [ ] Add one more fully-scrapable Georgian store (phones + laptops only) — DONE via PCShop.
 - [ ] Home `FeaturedDeal` still uses a heavy black CTA (page.tsx) — soften like product-card.
 - [ ] Mobile: hero search vs header search redundancy — evaluate.
