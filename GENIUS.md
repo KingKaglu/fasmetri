@@ -38,6 +38,14 @@ verifies, and ships. Pairs with [CODER.md](CODER.md).
 - `npm run lint` = `tsc` is the only build gate; `next build` does not run ESLint.
 
 ## Lessons learned (append every session — don't repeat mistakes)
+- 2026-06-16: **Broken store images = the wsrv.nl proxy can't fetch that host.** PCShop images were
+  blank because the site renders ALL images through `wsrv.nl` (`product-image.tsx` `wsrvLoader`), and
+  wsrv **404s** pcshop.ge (IP/hotlink blocked) — even though the raw pcshop URL returns 200. The old
+  fallback routed through Next's optimizer `/_next/image`, which **400s for every host on this deploy**
+  (site is wsrv-only), so it died → placeholder. Fix (commit `7dca0db`): a `wsrvBlockedHosts` set in
+  product-image.tsx; blocked hosts load the raw URL **unoptimized** (next/image `unoptimized`, no wsrv,
+  no /_next/image) from first render. To debug image issues: `curl` the raw URL, then
+  `curl 'https://wsrv.nl/?url=<raw>'`, then `curl '<prod>/_next/image?url=<enc>'` — compare codes.
 - 2026-06-16: **Prod-DB CLI scripts: use PowerShell, not the Bash tool.** `.env.eu` is encoded such
   that `grep -m1 '^DATABASE_URL=' .env.eu` in git-bash returns EMPTY (extraction len=0), so the
   inline `DATABASE_URL=…` never reaches node and `prisma` is null ("DATABASE_URL is required").
