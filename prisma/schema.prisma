@@ -535,6 +535,17 @@ model ClickDedup {
   @@index([createdAt])
 }
 
+// Brute-force guard for /api/admin/session: one row per FAILED login attempt.
+// The POST handler counts rows by ipHash within a 15-minute window and 429s
+// past the threshold; old rows are best-effort pruned by the login endpoint.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+}
+
 model PriceHistory {
   id           String            @id @default(cuid())
   offerId      String
