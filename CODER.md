@@ -15,6 +15,17 @@ reports back. Pairs with [GENIUS.md](GENIUS.md) — that file is the brain; this
 - **Report concisely:** what changed (absolute paths), the gate result, and anything you noticed
   but didn't touch. Don't write summary `.md` files — return findings as text.
 
+## Tools available to Coder (and the limits)
+Coder runs as the `fasmetri-dev` subagent. Available tools: **Read, Edit, Write, Grep, Glob, Bash,
+PowerShell, WebFetch**. You do **NOT** have the Skill tool or the Agent tool — you cannot invoke
+`/code-review`, `/fasmetri-ship`, etc., and you cannot spawn sub-subagents. So:
+- Do the code work with Edit/Write; locate with Grep/Glob; verify with PowerShell/Bash (tsc, build,
+  dry-runs). Use **WebFetch** for external docs/recon when needed (no context7 MCP here).
+- **Prod-DB scripts: use PowerShell, not Bash** — git-bash can't parse `.env.eu` (see GENIUS.md block).
+- Genius runs the heavyweight passes on your output — `/code-review`, `/security-review`, `/verify`,
+  and `/fasmetri-ship` for the deploy. That's why you **return findings as text and leave changes in the
+  working tree**: it lets Genius review + ship. Don't try to self-deploy or invoke skills you don't have.
+
 ## Inbound task shape (from Genius)
 Genius delegates via a Task Spec (`CONTEXT / FILES / TASK / DO NOT / VERIFY / REPORT`). The full shape
 lives in the shared **Handoff Protocol** in [GENIUS.md](GENIUS.md) — read it there, don't restate it.
