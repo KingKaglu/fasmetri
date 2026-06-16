@@ -121,8 +121,8 @@ async function showSampleOffers(validOffers: ScrapedOffer[], sampleLimit: number
       ? Math.round(((offer.oldPrice - offer.price) / offer.oldPrice) * 100) : 0;
     const normalizedTitle = normalizeProductTitle(offer.title);
     const cleanTitle = removeNoiseWords(offer.title);
-    const identity = extractProductIdentity({ title: offer.title, brand: offer.brand, model: offer.model, categorySlug: offer.categorySlug });
-    const categoryDecision = categorizeProduct({ title: offer.title, brand: offer.brand, model: offer.model, scrapedShopCategory: offer.categorySlug, breadcrumbs: offer.breadcrumbs });
+    const identity = extractProductIdentity({ title: offer.title, description: offer.description, brand: offer.brand, model: offer.model, categorySlug: offer.categorySlug, breadcrumbs: offer.breadcrumbs, imageUrl: offer.imageUrl });
+    const categoryDecision = categorizeProduct({ title: offer.title, description: offer.description, brand: offer.brand, model: offer.model, scrapedShopCategory: offer.categorySlug, breadcrumbs: offer.breadcrumbs });
     const variantId = extractVariantIdentity(identity);
     const isOutlet = offer.breadcrumbs?.includes("outlet") ?? false;
 
