@@ -136,6 +136,14 @@ DB writes (but it acquires a Postgres advisory lock, so it needs a reachable DB 
   unauthorized and unclear, surface to the user rather than guess.
 
 ## Lessons learned (newest first — append every session, keep it deduped)
+- 2026-06-16: **Mobile audit (commit `f57618c`).** The layout was already mobile-solid (verified
+  320–390px: no horizontal overflow, `mobile-bottom-nav` + `mobile-filter-drawer`, sticky product CTA,
+  responsive grids, `mobile-bottom-safe` padding). Real gaps were missing metadata: added a Next
+  `viewport` export (App-Router-correct spot for `themeColor` — Next 16 ignores it in `metadata`;
+  used `#ffffff` to match the white header) + `colorScheme:"light"`, a web app manifest
+  (`src/app/manifest.ts` → served at `/manifest.webmanifest`, `display:standalone`, `theme_color
+  #15172b`, icon `/icon.svg`) for add-to-homescreen, and `appleWebApp` for iOS. To audit mobile:
+  screenshot at 390 AND 320px (overflow check), and `curl` the page for `theme-color`/`manifest` metas.
 - 2026-06-16: **Palette is token-driven — recolor via `globals.css :root` (commit `22450bf`).** Changing
   the `:root` vars (`--accent`, `--brand`, `--background`, `--price-deal`, `--savings`, …) cascades the
   whole site because components use `var(--…)`. BUT some literals can't read CSS vars and must be swapped
