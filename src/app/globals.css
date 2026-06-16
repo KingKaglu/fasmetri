@@ -1,31 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6f9;
+  --background: #f5f5f7;
   --foreground: #111827;
   --surface: #ffffff;
   --surface-soft: #f9fafb;
-  --surface-mute: #f3f4f6;
+  --surface-mute: #f1f1f4;
   --surface-ink: #111827;
   --line: #e5e7eb;
   --line-strong: #d1d5db;
   --muted: #6b7280;
   --muted-strong: #4b5563;
 
-  --brand: #111827;
-  --brand-soft: #1f2937;
+  --brand: #15172b;
+  --brand-soft: #232544;
   --brand-ink: #ffffff;
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --accent-soft: #eff6ff;
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-soft: #eef2ff;
   --accent-ink: #ffffff;
-  --aqua: #0ea5e9;
-  --aqua-soft: #e0f2fe;
+  --aqua: #06b6d4;
+  --aqua-soft: #ecfeff;
 
   --price: #111827;
-  --price-deal: #dc2626;
-  --savings: #16a34a;
-  --savings-soft: #f0fdf4;
+  --price-deal: #e11d48;
+  --savings: #059669;
+  --savings-soft: #ecfdf5;
   --danger: #dc2626;
   --warn: #d97706;
   --warn-soft: #fffbeb;
@@ -245,7 +245,7 @@ textarea {
   position: relative;
   overflow: hidden;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1e293b 100%);
+  background: linear-gradient(135deg, #15172b 0%, #312e81 55%, #1e1b4b 100%);
   color: #fff;
 }
 
@@ -268,7 +268,7 @@ textarea {
   right: -10%;
   width: 50%;
   height: 140%;
-  background: radial-gradient(ellipse, rgba(37, 99, 235, 0.25) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(79, 70, 229, 0.28) 0%, transparent 70%);
   pointer-events: none;
 }
 
