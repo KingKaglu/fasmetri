@@ -39,7 +39,7 @@ export function ShopCard({ shop }: { shop: ShopView }) {
         )}
         <Link
           href={`/shops/${shop.slug}`}
-          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-gray-900 px-4 text-xs font-semibold text-white hover:bg-black"
+          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-[var(--accent)] px-4 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]"
         >
           შეთავაზებების ნახვა
           <ArrowRight className="size-3.5" />

@@ -61,7 +61,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
       <section className="hero-frame shell mt-4">
         <div className="relative z-10 flex flex-col gap-3 p-5 sm:p-7 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-blue-300">
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/80">
               <Flame className="size-3.5" /> დღის საუკეთესო ფასდაკლებები
             </p>
             <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">აქციები</h1>
@@ -70,7 +70,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 px-4 py-3">
-            <BadgePercent className="size-5 text-blue-300" />
+            <BadgePercent className="size-5 text-white" />
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-white/60">აქტიური აქცია</p>
               <p className="text-2xl font-bold leading-none text-white">{totalDeals.toLocaleString()}</p>

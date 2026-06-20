@@ -20,18 +20,18 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 site-header">
-      {/* Announcement bar */}
-      <div className="hidden border-b border-gray-100 bg-gray-50 md:block">
-        <div className="shell flex h-8 items-center justify-between">
-          <span className="text-[11px] font-medium text-gray-500">
-            ფასები რეგულარულად მოწმდება — ყიდვამდე საბოლოო ფასი მაღაზიაში გადაამოწმე
+      {/* Announcement bar — dark ink top strip */}
+      <div className="hidden bg-[var(--brand)] md:block">
+        <div className="shell flex h-[2.375rem] items-center justify-between">
+          <span className="text-[12.5px] font-medium text-white/[0.78]">
+            ფასმეტრი აერთიანებს ქართულ მაღაზიებს — ყიდვამდე საბოლოო ფასი მაღაზიაში გადაამოწმე
           </span>
-          <div className="flex items-center gap-4 text-[11px]">
-            <Link href="/deals" className="inline-flex items-center gap-1 font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]">
+          <div className="flex items-center gap-4 text-[12.5px]">
+            <Link href="/deals" className="inline-flex items-center gap-1 font-semibold text-[#ff8a3d] hover:text-white">
               <BadgePercent className="size-3" />
               დღის ფასდაკლებები
             </Link>
-            <Link href="/contact" className="font-medium text-gray-500 hover:text-gray-800">
+            <Link href="/contact" className="font-medium text-white/[0.78] hover:text-white">
               კონტაქტი
             </Link>
           </div>

@@ -94,7 +94,7 @@ export function ContactMailForm() {
       <Field label="შეტყობინება" error={errors.message}>
         <textarea name="message" required minLength={10} maxLength={1200} className="contact-control min-h-32 resize-y py-2" placeholder="დაწერე დეტალები..." aria-invalid={Boolean(errors.message)} />
       </Field>
-      <button className="mt-1 h-10 w-full rounded-md bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-black sm:w-auto">
+      <button className="mt-1 h-10 w-full rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] sm:w-auto">
         ელფოსტაში გახსნა
       </button>
       {submitted ? (

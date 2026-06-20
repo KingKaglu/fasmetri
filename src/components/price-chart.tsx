@@ -47,7 +47,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
         <div className="relative grid min-h-24 place-items-center overflow-hidden rounded-md border border-dashed border-gray-200 bg-gray-50 px-5">
           <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-gray-300" />
           <div className="relative grid gap-1.5 text-center">
-            <span className="mx-auto size-3 rounded-full bg-blue-600 ring-4 ring-blue-100" />
+            <span className="mx-auto size-3 rounded-full bg-[#e11d48] ring-4 ring-rose-100" />
             <strong className="text-xl font-bold text-gray-900">{formatGel(latestPoint.price)}</strong>
             <span className="text-xs text-gray-500">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
           </div>
@@ -92,7 +92,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               tick={{ fill: "#64748b", fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
-              cursor={{ stroke: "#15172b", strokeDasharray: "3 3" }}
+              cursor={{ stroke: "#16181d", strokeDasharray: "3 3" }}
               formatter={(value) => [formatGel(Number(value)), "ფასი"]}
               labelFormatter={(_, payload) => {
                 const timestamp = Number(payload?.[0]?.payload?.timestamp);
@@ -109,10 +109,10 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             <Line
               type="monotone"
               dataKey="price"
-              stroke="#4f46e5"
+              stroke="#e11d48"
               strokeWidth={2}
-              activeDot={{ r: 5, fill: "#4f46e5", stroke: "#ffffff", strokeWidth: 2 }}
-              dot={data.length > 60 ? false : { r: 3, fill: "#4f46e5", stroke: "#4f46e5" }}
+              activeDot={{ r: 5, fill: "#e11d48", stroke: "#ffffff", strokeWidth: 2 }}
+              dot={data.length > 60 ? false : { r: 3, fill: "#e11d48", stroke: "#e11d48" }}
               isAnimationActive={false}
             />
           </LineChart>
