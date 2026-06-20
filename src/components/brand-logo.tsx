@@ -6,10 +6,14 @@ export function BrandLogo({ compact = false, tone = "dark" }: { compact?: boolea
   if (compact) {
     return (
       <Link href="/" className="group inline-flex min-w-fit items-center gap-2.5" aria-label="ფასმეტრი მთავარი გვერდი">
-        <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl shadow-[0_10px_24px_rgba(18,19,15,0.18)] ${light ? "bg-white" : "bg-[var(--brand)]"}`}>
-          <span className="absolute bottom-2 left-2 h-3 w-1.5 rounded-full bg-[var(--accent)]" />
-          <span className={`absolute bottom-2 left-[1.08rem] h-[1.125rem] w-1.5 rounded-full ${light ? "bg-[var(--brand)]" : "bg-white"}`} />
-          <span className="absolute bottom-2 right-2 h-[1.375rem] w-1.5 rounded-full bg-[var(--aqua)]" />
+        <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl shadow-[0_10px_24px_rgba(18,19,15,0.18)] ${light ? "bg-[var(--accent-soft)]" : "bg-[var(--brand)]"}`}>
+          {/* Price-meter gauge mark (matches handoff logo.svg) */}
+          <svg viewBox="0 0 32 28" className="size-6" fill="none" aria-hidden="true">
+            <path d="M8.63 22.17 A9 9 0 1 1 23.37 22.17" stroke="var(--accent)" strokeWidth="2.7" strokeLinecap="round" />
+            <path d="M16 4.2 L16 6.4 M6.9 9.6 L8.5 11.1 M25.1 9.6 L23.5 11.1" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" opacity="0.4" />
+            <path d="M16 17 L10.9 21.3" stroke="var(--aqua)" strokeWidth="2.7" strokeLinecap="round" />
+            <circle cx="16" cy="17" r="2.4" fill="var(--accent)" />
+          </svg>
         </span>
         <span className="flex flex-col leading-none">
           <span className={`whitespace-nowrap text-[1.18rem] font-black sm:text-[1.25rem] ${light ? "text-white" : "text-[var(--brand)]"}`}>

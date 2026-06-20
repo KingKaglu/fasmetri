@@ -34,7 +34,7 @@ export function CatalogPager({
       {/* Page indicator */}
       <div className="flex items-center gap-2 text-sm">
         <span className="text-gray-500">გვერდი</span>
-        <span className="flex size-8 items-center justify-center rounded-md bg-gray-900 text-sm font-semibold text-white">
+        <span className="flex size-8 items-center justify-center rounded-md bg-[var(--accent)] text-sm font-semibold text-white">
           {currentPage}
         </span>
         {hasNext && (
@@ -80,7 +80,7 @@ function PagerLink({
       href={href}
       className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold transition-colors ${
         direction === "next"
-          ? "border-gray-900 bg-gray-900 text-white hover:bg-black"
+          ? "border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
           : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
       }`}
     >

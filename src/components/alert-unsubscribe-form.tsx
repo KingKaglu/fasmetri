@@ -35,7 +35,7 @@ export function AlertUnsubscribeForm({ alertId }: { alertId: string }) {
           placeholder="name@email.ge"
         />
       </label>
-      <button disabled={pending} className="h-10 rounded-md bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-black disabled:opacity-60">
+      <button disabled={pending} className="h-10 rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:opacity-60">
         {pending ? "მუშავდება..." : "შეტყობინების გაუქმება"}
       </button>
       {message ? <p className="text-xs font-medium text-gray-600">{message}</p> : null}

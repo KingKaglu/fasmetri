@@ -215,7 +215,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 price={cheapest.currentPrice}
                 sourceUrl={cheapest.url}
                 ariaLabel={`${cheapest.shop.name} შეთავაზება`}
-                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gray-900 px-5 text-sm font-semibold text-white hover:bg-black sm:w-fit"
+                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] sm:w-fit"
               >
                 მაღაზიაში გადასვლა
                 <ArrowUpRight className="size-4" />
@@ -435,7 +435,7 @@ function MatchConfidenceBadge({ confidence, status, singleStore = false }: { con
     isPublic && confidence >= 95
       ? { label: "ზუსტი დამთხვევა", styles: "border-green-200 bg-green-50 text-green-700" }
       : isPublic && confidence >= 90
-        ? { label: "ძლიერი დამთხვევა", styles: "border-blue-200 bg-blue-50 text-blue-700" }
+        ? { label: "ძლიერი დამთხვევა", styles: "border-orange-200 bg-orange-50 text-orange-700" }
         : { label: "მსგავსი პროდუქტი", styles: "border-amber-200 bg-amber-50 text-amber-700" };
   return (
     <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${tier.styles}`}>
