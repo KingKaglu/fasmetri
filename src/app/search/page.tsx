@@ -180,7 +180,7 @@ function FailedSearchState() {
         </p>
         <KeywordLinks keywords={suggestedSearches} compact />
         <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2">
-          <Link href="/search" className="flex h-9 items-center rounded-md bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-black">
+          <Link href="/search" className="flex h-9 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
             ფილტრების გასუფთავება
           </Link>
           <CategoryShortcut href="/categories/mobiles" icon={Smartphone} label="ტელეფონები" />
@@ -198,7 +198,7 @@ function KeywordLinks({ keywords, compact = false }: { keywords: string[]; compa
         <Link
           key={keyword}
           href={`/search?q=${encodeURIComponent(keyword)}`}
-          className="inline-flex h-8 items-center rounded-full border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-blue-50 hover:text-[var(--accent)]"
+          className="inline-flex h-8 items-center rounded-full border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
         >
           {keyword}
         </Link>
@@ -209,7 +209,7 @@ function KeywordLinks({ keywords, compact = false }: { keywords: string[]; compa
 
 function CategoryShortcut({ href, icon: Icon, label }: { href: string; icon: LucideIcon; label: string }) {
   return (
-    <Link href={href} className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-blue-50">
+    <Link href={href} className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]">
       <Icon className="size-4 text-gray-400" />
       {label}
     </Link>

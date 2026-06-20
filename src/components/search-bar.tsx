@@ -166,7 +166,7 @@ export function SearchBar({
       <div
         className={`flex min-w-0 flex-1 items-center overflow-hidden border bg-white ${
           isHeader
-            ? "h-10 rounded-md border-gray-200 shadow-sm"
+            ? "h-10 rounded-md border-2 border-[var(--accent)] shadow-sm"
             : large
               ? "h-14 rounded-lg border-gray-300 shadow-md"
               : "h-12 rounded-lg border-gray-300 shadow-md"
@@ -281,7 +281,7 @@ export function SearchBar({
                   key={`brand-${brand.name}`}
                   type="button"
                   onClick={() => goToSearch(brand.name)}
-                  className="inline-flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-blue-50 hover:text-[var(--accent)]"
+                  className="inline-flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                 >
                   {brand.name}
                   <span className="text-[10px] text-gray-400">{brand.productCount}</span>
@@ -295,10 +295,10 @@ export function SearchBar({
                     setOpen(false);
                     router.push(`/categories/${category.slug}`);
                   }}
-                  className="inline-flex h-7 items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 text-xs font-medium text-blue-700 hover:border-[var(--accent)]"
+                  className="inline-flex h-7 items-center gap-1 rounded-full border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-2.5 text-xs font-medium text-[var(--accent)] hover:border-[var(--accent)]"
                 >
                   {category.nameKa}
-                  <span className="text-[10px] text-blue-400">{category.productCount}</span>
+                  <span className="text-[10px] text-orange-400">{category.productCount}</span>
                 </button>
               ))}
             </li>
@@ -307,7 +307,7 @@ export function SearchBar({
             <button
               type="button"
               onClick={() => goToSearch(query.trim())}
-              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-[var(--accent)] hover:bg-blue-50"
+              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent-soft)]"
             >
               <span>ყველა შედეგი „{query.trim()}"</span>
               <ArrowRight className="size-3.5" />

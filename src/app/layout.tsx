@@ -84,6 +84,13 @@ export default function RootLayout({
         */}
         <link rel="preconnect" href="https://wsrv.nl" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://wsrv.nl" />
+        {/* Brand typeface — Noto Sans Georgian (referenced by globals.css body font-family) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap"
+        />
       </head>
       <body className="flex min-h-full flex-col">
         <JsonLd data={siteJsonLd} />

@@ -1,44 +1,53 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f5f7;
-  --foreground: #111827;
+  /* ── Retail redesign tokens (orange / marketplace) ── */
+  --background: #f5f6f8;
+  --foreground: #16181d;
   --surface: #ffffff;
-  --surface-soft: #f9fafb;
-  --surface-mute: #f1f1f4;
-  --surface-ink: #111827;
-  --line: #e5e7eb;
-  --line-strong: #d1d5db;
+  --surface-soft: #f1f3f6;
+  --surface-mute: #f1f3f6;
+  --surface-ink: #16181d;
+  --line: #e8eaef;
+  --line-strong: #d8dbe2;
   --muted: #6b7280;
   --muted-strong: #4b5563;
 
-  --brand: #15172b;
-  --brand-soft: #232544;
+  /* ink = primary text + dark top strip / footer */
+  --brand: #16181d;
+  --brand-soft: #2a2d35;
   --brand-ink: #ffffff;
-  --accent: #4f46e5;
-  --accent-strong: #4338ca;
-  --accent-soft: #eef2ff;
+  /* accent = brand orange (primary actions, links, active states) */
+  --accent: #ff6a13;
+  --accent-strong: #e85a06;
+  --accent-soft: #fff0e6;
   --accent-ink: #ffffff;
-  --aqua: #06b6d4;
-  --aqua-soft: #ecfeff;
+  --aqua: #0a8f5b;
+  --aqua-soft: #e3f6ec;
 
-  --price: #111827;
+  --price: #16181d;
   --price-deal: #e11d48;
-  --savings: #059669;
-  --savings-soft: #ecfdf5;
-  --danger: #dc2626;
+  --savings: #0a8f5b;
+  --savings-soft: #e3f6ec;
+  --save-ink: #be123c;
+  --save-soft: #ffe4ea;
+  --star: #ffb800;
+  --danger: #e11d48;
   --warn: #d97706;
   --warn-soft: #fffbeb;
 
-  --radius-card: 0.625rem;
-  --radius-control: 0.5rem;
+  /* hero banner gradient (white text on top) */
+  --hero-bg: linear-gradient(120deg, #ff6a13 0%, #ff8a3d 55%, #ffb04d 100%);
+
+  --radius-card: 1rem;       /* 16px — cards, banners */
+  --radius-control: 0.75rem; /* 12px — buttons, inputs */
   --radius-chip: 999px;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 1px 2px rgba(20, 20, 30, 0.05), 0 6px 18px rgba(20, 20, 30, 0.05);
+  --shadow-card-hover: 0 20px 50px rgba(20, 20, 30, 0.12);
+  --shadow-sm: 0 1px 2px rgba(20, 20, 30, 0.05);
+  --shadow-md: 0 6px 18px rgba(20, 20, 30, 0.06);
+  --shadow-lg: 0 20px 50px rgba(20, 20, 30, 0.12);
 }
 
 @theme inline {
@@ -56,7 +65,8 @@ body {
   overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
-  font-family: "Inter", "Noto Sans Georgian", "Segoe UI", Arial, Helvetica, sans-serif;
+  font-family: "Noto Sans Georgian", "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
+  letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -136,12 +146,12 @@ textarea {
 
 .btn-primary {
   border-radius: var(--radius-control);
-  background: var(--brand);
+  background: var(--accent);
   color: #fff;
   font-weight: 700;
 }
 .btn-primary:hover {
-  background: #000;
+  background: var(--accent-strong);
   box-shadow: var(--shadow-md);
 }
 
@@ -153,7 +163,7 @@ textarea {
 }
 .btn-accent:hover {
   background: var(--accent-strong);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 14px rgba(255, 106, 19, 0.3);
 }
 
 .btn-outline {
@@ -220,7 +230,7 @@ textarea {
 .filter-control:focus,
 .contact-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 106, 19, 0.12);
   outline: none;
 }
 
@@ -244,8 +254,8 @@ textarea {
 .hero-frame {
   position: relative;
   overflow: hidden;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, #15172b 0%, #312e81 55%, #1e1b4b 100%);
+  border-radius: var(--radius-card);
+  background: var(--hero-bg);
   color: #fff;
 }
 
@@ -268,7 +278,7 @@ textarea {
   right: -10%;
   width: 50%;
   height: 140%;
-  background: radial-gradient(ellipse, rgba(79, 70, 229, 0.28) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.22) 0%, transparent 70%);
   pointer-events: none;
 }
 
