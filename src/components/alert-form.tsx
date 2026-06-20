@@ -137,7 +137,7 @@ export function AlertForm({
       />
       <button
         disabled={busy}
-        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-gray-900 text-sm font-semibold text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
+        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-[var(--accent)] text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : null}
         დაყენება

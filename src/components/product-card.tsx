@@ -63,7 +63,7 @@ export function ProductCard({
           <ShopMark shop={offer.shop} size="sm" />
           <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-gray-500">{offer.shop.name}</span>
           {shopCount > 1 && (
-            <span className="shrink-0 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">
+            <span className="shrink-0 rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
               +{shopCount - 1}
             </span>
           )}
@@ -103,7 +103,7 @@ export function ProductCard({
 
         {/* Shop comparison info: store count + freshness, always visible */}
         <div className="mb-3 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
-          <span className={`text-[10px] font-medium ${shopCount > 1 ? "text-blue-600" : "text-gray-400"}`}>
+          <span className={`text-[10px] font-medium ${shopCount > 1 ? "text-[var(--accent)]" : "text-gray-400"}`}>
             {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
           </span>
           <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
@@ -113,7 +113,7 @@ export function ProductCard({
         <div className="grid grid-cols-2 gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="flex h-9 items-center justify-center gap-1 rounded-md border border-[var(--accent)]/30 bg-blue-50 px-2 text-[11px] font-semibold text-[var(--accent)] hover:border-[var(--accent)]/50 hover:bg-blue-100"
+            className="flex h-9 items-center justify-center gap-1 rounded-md border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-2 text-[11px] font-semibold text-[var(--accent)] hover:border-[var(--accent)]/50 hover:bg-orange-100"
           >
             <BarChart2 className="size-3 shrink-0" />
             <span className="truncate">შედარება</span>

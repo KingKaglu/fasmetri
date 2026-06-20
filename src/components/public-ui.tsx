@@ -154,7 +154,7 @@ export function EmptyState({
         <h2 className="mt-4 text-base font-semibold text-gray-900">{title}</h2>
         <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
         {href ? (
-          <Link href={href} className="mt-5 inline-flex h-9 items-center rounded-md bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-black">
+          <Link href={href} className="mt-5 inline-flex h-9 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
             {action}
           </Link>
         ) : null}

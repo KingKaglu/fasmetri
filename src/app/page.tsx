@@ -99,7 +99,7 @@ export default async function Home() {
 
               <h1 className="text-3xl font-bold leading-[1.1] text-white sm:text-4xl lg:text-5xl">
                 შეადარე ფასები<br />
-                <span className="text-blue-400">ქართულ მაღაზიებში</span>
+                <span className="text-white">ქართულ მაღაზიებში</span>
               </h1>
               <p className="mt-3 max-w-lg text-sm leading-6 text-white/65 sm:text-base">
                 ფასმეტრი აერთიანებს ქართულ ონლაინ მაღაზიებს ერთ კატალოგში — სწრაფად ნახე სად არის საუკეთესო ფასი.
@@ -124,7 +124,7 @@ export default async function Home() {
               ) : (
                 <div className="glass-panel grid min-h-[22rem] place-items-center rounded-xl p-6 text-center">
                   <div>
-                    <Search className="mx-auto size-8 text-blue-400" />
+                    <Search className="mx-auto size-8 text-white/80" />
                     <p className="mt-3 text-base font-semibold text-white">კატალოგი იტვირთება</p>
                   </div>
                 </div>
@@ -450,7 +450,7 @@ function TrustItem({
 }) {
   return (
     <div className="flex items-start gap-3 px-4 py-4 sm:px-5">
-      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
+      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
         <Icon className="size-4" />
       </span>
       <div className="min-w-0">
@@ -473,7 +473,7 @@ function HeroProduct({ product }: { product: ProductView }) {
     <article className="overflow-hidden rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm">
       <Link href={`/products/${product.slug}`} className="relative block">
         <ProductImage src={image} alt={product.name} priority tall />
-        <span className="absolute left-3 top-3 rounded-md bg-blue-500 px-2 py-1 text-[11px] font-semibold text-white">
+        <span className="absolute left-3 top-3 rounded-md bg-white/20 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
           რჩეული
         </span>
         {discount > 0 && (
@@ -488,7 +488,7 @@ function HeroProduct({ product }: { product: ProductView }) {
           <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/70">{offer.shop.name}</span>
           <AvailabilityBadge availability={offer.availability} />
         </div>
-        <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-semibold leading-snug text-white hover:text-blue-300">
+        <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-semibold leading-snug text-white hover:text-orange-100">
           {product.name}
         </Link>
         <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} tone="light" />
@@ -497,7 +497,7 @@ function HeroProduct({ product }: { product: ProductView }) {
           <span>{shopCount > 1 ? `${shopCount} მაღაზია` : `${product.offers.length} შეთავაზება`}</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
-          <Link href={`/products/${product.slug}`} className="flex h-9 items-center justify-center rounded-md bg-white px-3 text-xs font-semibold text-gray-900 hover:bg-blue-50">
+          <Link href={`/products/${product.slug}`} className="flex h-9 items-center justify-center rounded-md bg-white px-3 text-xs font-semibold text-gray-900 hover:bg-orange-50">
             შედარება
           </Link>
           <ShopClickLink
@@ -572,7 +572,7 @@ function FeaturedDeal({ product }: { product: ProductView }) {
         </div>
 
         <div className="grid grid-cols-2 gap-1.5">
-          <Link href={`/products/${product.slug}`} className="flex h-10 items-center justify-center rounded-md bg-gray-900 px-3 text-xs font-semibold text-white hover:bg-black">
+          <Link href={`/products/${product.slug}`} className="flex h-10 items-center justify-center rounded-md bg-[var(--accent)] px-3 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]">
             შედარება
           </Link>
           <ShopClickLink

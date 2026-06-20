@@ -38,7 +38,7 @@ export async function SiteFooter() {
     .catch(() => null);
 
   return (
-    <footer className="mt-16 border-t border-gray-200 bg-[#15172b]">
+    <footer className="mt-16 border-t border-gray-200 bg-[var(--brand)]">
       <div className="shell grid gap-10 py-12 md:grid-cols-[2fr_1fr_1fr_1fr]">
         {/* Brand column */}
         <div>

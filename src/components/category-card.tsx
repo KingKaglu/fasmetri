@@ -32,14 +32,14 @@ const descriptions: Record<string, string> = {
 };
 
 const accentColors: Record<string, string> = {
-  mobiles: "bg-blue-50 text-blue-600",
-  laptops: "bg-violet-50 text-violet-600",
+  mobiles: "bg-[var(--accent-soft)] text-[var(--accent)]",
+  laptops: "bg-[var(--accent-soft)] text-[var(--accent)]",
   tablets: "bg-sky-50 text-sky-600",
   audio: "bg-purple-50 text-purple-600",
   wearables: "bg-rose-50 text-rose-600",
   gaming: "bg-orange-50 text-orange-600",
   televisions: "bg-teal-50 text-teal-600",
-  monitors: "bg-indigo-50 text-indigo-600",
+  monitors: "bg-[var(--accent-soft)] text-[var(--accent)]",
 };
 
 export function CategoryCard({
@@ -90,7 +90,7 @@ export function CategoryCard({
         </div>
 
         {/* Right: open affordance */}
-        <span className="hidden shrink-0 items-center gap-1.5 self-center rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-[var(--accent)] transition-colors group-hover:border-[var(--accent)] group-hover:bg-blue-50 sm:inline-flex">
+        <span className="hidden shrink-0 items-center gap-1.5 self-center rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-[var(--accent)] transition-colors group-hover:border-[var(--accent)] group-hover:bg-[var(--accent-soft)] sm:inline-flex">
           გახსნა
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </span>

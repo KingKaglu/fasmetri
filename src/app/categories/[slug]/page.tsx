@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { Search as SearchIcon } from "lucide-react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
@@ -156,7 +156,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
                 ✕
               </a>
             )}
-            <button className="h-full shrink-0 bg-gray-900 px-4 text-xs font-semibold text-white hover:bg-black">ძებნა</button>
+            <button className="h-full shrink-0 bg-[var(--accent)] px-4 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]">ძებნა</button>
           </form>
 
           <ActiveFilterChips basePath={`/categories/${category.slug}`} categories={categories} shops={shops} fixedCategory={category.slug} />
