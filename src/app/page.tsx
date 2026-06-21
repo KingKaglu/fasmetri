@@ -72,6 +72,9 @@ export default async function Home() {
   const promotedKeys = new Set(discounts.flatMap(homepageDedupKeys));
   const trending = selectFrequentlyCompared(categoryPopular, promotedKeys);
   const heroProduct = discounts[0] ?? trending[0];
+  // Mobile-first discovery: a clickable top-deals strip in the hero so phone
+  // users can tap a product within seconds without using the search bar.
+  const heroDeals = (discounts.length ? discounts : trending).slice(0, 8);
 
   return (
     <div className="min-h-screen">
@@ -133,6 +136,27 @@ export default async function Home() {
                   <HeroStat label="აქტიური აქცია" value={stats.deals} />
                 </div>
               </div>
+
+              {/* Mobile-only top-deals strip — instant tappable discovery without search */}
+              {heroDeals.length > 0 && (
+                <div className="mt-6 lg:hidden">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-[13px] font-bold text-white">
+                      <Flame className="size-3.5" />
+                      დღის საუკეთესო ფასები
+                    </span>
+                    <Link href="/deals" className="inline-flex items-center gap-0.5 text-[12px] font-semibold text-white/80 hover:text-white">
+                      ყველა
+                      <ArrowRight className="size-3" />
+                    </Link>
+                  </div>
+                  <div className="-mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {heroDeals.map((product) => (
+                      <HeroMobileDealCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right: featured product */}
@@ -476,6 +500,42 @@ function TrustItem({
         <p className="mt-0.5 text-xs leading-5 text-gray-500">{description}</p>
       </div>
     </div>
+  );
+}
+
+function HeroMobileDealCard({ product }: { product: ProductView }) {
+  const offer = product.offers[0];
+  if (!offer) return null;
+  const discount = realDiscountPercent(offer);
+  const image = offer.imageUrl ?? product.imageUrl;
+  const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
+
+  return (
+    <Link
+      href={`/products/${product.slug}`}
+      className="w-[150px] shrink-0 snap-start overflow-hidden rounded-xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+    >
+      <div className="relative border-b border-gray-100 bg-gray-50">
+        <ProductImage src={image} alt={product.name} categorySlug={product.category?.slug} shopName={offer.shop.name} />
+        {discount > 0 && (
+          <span className="absolute left-2 top-2">
+            <DiscountBadge percent={discount} />
+          </span>
+        )}
+      </div>
+      <div className="p-2.5">
+        <p className="line-clamp-2 min-h-[2.1rem] text-[11px] font-semibold leading-snug text-gray-900">{product.name}</p>
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
+          <span className="text-sm font-bold text-[var(--accent)]">{formatGel(offer.currentPrice)}</span>
+          {offer.oldPrice && offer.oldPrice > offer.currentPrice && (
+            <span className="text-[10px] text-gray-400 line-through">{formatGel(offer.oldPrice)}</span>
+          )}
+        </div>
+        <span className="mt-0.5 block truncate text-[10px] text-gray-400">
+          {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : offer.shop.name}
+        </span>
+      </div>
+    </Link>
   );
 }
 
