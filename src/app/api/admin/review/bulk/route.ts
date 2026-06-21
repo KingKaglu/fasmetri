@@ -2,6 +2,7 @@ import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { bulkApprovePossibleMatches } from "@/lib/admin-matching";
 import { prisma } from "@/lib/prisma";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const input = z.object({
   minConfidence: z.number().int().min(50).max(100),
@@ -15,7 +16,9 @@ export async function POST(request: Request) {
   if (!parsed.success) return Response.json({ error: "Invalid bulk approve request." }, { status: 400 });
 
   try {
-    return Response.json(await bulkApprovePossibleMatches(parsed.data.minConfidence, parsed.data.category));
+    const result = await bulkApprovePossibleMatches(parsed.data.minConfidence, parsed.data.category);
+    revalidatePublicCatalog();
+    return Response.json(result);
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Bulk approve failed." }, { status: 500 });
   }

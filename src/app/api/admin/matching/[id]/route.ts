@@ -2,6 +2,7 @@ import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { attachConfirmedOfferToProduct } from "@/lib/crossStoreMatching";
 import { prisma } from "@/lib/prisma";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const reviewAction = z.object({ action: z.enum(["confirm", "reject", "lock"]) });
 
@@ -19,6 +20,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (parsed.data.action === "confirm") {
     await attachConfirmedOfferToProduct(candidate.productId, candidate.offerId);
     await prisma.offerMatchCandidate.update({ where: { id: candidate.id }, data: { status: "CONFIRMED", reviewedAt: new Date() } });
+    revalidatePublicCatalog();
     return Response.json({ status: "CONFIRMED" });
   }
 
@@ -27,6 +29,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       prisma.product.update({ where: { id: candidate.productId }, data: { matchingLocked: true } }),
       prisma.offerMatchCandidate.update({ where: { id: candidate.id }, data: { status: "REJECTED", rejectedAt: new Date(), reviewedAt: new Date() } }),
     ]);
+    revalidatePublicCatalog();
     return Response.json({ status: "LOCKED" });
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runEePhoneSync } from "@/server/eePhones/sync";
 import { authorizeCron } from "@/lib/cron-auth";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const report = await runEePhoneSync({ mode: "prices", promote: true });
+    revalidatePublicCatalog();
     return NextResponse.json(report);
   } catch (error) {
     return NextResponse.json(

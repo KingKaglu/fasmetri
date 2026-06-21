@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const categoryUpdate = z.object({
   nameKa: z.string().trim().min(2),
@@ -12,5 +13,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (!prisma) return Response.json({ error: "DATABASE_URL is required." }, { status: 503 });
   const parsed = categoryUpdate.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Invalid category update." }, { status: 400 });
-  return Response.json({ category: await prisma.category.update({ where: { id: (await context.params).id }, data: parsed.data }) });
+  const category = await prisma.category.update({ where: { id: (await context.params).id }, data: parsed.data });
+  revalidatePublicCatalog();
+  return Response.json({ category });
 }

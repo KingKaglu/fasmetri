@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { isAdminRequest } from "@/lib/admin-auth";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 import { unlinkOffer } from "@/lib/admin-matching";
 import { prisma } from "@/lib/prisma";
 
@@ -39,6 +40,7 @@ export async function bulkUnlinkProducts(productIds: string[]): Promise<ActionRe
     }
   }
   revalidatePath("/admin/products");
+  revalidatePublicCatalog();
   return { ok: true, detail: `${unlinked} offer(s) unlinked` };
 }
 
@@ -62,6 +64,7 @@ export async function bulkDeleteOrphans(productIds: string[]): Promise<ActionRes
     await prisma!.product.deleteMany({ where: { id: { in: legacyIds }, offers: { none: {} } } });
   }
   revalidatePath("/admin/products");
+  revalidatePublicCatalog();
   return { ok: true, detail: `${orphans.length} orphan(s) deleted` };
 }
 
@@ -100,5 +103,6 @@ export async function mergeCanonicalProducts(targetId: string, sourceId: string)
   });
 
   revalidatePath("/admin/products");
+  revalidatePublicCatalog();
   return { ok: true, detail: `${moved} offer(s) moved to "${target.title}"` };
 }

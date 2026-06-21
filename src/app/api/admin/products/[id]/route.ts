@@ -2,6 +2,7 @@ import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const productUpdate = z.object({
   name: z.string().trim().min(2).optional(),
@@ -31,5 +32,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   } else if (parsed.data.categoryLocked === false) {
     Object.assign(data, { manualCategoryId: null });
   }
-  return Response.json({ product: await prisma.product.update({ where: { id }, data }) });
+  const product = await prisma.product.update({ where: { id }, data });
+  revalidatePublicCatalog();
+  return Response.json({ product });
 }
