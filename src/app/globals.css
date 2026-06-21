@@ -282,6 +282,15 @@ textarea {
   pointer-events: none;
 }
 
+/* Highlighter-pen emphasis for a single heading word on the hero */
+.hero-highlight {
+  background-image: linear-gradient(to top, rgba(255, 255, 255, 0.32) 0.36em, transparent 0.36em);
+  border-radius: 3px;
+  padding-inline: 0.06em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 /* ─── Product Marquee ────────────────────────────────── */
 
 .product-marquee {
