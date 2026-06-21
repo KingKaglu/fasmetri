@@ -51,7 +51,7 @@ export const FALLBACK_CATEGORY: FasmetriCategorySlug = "other";
 // The active public catalog is intentionally limited to phones and laptops.
 // Other classifier buckets stay internal and must not re-enter public routes,
 // sitemap output, seed data, or category re-creation scripts.
-export const PUBLIC_CATEGORY_SLUGS = ["mobiles", "laptops"] as const;
+export const PUBLIC_CATEGORY_SLUGS = ["mobiles", "laptops", "gaming"] as const;
 export type PublicCategorySlug = (typeof PUBLIC_CATEGORY_SLUGS)[number];
 
 const PUBLIC_CATEGORY_SLUG_SET = new Set<string>(PUBLIC_CATEGORY_SLUGS);
@@ -74,7 +74,7 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   "computer-accessories": { nameKa: "კომპიუტერის აქსესუარები", nameEn: "Computer accessories", public: false },
   computers: { nameKa: "კომპიუტერები და ნაწილები", nameEn: "Computers and parts", public: false },
   furniture: { nameKa: "ავეჯი", nameEn: "Furniture", public: false },
-  gaming: { nameKa: "Gaming", nameEn: "Gaming", public: false },
+  gaming: { nameKa: "Gaming", nameEn: "Gaming", public: true },
   "home-appliances": { nameKa: "საყოფაცხოვრებო ტექნიკა", nameEn: "Home appliances", public: false },
   "home-garden": { nameKa: "სახლი და ბაღი", nameEn: "Home and garden", public: false },
   kids: { nameKa: "საბავშვო", nameEn: "Kids", public: false },

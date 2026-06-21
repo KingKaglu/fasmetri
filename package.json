@@ -58,6 +58,8 @@
     "sync:ee:laptops": "tsx scripts/ee-laptops.ts --mode=prices --promote",
     "validate:ee:laptops": "tsx scripts/ee-laptops.ts --mode=validate",
     "import:ee:laptops": "tsx scripts/ee-laptops.ts --mode=promote",
+    "sync:pcshop:consoles": "tsx scripts/pcshop-consoles.ts --mode=prices --promote",
+    "scrape:pcshop:consoles:full": "tsx scripts/pcshop-consoles.ts --mode=full --promote",
     "store-category-coverage": "tsx scripts/store-category-coverage.ts",
     "intel": "tsx scripts/market-intel.ts"
   },
