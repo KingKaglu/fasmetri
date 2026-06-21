@@ -364,13 +364,16 @@ function skuCodes(signal: string) {
   );
 }
 
+const MIN_RAM_GB = 2;
+
 function memoryValues(signal: string, kind: "ram" | "storage") {
   const values = new Set<string>();
   const phoneLike = /\b(?:iphone|galaxy|xiaomi|redmi|poco|honor|realme|vivo|oppo|oneplus|nothing\s+phone|motorola|moto|nokia|hmd|pixel|zte|nubia|oukitel)\b/.test(signal);
 
   for (const match of signal.matchAll(/\b(\d{1,2})(?:gb)?\s*\/\s*(\d{1,4})(gb|tb)?\b/g)) {
     const storageUnit = match[3] ?? "gb";
-    if (kind === "ram") values.add(`${Number(match[1])}gb`);
+    // No real device has < 2GB RAM; a parsed "1" (e.g. "1/256" promo wording) is noise.
+    if (kind === "ram" && Number(match[1]) >= MIN_RAM_GB) values.add(`${Number(match[1])}gb`);
     if (kind === "storage") values.add(`${Number(match[2])}${storageUnit}`);
   }
 
@@ -401,7 +404,7 @@ function memoryValues(signal: string, kind: "ram" | "storage") {
     const laterStorage = entries.some((later) => later.index > entry.index && (later.unit === "tb" || later.amount >= 64));
     const laterPhoneStorage = phoneLike && entries.some((later) => later.index > entry.index && later.unit === "gb" && later.amount >= 16);
     const lastPhoneStorage = phoneLike && !entries.some((later) => later.index > entry.index) && entry.unit === "gb" && entry.amount >= 16;
-    if (kind === "ram" && entry.unit === "gb" && entry.amount <= 64 && (explicitRam || (!explicitStorage && entry.amount <= 48 && (laterStorage || laterPhoneStorage)))) {
+    if (kind === "ram" && entry.unit === "gb" && entry.amount >= MIN_RAM_GB && entry.amount <= 64 && (explicitRam || (!explicitStorage && entry.amount <= 48 && (laterStorage || laterPhoneStorage)))) {
       values.add(entry.value);
     }
     if (kind === "storage" && ((explicitStorage && !explicitRam) || entry.unit === "tb" || entry.amount >= 64 || (!explicitRam && lastPhoneStorage))) {

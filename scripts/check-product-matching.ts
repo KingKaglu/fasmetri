@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { extractProductIdentity } from "../src/lib/productIdentity";
 import { explainMatchDecision } from "../src/lib/productMatching";
+import { normalizeSafeOffer, scoreSafeMatch } from "../src/server/matching/safeProductMatcher";
 
 type MatchCase = {
   label: string;
@@ -134,3 +135,139 @@ for (const testCase of cases) {
 }
 
 console.log(`Verified ${cases.length} structured product matching cases.`);
+
+// ---------------------------------------------------------------------------
+// Safe cross-store matcher cases (src/server/matching/safeProductMatcher.ts) —
+// this is the code path npm run match:phones / match:laptops actually uses.
+// Regression guards for the v2 fixes: RAM=1 noise, SIM demotion, exactKey.
+// ---------------------------------------------------------------------------
+
+type SafeCase = {
+  label: string;
+  left: string;
+  right: string;
+  categorySlug: string;
+  expectAutoOrReview?: boolean; // true => band AUTO|REVIEW (same product); false => not auto-linked
+  expectRejected?: boolean;
+  // assertions on the LEFT identity itself
+  expectLeftRam?: number | undefined;
+  expectLeftKeyEquals?: string;
+  expectKeysEqual?: boolean; // left.exactKey === right.exactKey
+  // Override the RIGHT identity after normalization to mimic a stored (corrupt)
+  // canonical specsJson that no title would produce (e.g. legacy RAM=1).
+  mutateRight?: (id: ReturnType<typeof normalizeSafeOffer>) => void;
+};
+
+const safeCases: SafeCase[] = [
+  {
+    // Stage 1: RAM=1 noise must never become a RAM signal (1+256 promo wording).
+    label: "RAM=1 noise dropped (ZTE Nubia V70 1+256GB)",
+    left: "ZTE Nubia V70 1+256GB Black",
+    right: "ZTE Nubia V70 1+256GB Black",
+    categorySlug: "mobiles",
+    expectLeftRam: undefined,
+    expectLeftKeyEquals: "phone|zte|nubia_v70|256|black",
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Stage 1: "1/256" promo wording must not parse as 1GB RAM.
+    label: "RAM=1 noise dropped (Poco C75 1/256GB)",
+    left: "Xiaomi Poco C75 1/256GB Black",
+    right: "Xiaomi Poco C75 1/256GB Black",
+    categorySlug: "mobiles",
+    expectLeftRam: undefined,
+    expectAutoOrReview: true,
+  },
+  {
+    // Stage 1: a genuine RAM is still parsed correctly (no over-correction).
+    label: "RAM correctly parsed (Honor 400 8/256GB)",
+    left: "HONOR 400 8GB/256GB Black",
+    right: "HONOR 400 8/256GB Black",
+    categorySlug: "mobiles",
+    expectLeftRam: 8,
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Stage 2: eSIM-only vs plain are the same product (SIM not in key, not a hard conflict).
+    label: "iPhone 17e e-SIM Only == plain iPhone 17e",
+    left: "Apple iPhone 17e 256GB Black",
+    right: "Apple iPhone 17e e-SIM Only | 256GB Black",
+    categorySlug: "mobiles",
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Stage 2: differing SIM types still link (dual vs physical = descriptive packaging).
+    label: "Samsung dual-sim vs physical-sim same phone still links",
+    left: "Samsung Galaxy A26 Dual Sim 128GB Black",
+    right: "Samsung Galaxy A26 Nano Sim 128GB Black",
+    categorySlug: "mobiles",
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Safety: genuinely different colors must NOT merge (over-merge guard kept).
+    label: "different colors stay rejected (over-merge guard)",
+    left: "Apple iPhone 17 Pro Max 256GB Cosmic Orange",
+    right: "Apple iPhone 17 Pro Max 256GB Blue",
+    categorySlug: "mobiles",
+    expectRejected: true,
+  },
+  {
+    // Safety: different storage must still hard-reject.
+    label: "different storage stays rejected (over-merge guard)",
+    left: "Samsung Galaxy S26 Ultra 256GB Black",
+    right: "Samsung Galaxy S26 Ultra 512GB Black",
+    categorySlug: "mobiles",
+    expectRejected: true,
+  },
+  {
+    // Stale-link guard: a real 8GB offer must HARD-REJECT a corrupt RAM=1 canonical
+    // (legacy "…|1|…" specsJson — a value no title produces, since RAM=1 wording is
+    // dropped as noise). scoreSafeMatch must REJECT it so match-products flags the
+    // stale wrong-RAM auto-link and re-homes the offer instead of leaving it linked.
+    label: "8GB offer rejects corrupt RAM=1 canonical (stale-link guard)",
+    left: "Samsung Galaxy A26 8GB/256GB Black",
+    right: "Samsung Galaxy A26 8GB/256GB Black",
+    categorySlug: "mobiles",
+    mutateRight: (id) => {
+      if (id) id.ramGb = 1;
+    },
+    expectRejected: true,
+  },
+];
+
+for (const testCase of safeCases) {
+  const left = normalizeSafeOffer({ title: testCase.left, categorySlug: testCase.categorySlug });
+  const right = normalizeSafeOffer({ title: testCase.right, categorySlug: testCase.categorySlug });
+  assert.ok(left, `${testCase.label}: left identity should normalize`);
+  assert.ok(right, `${testCase.label}: right identity should normalize`);
+
+  if ("expectLeftRam" in testCase) {
+    assert.equal(left!.ramGb, testCase.expectLeftRam, `${testCase.label}: left ram`);
+  }
+  if (testCase.expectLeftKeyEquals) {
+    assert.equal(left!.exactKey, testCase.expectLeftKeyEquals, `${testCase.label}: left exactKey`);
+  }
+  if (testCase.expectKeysEqual) {
+    assert.equal(left!.exactKey, right!.exactKey, `${testCase.label}: exactKeys should be equal`);
+  }
+
+  if (testCase.mutateRight) testCase.mutateRight(right);
+
+  const decision = scoreSafeMatch(left!, right!);
+  if (testCase.expectRejected) {
+    assert.equal(decision.band, "REJECTED", `${testCase.label}: expected REJECTED, got ${decision.band} (${decision.confidence}) ${decision.reason}`);
+  }
+  if (testCase.expectAutoOrReview) {
+    assert.ok(
+      decision.band === "AUTO" || decision.band === "REVIEW",
+      `${testCase.label}: expected AUTO/REVIEW same-product, got ${decision.band} (${decision.confidence}) ${decision.reason}`,
+    );
+  }
+  console.log(`${decision.band} ${testCase.label}: ${decision.confidence}%`);
+}
+
+console.log(`Verified ${safeCases.length} safe cross-store matcher cases.`);

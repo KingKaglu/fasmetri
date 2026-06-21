@@ -109,6 +109,11 @@ export const TEXT_ALIASES: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bfern\b/gi, "green"],
   [/\bskyline\s*blue\b/gi, "blue"],
   // Single-word fantasy/marketing colors → canonical
+  [/\bjetblack\b/gi, "black"],
+  [/\bjet\s*black\b/gi, "black"],
+  [/\bsnow\b/gi, "white"],
+  [/\bglod\b/gi, "gold"],
+  [/\bspellbound\b/gi, "purple"],
   [/\btapestry\b/gi, "gray"],
   [/\bzephyr\b/gi, "blue"],
   [/\bnile\b/gi, "green"],

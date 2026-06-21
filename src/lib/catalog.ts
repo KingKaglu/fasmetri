@@ -481,7 +481,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v10", publicListingKey(filters)],
+    ["public-products-v11", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -492,7 +492,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v8", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v9", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -856,7 +856,7 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 // out into a single scan per revalidation window.
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
-  ["public-catalog-summary-v7"],
+  ["public-catalog-summary-v8"],
   { revalidate: 600, tags: ["catalog"] },
 );
 
