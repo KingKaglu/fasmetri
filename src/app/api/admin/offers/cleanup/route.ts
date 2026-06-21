@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const input = z.object({
   days: z.number().int().min(2).max(60).default(7),
@@ -25,5 +26,6 @@ export async function POST(request: Request) {
     where,
     data: { isActive: false, availability: "OUT_OF_STOCK", inactiveAt: new Date() },
   });
+  revalidatePublicCatalog();
   return Response.json({ dryRun: false, deactivated: result.count });
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const mergeInput = z.object({ sourceId: z.string().min(1), targetId: z.string().min(1) }).refine((data) => data.sourceId !== data.targetId);
 
@@ -15,5 +16,6 @@ export async function POST(request: Request) {
     prisma.userPriceAlert.updateMany({ where: { productId: parsed.data.sourceId }, data: { productId: parsed.data.targetId } }),
     prisma.product.delete({ where: { id: parsed.data.sourceId } }),
   ]);
+  revalidatePublicCatalog();
   return Response.json({ ok: true });
 }

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { approvePossibleMatch, rejectPossibleMatch } from "@/lib/admin-matching";
 import { prisma } from "@/lib/prisma";
+import { revalidatePublicCatalog } from "@/lib/revalidate";
 
 const input = z.object({ action: z.enum(["approve", "reject"]) });
 
@@ -14,6 +15,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   try {
     const result = parsed.data.action === "approve" ? await approvePossibleMatch(id) : await rejectPossibleMatch(id);
+    revalidatePublicCatalog();
     return Response.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Review action failed.";

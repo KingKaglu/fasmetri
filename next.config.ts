@@ -43,6 +43,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    formats: ["image/avif", "image/webp"],
+    qualities: [68, 75],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: "https", hostname: "s3.zoommer.ge" },
       { protocol: "https", hostname: "zoommer.ge" },
