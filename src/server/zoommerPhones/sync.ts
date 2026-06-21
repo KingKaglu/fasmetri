@@ -422,7 +422,8 @@ function stagedFromListing(product: ZoommerListingProduct, listingPage: number):
     discountAmountGel,
     discountPercent: integerValue(product.discountPercent) ?? discountPercent(currentPriceGel, oldPriceGel),
     installmentPriceGel: null,
-    availability: product.isInStock === true ? OfferAvailability.IN_STOCK : product.isInStock === false ? OfferAvailability.OUT_OF_STOCK : OfferAvailability.UNKNOWN,
+    // Listing API returns isInStock=false for every product (unreliable stub); real stock comes from the detail page.
+    availability: OfferAvailability.UNKNOWN,
     scrapedAt: new Date().toISOString(),
     listingPage,
     rawListingData: jsonRecord(product),
@@ -462,6 +463,13 @@ async function scrapeDetail(item: StagedZoommerPhone) {
       } as JsonRecord,
       normalizedSpecs,
       canonicalUrl: item.productUrl,
+      // Detail page carries the real stock flag; the listing API returns isInStock=false for every product.
+      availability:
+        typeof product.isInStock === "boolean"
+          ? product.isInStock
+            ? OfferAvailability.IN_STOCK
+            : OfferAvailability.OUT_OF_STOCK
+          : item.availability,
     };
   } catch (error) {
     return {
@@ -473,6 +481,7 @@ async function scrapeDetail(item: StagedZoommerPhone) {
       rawSpecs: item.rawSpecs,
       normalizedSpecs: item.normalizedSpecs,
       canonicalUrl: item.productUrl,
+      availability: item.availability,
     };
   }
 }
@@ -490,6 +499,7 @@ function mergeDetail(item: StagedZoommerPhone, detail?: Awaited<ReturnType<typeo
       rawSpecs: detail.rawSpecs,
       normalizedSpecs: { ...item.normalizedSpecs, ...detail.normalizedSpecs },
       brand: detail.normalizedSpecs.brand ?? item.brand,
+      availability: detail.availability,
     };
   }
 
@@ -637,6 +647,9 @@ async function promoteSnapshot(snapshot: ZoommerPhonesSnapshot): Promise<Promoti
     }
     const priceChanged = !priceAnomalous && (existingPrice !== currentPriceGel || existingOldPrice !== item.oldPriceGel);
     const saleDetectedAt = item.discountPercent > 0 ? existing?.saleDetectedAt ?? new Date() : null;
+    // Detail page is the only reliable stock source; when this run didn't resolve it (UNKNOWN), keep the existing value rather than clobbering it.
+    const resolvedAvailability =
+      item.availability === OfferAvailability.UNKNOWN ? existing?.availability ?? OfferAvailability.UNKNOWN : item.availability;
 
     const rawOffer = await upsertRawOffer(shop.id, item, undefined);
     let offerExternalId: string | null = item.zoommerProductId ?? null;
@@ -662,7 +675,7 @@ async function promoteSnapshot(snapshot: ZoommerPhonesSnapshot): Promise<Promoti
             discountPercent: priceAnomalous ? undefined : item.discountPercent,
             isOnSale: priceAnomalous ? undefined : item.discountPercent > 0,
             saleDetectedAt: priceAnomalous ? undefined : saleDetectedAt,
-            availability: item.availability,
+            availability: resolvedAvailability,
             imageUrl: item.imageUrl,
             lastSeenAt: new Date(item.scrapedAt),
             lastCheckedAt: new Date(),
@@ -706,7 +719,7 @@ async function promoteSnapshot(snapshot: ZoommerPhonesSnapshot): Promise<Promoti
               offerId: offer.id,
               price: currentPriceGel,
               oldPrice: item.oldPriceGel,
-              availability: item.availability,
+              availability: resolvedAvailability,
               capturedAt: new Date(item.scrapedAt),
             },
           });
