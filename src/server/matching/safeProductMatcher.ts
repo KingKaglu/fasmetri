@@ -2,7 +2,7 @@ import { COLOR_ALIASES } from "@/config/productAliases";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 import { extractVariantIdentity } from "@/lib/variantMatching";
 
-export const SAFE_MATCHER_VERSION = "safe-products-v1";
+export const SAFE_MATCHER_VERSION = "safe-products-v2";
 
 export type SafeCategorySlug = "mobiles" | "laptops";
 export type SafeProductKind = "phone" | "laptop";
@@ -184,7 +184,11 @@ export function buildExactKey(identity: SafeProductIdentity) {
   if (identity.kind === "phone") {
     if (!identity.model || !identity.storageGb) return undefined;
     const ram = phoneRamRequired(identity) ? String(identity.ramGb ?? "") : undefined;
-    return key(["phone", identity.brand, identity.model, String(identity.storageGb), ram, identity.simType, identity.color]);
+    // simType is intentionally NOT part of the phone key. SIM (eSIM-only / dual /
+    // physical) is descriptive packaging, not a separate purchasable variant of the
+    // same model+storage+color — and it is unreliably inferred from titles (one shop
+    // labels "e-SIM Only", another omits it), which split one phone into SIM buckets.
+    return key(["phone", identity.brand, identity.model, String(identity.storageGb), ram, identity.color]);
   }
   if (!identity.modelFamily && !identity.modelCode) return undefined;
   const storage = identity.storageGb ? `${identity.storageGb}${identity.storageType ? `_${identity.storageType}` : ""}` : undefined;
@@ -294,9 +298,15 @@ function scorePhone(raw: SafeProductIdentity, candidate: SafeProductIdentity): S
   if (raw.simType && candidate.simType && raw.simType === candidate.simType) {
     confidence += 10;
     reasons.push("SIM +10");
+  } else if (raw.simType && candidate.simType) {
+    // SIM differing is NOT a hard conflict: it is descriptive packaging on the same
+    // model+storage+color phone, often inferred wrongly from titles. Demote to a soft
+    // cap so it lowers confidence (stays auto-linkable when everything else matches)
+    // instead of instantly rejecting a genuine same-product pair.
+    caps.push({ value: 90, reason: "SIM differs soft-cap90" });
+    reasons.push(`SIM differs (descriptive): ${raw.simType} vs ${candidate.simType}`);
   } else {
     caps.push({ value: 80, reason: "SIM max80" });
-    if (raw.simType && candidate.simType) hardConflicts.push(`phone SIM differs: ${raw.simType} vs ${candidate.simType}`);
   }
 
   const rawPhoneColor = normalizeColor(raw.color);
@@ -617,12 +627,22 @@ function detectModelCode(signal: string, kind: SafeProductKind) {
   return undefined;
 }
 
+// No phone or laptop ships with < 2GB RAM; a parsed "1" almost always comes from
+// a marketing/promo token ("1 year warranty", "1+256" bundle wording, "5G") and
+// must never become a RAM signal — it splits one product into bogus RAM buckets.
+const MIN_RAM_GB = 2;
+
+function isPlausibleRam(value: number | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= MIN_RAM_GB && value <= 64;
+}
+
 function detectMemory(signal: string, kind: SafeProductKind, extracted: { storage?: string; ram?: string }) {
   const pair = signal.match(/\b(\d{1,2})(?:gb)?\s*[/+-]\s*(\d{2,4}|[12]tb)(?:gb)?\b/);
   let ramGb = memoryToGb(extracted.ram);
   let storageGb = memoryToGb(extracted.storage);
   if (pair) {
-    ramGb ??= Number(pair[1]);
+    const pairRam = Number(pair[1]);
+    if (ramGb === undefined && isPlausibleRam(pairRam)) ramGb = pairRam;
     storageGb ??= memoryToGb(pair[2]);
   }
 
@@ -632,11 +652,14 @@ function detectMemory(signal: string, kind: SafeProductKind, extracted: { storag
     index: match.index ?? 0,
   }));
   const storageCandidates = entries.filter((entry) => entry.unit === "tb" || entry.amount >= (kind === "phone" ? 16 : 64));
-  const ramCandidates = entries.filter((entry) => entry.unit === "gb" && entry.amount <= 64);
+  const ramCandidates = entries.filter((entry) => entry.unit === "gb" && entry.amount >= MIN_RAM_GB && entry.amount <= 64);
   storageGb ??= storageCandidates.sort((left, right) => right.amount - left.amount)[0]?.amount;
   ramGb ??= ramCandidates
     .filter((entry) => !storageCandidates.some((storage) => storage.index === entry.index))
     .sort((left, right) => left.amount - right.amount)[0]?.amount;
+
+  // Final guard: discard any implausible RAM that slipped through extracted specs.
+  if (!isPlausibleRam(ramGb)) ramGb = undefined;
 
   return { ramGb, storageGb };
 }
