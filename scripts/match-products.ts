@@ -171,9 +171,22 @@ async function main() {
         .sort((left, right) => right.decision.confidence - left.decision.confidence);
       report.rejected += decisions.filter((item) => item.decision.band === "REJECTED").length;
 
+      // A confident link is normally never moved silently (a PossibleMatch is queued
+      // instead). But if the offer's CURRENT canonical now hard-conflicts with the
+      // offer's own identity under the active matcher — e.g. a stale v1 canonical
+      // whose specsJson carries a corrupt RAM ("…|1|…") that the offer's true RAM
+      // rejects — that link is stale, not trustworthy. Let such an offer re-home to a
+      // correct canonical instead of leaving a wrong-RAM auto-match live forever.
+      const currentLinkConflicts = Boolean(
+        raw.productOffer?.canonicalProductId &&
+          decisions.some(
+            (item) => item.candidate.id === raw.productOffer?.canonicalProductId && item.decision.band === "REJECTED",
+          ),
+      );
+
       const bestAuto = decisions.find((item) => item.decision.band === "AUTO");
       if (bestAuto) {
-        if (raw.productOffer?.canonicalProductId && raw.productOffer.canonicalProductId !== bestAuto.candidate.id && (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)) {
+        if (!currentLinkConflicts && raw.productOffer?.canonicalProductId && raw.productOffer.canonicalProductId !== bestAuto.candidate.id && (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)) {
           await maybeWritePossible(raw, bestAuto, options.dryRun);
           report.possible += 1;
           addReviewExample(report, raw, bestAuto, "Existing good safe match was not moved automatically.");
@@ -200,13 +213,60 @@ async function main() {
         continue;
       }
 
+      // An existing canonical whose canonicalKey is byte-identical to this offer's
+      // exactKey is the SAME SKU (brand|model/code|cpu|gpu|ram|storage|screen|color
+      // all equal). The additive scorer can still land below WEAK (e.g. when a spec
+      // is unknown on one side and caps the score), which previously spawned a
+      // duplicate `…|raw_<hash>` canonical. Link to the existing canonical instead —
+      // unless the offer is already confidently linked elsewhere, in which case queue
+      // a PossibleMatch rather than silently moving it.
+      const exactKeyMatch = identity.exactKey
+        ? decisions.find((item) => item.decision.band !== "REJECTED" && item.candidate.canonicalKey === identity.exactKey)
+        : undefined;
+      if (exactKeyMatch) {
+        if (
+          !currentLinkConflicts &&
+          raw.productOffer?.canonicalProductId &&
+          raw.productOffer.canonicalProductId !== exactKeyMatch.candidate.id &&
+          (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)
+        ) {
+          await maybeWritePossible(raw, exactKeyMatch, options.dryRun);
+          report.possible += 1;
+          addReviewExample(report, raw, exactKeyMatch, "ExactKey collision but offer already confidently linked; queued for review.");
+          continue;
+        }
+        const canonical = exactKeyMatch.candidate;
+        const productId = await ensureLegacyProduct(canonical, exactKeyMatch.identity, categoryIds.get(identity.categorySlug), false, options.dryRun);
+        if (!options.dryRun && productId && canonical.productId !== productId) {
+          await db.canonicalProduct.update({ where: { id: canonical.id }, data: { productId, lastMatchedAt: new Date() } });
+        }
+        const offerResult = await upsertOffer(raw, canonical.id, productId ?? canonical.productId, identity, {
+          confidence: Math.max(exactKeyMatch.decision.confidence, autoThreshold(identity)),
+          reason: `Linked on identical exactKey ${identity.exactKey}. ${exactKeyMatch.decision.reason}`,
+          status: "SAFE_AUTO",
+          needsReview: false,
+          dryRun: options.dryRun,
+        });
+        await closePendingPossible(raw.id, options.dryRun);
+        report.auto += 1;
+        if (offerResult === "created") report.createdOffers += 1;
+        if (offerResult === "updated") report.updatedOffers += 1;
+        addAutoExample(report, raw, canonical, exactKeyMatch);
+        continue;
+      }
+
       const possible = decisions.filter((item) => item.decision.band === "REVIEW" || item.decision.band === "WEAK").slice(0, 5);
       for (const item of possible) {
         await maybeWritePossible(raw, item, options.dryRun);
         report.possible += 1;
         addReviewExample(report, raw, item);
       }
-      if (possible.length > 0) {
+      // Normally REVIEW/WEAK candidates mean "leave the offer where it is and let an
+      // admin decide". But if the offer's current link hard-conflicts (stale wrong-RAM
+      // canonical) and no AUTO/exactKey re-home was possible, we must NOT leave it on
+      // the conflicting canonical — fall through to give it its own correct canonical
+      // (the queued PossibleMatch still lets an admin merge it to a variant later).
+      if (possible.length > 0 && !currentLinkConflicts) {
         continue;
       }
 
