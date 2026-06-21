@@ -2,13 +2,11 @@ import Link from "next/link";
 import { Metadata } from "next";
 import {
   ArrowRight,
+  ArrowUpDown,
   ArrowUpRight,
-  BadgePercent,
-  Laptop,
+  Flame,
   Search,
   ShieldCheck,
-  Smartphone,
-  Sparkles,
   Store,
   TrendingDown,
 } from "lucide-react";
@@ -41,11 +39,11 @@ export const metadata: Metadata = {
 
 export const revalidate = 600;
 
-const quickCategories = [
-  { href: "/categories/mobiles", label: "ტელეფონები", icon: Smartphone },
-  { href: "/categories/laptops", label: "ლეპტოპები", icon: Laptop },
-  { href: "/deals", label: "აქციები", icon: BadgePercent },
-  { href: "/search", label: "ძებნა", icon: Search },
+const heroTabs = [
+  { href: "/search", label: "ყველა", active: true },
+  { href: "/categories/mobiles", label: "ტელეფონები", active: false },
+  { href: "/categories/laptops", label: "ლეპტოპები", active: false },
+  { href: "/deals", label: "აქციები", active: false },
 ];
 
 type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
@@ -83,42 +81,62 @@ export default async function Home() {
           <div className="relative z-10 grid gap-6 p-5 sm:p-8 lg:grid-cols-[1fr_auto] lg:gap-12 lg:p-10">
             {/* Left: copy + search */}
             <div className="flex min-w-0 flex-col justify-center py-2">
-              {/* Category quick links */}
-              <div className="mb-5 flex min-w-0 flex-wrap gap-2">
-                {quickCategories.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/18 hover:text-white"
-                  >
-                    <Icon className="size-3.5 opacity-70" />
-                    {label}
-                  </Link>
-                ))}
+              {/* Brand badge */}
+              <div className="mb-5">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3.5 backdrop-blur-sm">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white">
+                    <svg viewBox="0 0 32 28" className="size-4" fill="none" aria-hidden="true">
+                      <path d="M8.63 22.17 A9 9 0 1 1 23.37 22.17" stroke="var(--accent)" strokeWidth="2.7" strokeLinecap="round" />
+                      <path d="M16 17 L10.9 21.3" stroke="var(--aqua)" strokeWidth="2.7" strokeLinecap="round" />
+                      <circle cx="16" cy="17" r="2.4" fill="var(--accent)" />
+                    </svg>
+                  </span>
+                  <span className="text-[13px] font-bold text-white">ფასმეტრი</span>
+                  <span className="hidden text-white/40 sm:inline">·</span>
+                  <span className="hidden text-[13px] font-medium text-white/70 sm:inline">ფასების შედარების პლატფორმა</span>
+                </span>
               </div>
 
-              <h1 className="text-3xl font-bold leading-[1.1] text-white sm:text-4xl lg:text-5xl">
-                შეადარე ფასები<br />
-                <span className="text-white">ქართულ მაღაზიებში</span>
+              <h1 className="text-3xl font-bold leading-[1.12] text-white sm:text-4xl lg:text-5xl">
+                შეადარე <span className="hero-highlight">ფასები</span> ქართულ მაღაზიებში
               </h1>
               <p className="mt-3 max-w-lg text-sm leading-6 text-white/65 sm:text-base">
                 ფასმეტრი აერთიანებს ქართულ ონლაინ მაღაზიებს ერთ კატალოგში — სწრაფად ნახე სად არის საუკეთესო ფასი.
               </p>
 
+              {/* Category filter tabs */}
+              <div className="mt-5 flex min-w-0 flex-wrap gap-2">
+                {heroTabs.map(({ href, label, active }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={
+                      active
+                        ? "inline-flex shrink-0 items-center rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-[var(--brand)] shadow-sm"
+                        : "inline-flex shrink-0 items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[13px] font-medium text-white/85 hover:bg-white/20 hover:text-white"
+                    }
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+
               <div className="mt-5 max-w-xl">
                 <SearchBar large />
               </div>
 
-              {/* Stats row */}
-              <div className="mt-5 flex flex-wrap gap-4">
-                <HeroStat label="მაღაზია" value={stats.shops} />
-                <HeroStat label="პროდუქტი" value={stats.products} />
-                <HeroStat label="აქტიური აქცია" value={stats.deals} />
+              {/* Stats panel */}
+              <div className="mt-6 max-w-xl">
+                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/15 bg-white/10 p-2 backdrop-blur-sm sm:gap-3 sm:p-3">
+                  <HeroStat label="მაღაზია" value={stats.shops} />
+                  <HeroStat label="პროდუქტი" value={stats.products} />
+                  <HeroStat label="აქტიური აქცია" value={stats.deals} />
+                </div>
               </div>
             </div>
 
             {/* Right: featured product */}
-            <div className="hidden lg:block lg:w-[280px] xl:w-[300px]">
+            <div className="hidden lg:block lg:w-[300px] xl:w-[320px]">
               {heroProduct ? (
                 <HeroProduct product={heroProduct} />
               ) : (
@@ -398,9 +416,9 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
 
 function HeroStat({ label, value }: { label: string; value: number | null | undefined }) {
   return (
-    <div className="flex items-baseline gap-1.5">
-      <span className="text-xl font-bold tabular-nums text-white">{(value ?? 0).toLocaleString()}</span>
-      <span className="text-xs text-white/55">{label}</span>
+    <div className="rounded-xl bg-white/5 px-2 py-2 text-center sm:py-2.5">
+      <div className="text-xl font-black tabular-nums text-white sm:text-2xl">{(value ?? 0).toLocaleString()}</div>
+      <div className="mt-0.5 text-[11px] font-medium text-white/55">{label}</div>
     </div>
   );
 }
@@ -468,56 +486,76 @@ function HeroProduct({ product }: { product: ProductView }) {
   const discount = realDiscountPercent(offer);
   const image = offer.imageUrl ?? product.imageUrl;
   const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
+  const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
 
   return (
-    <article className="overflow-hidden rounded-xl border border-white/15 bg-white/10 backdrop-blur-sm">
-      <Link href={`/products/${product.slug}`} className="relative block">
-        <ProductImage src={image} alt={product.name} priority tall />
-        <span className="absolute left-3 top-3 rounded-md bg-white/20 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-          რჩეული
-        </span>
-        {discount > 0 && (
-          <span className="absolute right-3 top-3">
-            <DiscountBadge percent={discount} />
-          </span>
-        )}
-      </Link>
-      <div className="grid gap-2.5 p-3.5">
-        <div className="flex items-center gap-2">
-          <ShopMark shop={offer.shop} size="sm" />
-          <span className="min-w-0 flex-1 truncate text-xs font-medium text-white/70">{offer.shop.name}</span>
-          <AvailabilityBadge availability={offer.availability} />
-        </div>
-        <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-semibold leading-snug text-white hover:text-orange-100">
-          {product.name}
-        </Link>
-        <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} tone="light" />
-        <div className="flex items-center gap-2 text-[11px] text-white/50">
-          <Store className="size-3.5" />
-          <span>{shopCount > 1 ? `${shopCount} მაღაზია` : `${product.offers.length} შეთავაზება`}</span>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          <Link href={`/products/${product.slug}`} className="flex h-9 items-center justify-center rounded-md bg-white px-3 text-xs font-semibold text-gray-900 hover:bg-orange-50">
-            შედარება
-          </Link>
-          <ShopClickLink
-            offerId={offer.id}
-            productId={product.id}
-            productName={product.name}
-            category={product.category?.slug}
-            shopName={offer.shop.name}
-            price={offer.currentPrice}
-            sourceUrl={offer.url}
-            ariaLabel={`${offer.shop.name} შეთავაზება`}
-            title="შეთავაზება"
-            className="flex h-9 items-center justify-center gap-1 rounded-md border border-white/20 bg-white/10 px-3 text-xs font-semibold text-white hover:bg-white/18"
-          >
-            ნახვა
-            <ArrowUpRight className="size-3.5" />
-          </ShopClickLink>
-        </div>
+    <div className="drop-shadow-[0_24px_50px_rgba(0,0,0,0.28)]">
+      {/* Hot-deal ribbon */}
+      <div className="flex items-center gap-1.5 rounded-t-2xl bg-[var(--accent-strong)] px-4 py-2 text-[12px] font-bold text-white">
+        <Flame className="size-3.5" />
+        დღის ცხელი შეთავაზება
       </div>
-    </article>
+      <article className="overflow-hidden rounded-b-2xl bg-white">
+        <Link href={`/products/${product.slug}`} className="relative block border-b border-gray-100 bg-gray-50">
+          <ProductImage src={image} alt={product.name} priority tall />
+          {discount > 0 && (
+            <span className="absolute right-3 top-3">
+              <DiscountBadge percent={discount} />
+            </span>
+          )}
+        </Link>
+        <div className="grid gap-2.5 p-4">
+          <div className="flex items-center gap-2">
+            <ShopMark shop={offer.shop} size="sm" />
+            <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-700">{offer.shop.name}</span>
+            {offer.availability === "IN_STOCK" ? (
+              <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-[var(--aqua)]">
+                <span className="size-1.5 rounded-full bg-[var(--aqua)]" />
+                მარაგში
+              </span>
+            ) : (
+              <AvailabilityBadge availability={offer.availability} hideUnknown />
+            )}
+          </div>
+          <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-bold leading-snug text-gray-900 hover:text-[var(--accent)]">
+            {product.name}
+          </Link>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} />
+            {savings > 0 && (
+              <span className="inline-flex items-center rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--accent-strong)]">
+                დაზოგე {formatGel(savings)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+            <Store className="size-3.5" />
+            <span>{shopCount > 1 ? `${shopCount} მაღაზია` : `${shopCount} მაღაზიის შეთავაზება`}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href={`/products/${product.slug}`} className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50">
+              <ArrowUpDown className="size-3.5" />
+              შედარება
+            </Link>
+            <ShopClickLink
+              offerId={offer.id}
+              productId={product.id}
+              productName={product.name}
+              category={product.category?.slug}
+              shopName={offer.shop.name}
+              price={offer.currentPrice}
+              sourceUrl={offer.url}
+              ariaLabel={`${offer.shop.name} შეთავაზება`}
+              title="შეთავაზება"
+              className="flex h-10 items-center justify-center gap-1 rounded-lg bg-[var(--accent)] px-3 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]"
+            >
+              ნახვა
+              <ArrowUpRight className="size-3.5" />
+            </ShopClickLink>
+          </div>
+        </div>
+      </article>
+    </div>
   );
 }
 

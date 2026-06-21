@@ -216,7 +216,14 @@ export function SearchBar({
                 : "h-full rounded-r-lg bg-[var(--accent)] px-5 text-sm hover:bg-[var(--accent-strong)]"
           }`}
         >
-          {isHeader ? <Search className="size-4" /> : "ძებნა"}
+          {isHeader ? (
+            <Search className="size-4" />
+          ) : (
+            <span className="inline-flex items-center gap-1.5">
+              <Search className="size-4" />
+              ძებნა
+            </span>
+          )}
         </button>
       </div>
 
