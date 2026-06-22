@@ -2,10 +2,10 @@ import { COLOR_ALIASES } from "@/config/productAliases";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 import { extractVariantIdentity } from "@/lib/variantMatching";
 
-export const SAFE_MATCHER_VERSION = "safe-products-v2";
+export const SAFE_MATCHER_VERSION = "safe-products-v3";
 
-export type SafeCategorySlug = "mobiles" | "laptops";
-export type SafeProductKind = "phone" | "laptop";
+export type SafeCategorySlug = "mobiles" | "laptops" | "gaming";
+export type SafeProductKind = "phone" | "laptop" | "console" | "accessory";
 export type SafeMatchBand = "AUTO" | "REVIEW" | "WEAK" | "NO_MATCH" | "REJECTED";
 
 export type SafeOfferInput = {
@@ -50,6 +50,12 @@ export type SafeProductIdentity = {
   cleanTitle: string;
   familyKey?: string;
   exactKey?: string;
+  // Console-specific fields (kind === "console" | "accessory")
+  consoleFamily?: string;  // e.g. "ps5", "xbox_series_x", "nintendo_switch"
+  consoleVariant?: string; // e.g. "slim", "pro", "standard"
+  consoleEdition?: string; // e.g. "disc", "digital"
+  isBundle?: boolean;      // true when title includes bundled controllers/games
+  accessoryModel?: string; // normalized accessory model (kind === "accessory")
   source: {
     title: string;
     specsText?: string;
@@ -70,16 +76,27 @@ export function normalizeSafeCategory(slug?: string | null): SafeCategorySlug | 
   const value = slug.toLowerCase().trim();
   if (["mobiles", "mobile-phones", "mobile_phones", "phones", "phone"].includes(value)) return "mobiles";
   if (["laptops", "laptop", "notebooks", "notebook"].includes(value)) return "laptops";
+  if (["gaming", "consoles", "console", "games", "game"].includes(value)) return "gaming";
   return undefined;
 }
 
 export function kindForSafeCategory(categorySlug: SafeCategorySlug): SafeProductKind {
-  return categorySlug === "mobiles" ? "phone" : "laptop";
+  if (categorySlug === "mobiles") return "phone";
+  if (categorySlug === "laptops") return "laptop";
+  // For gaming, the actual kind (console vs accessory) is determined per-offer
+  // during normalizeSafeOffer — default to "console" here; the real kind is set
+  // inside normalizeSafeOffer based on title analysis.
+  return "console";
 }
 
 export function normalizeSafeOffer(input: SafeOfferInput): SafeProductIdentity | undefined {
   const categorySlug = normalizeSafeCategory(input.categorySlug);
   if (!categorySlug) return undefined;
+
+  // Gaming / console category has its own extraction path
+  if (categorySlug === "gaming") {
+    return normalizeSafeGamingOffer(input);
+  }
 
   const kind = kindForSafeCategory(categorySlug);
   const specsText = flattenSpecs(input.specs);
@@ -157,8 +174,8 @@ export function readSafeIdentity(value: unknown): SafeProductIdentity | undefine
   if (!value || typeof value !== "object") return undefined;
   const identity = value as Partial<SafeProductIdentity>;
   if (
-    (identity.kind === "phone" || identity.kind === "laptop") &&
-    (identity.categorySlug === "mobiles" || identity.categorySlug === "laptops") &&
+    (identity.kind === "phone" || identity.kind === "laptop" || identity.kind === "console" || identity.kind === "accessory") &&
+    (identity.categorySlug === "mobiles" || identity.categorySlug === "laptops" || identity.categorySlug === "gaming") &&
     typeof identity.normalizedTitle === "string" &&
     typeof identity.cleanTitle === "string" &&
     identity.source &&
@@ -175,6 +192,14 @@ export function buildFamilyKey(identity: SafeProductIdentity) {
     if (!identity.baseModel) return undefined;
     return key(["phone", identity.brand, identity.baseModel]);
   }
+  if (identity.kind === "console") {
+    if (!identity.consoleFamily) return undefined;
+    return key(["console", identity.brand, identity.consoleFamily]);
+  }
+  if (identity.kind === "accessory") {
+    if (!identity.consoleFamily && !identity.accessoryModel) return undefined;
+    return key(["accessory", identity.brand, identity.consoleFamily, identity.accessoryModel]);
+  }
   if (!identity.modelFamily && !identity.modelCode) return undefined;
   return key(["laptop", identity.brand, identity.modelFamily ?? identity.modelCode]);
 }
@@ -189,6 +214,23 @@ export function buildExactKey(identity: SafeProductIdentity) {
     // same model+storage+color — and it is unreliably inferred from titles (one shop
     // labels "e-SIM Only", another omits it), which split one phone into SIM buckets.
     return key(["phone", identity.brand, identity.model, String(identity.storageGb), ram, identity.color]);
+  }
+  if (identity.kind === "console") {
+    if (!identity.consoleFamily) return undefined;
+    // Bundle flag is part of the key so bundles never merge with bare consoles.
+    // Color is intentionally omitted — white vs no-color must NOT split the same SKU.
+    return key([
+      "console",
+      identity.brand,
+      identity.consoleFamily,
+      identity.consoleVariant,
+      identity.consoleEdition,
+      identity.isBundle ? "bundle" : undefined,
+    ]);
+  }
+  if (identity.kind === "accessory") {
+    if (!identity.accessoryModel && !identity.consoleFamily) return undefined;
+    return key(["accessory", identity.brand, identity.consoleFamily, identity.accessoryModel, identity.color]);
   }
   if (!identity.modelFamily && !identity.modelCode) return undefined;
   const storage = identity.storageGb ? `${identity.storageGb}${identity.storageType ? `_${identity.storageType}` : ""}` : undefined;
@@ -207,7 +249,7 @@ export function buildExactKey(identity: SafeProductIdentity) {
 
 export function scoreSafeMatch(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {
   if (raw.kind !== candidate.kind) {
-    return rejected("category/product type mismatch", ["phone matched with laptop/tablet/accessory"]);
+    return rejected("category/product type mismatch", [`kind mismatch: ${raw.kind} vs ${candidate.kind}`]);
   }
   if (raw.categorySlug !== candidate.categorySlug) {
     return rejected("category mismatch", [`category mismatch: ${raw.categorySlug} vs ${candidate.categorySlug}`]);
@@ -218,7 +260,10 @@ export function scoreSafeMatch(raw: SafeProductIdentity, candidate: SafeProductI
   if (raw.brand !== candidate.brand) {
     return rejected("brand mismatch", [`brand mismatch: ${raw.brand} vs ${candidate.brand}`]);
   }
-  return raw.kind === "phone" ? scorePhone(raw, candidate) : scoreLaptop(raw, candidate);
+  if (raw.kind === "phone") return scorePhone(raw, candidate);
+  if (raw.kind === "laptop") return scoreLaptop(raw, candidate);
+  if (raw.kind === "console" || raw.kind === "accessory") return scoreConsole(raw, candidate);
+  return rejected("unknown kind", [`unsupported kind: ${raw.kind}`]);
 }
 
 export function identitySummary(identity: SafeProductIdentity) {
@@ -229,6 +274,27 @@ export function identitySummary(identity: SafeProductIdentity) {
       identity.storageGb ? `${identity.storageGb}gb` : undefined,
       identity.ramGb ? `${identity.ramGb}gb ram` : undefined,
       identity.simType,
+      identity.color,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+  if (identity.kind === "console") {
+    return [
+      identity.brand,
+      identity.consoleFamily,
+      identity.consoleVariant,
+      identity.consoleEdition,
+      identity.isBundle ? "bundle" : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }
+  if (identity.kind === "accessory") {
+    return [
+      identity.brand,
+      identity.consoleFamily,
+      identity.accessoryModel,
       identity.color,
     ]
       .filter(Boolean)
@@ -426,6 +492,96 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
   }
 
   return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 65 });
+}
+
+function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {
+  // Both raw and candidate are kind===console or kind===accessory (kind equality is
+  // already checked in scoreSafeMatch). Accessories are keyed by their own
+  // accessoryModel so two accessories only reach this scorer when their family keys
+  // match — the brand check above already filters cross-brand pairs.
+  let confidence = 0;
+  const reasons: string[] = [];
+  const hardConflicts: string[] = [];
+  const caps: Array<{ value: number; reason: string }> = [];
+
+  // Console family (e.g. "ps5", "xbox_series_x") is the primary identity signal.
+  // Weight 60 so that family+variant alone = 90 ≥ 85 AUTO threshold even when
+  // edition is unknown on one side (Zoommer omits "CD Version" from plain console titles).
+  if (raw.consoleFamily && candidate.consoleFamily) {
+    if (raw.consoleFamily === candidate.consoleFamily) {
+      confidence += 60;
+      reasons.push("consoleFamily +60");
+    } else {
+      hardConflicts.push(`console family differs: ${raw.consoleFamily} vs ${candidate.consoleFamily}`);
+    }
+  } else {
+    caps.push({ value: 70, reason: "consoleFamily unknown max70" });
+  }
+
+  // Variant (slim / pro / standard): hard conflict when both sides are known.
+  // Weight 30 so that family+variant = 90 regardless of edition knowledge.
+  if (raw.consoleVariant && candidate.consoleVariant) {
+    if (raw.consoleVariant === candidate.consoleVariant) {
+      confidence += 30;
+      reasons.push("consoleVariant +30");
+    } else {
+      hardConflicts.push(`console variant differs: ${raw.consoleVariant} vs ${candidate.consoleVariant}`);
+    }
+  } else {
+    // Unknown variant on one side: soft cap — prevents AUTO when we have no
+    // variant signal at all (no "Slim"/"Pro" word), but family alone = 60 (REVIEW).
+    caps.push({ value: 84, reason: "consoleVariant unknown max84" });
+  }
+
+  // Edition (disc vs digital): hard conflict when both sides are known.
+  // When only one side knows the edition, it's a soft signal (don't cap below AUTO)
+  // because many store titles omit "CD Version" for the disc model.
+  if (raw.consoleEdition && candidate.consoleEdition) {
+    if (raw.consoleEdition === candidate.consoleEdition) {
+      confidence += 10;
+      reasons.push("consoleEdition +10");
+    } else {
+      hardConflicts.push(`console edition differs: ${raw.consoleEdition} vs ${candidate.consoleEdition}`);
+    }
+  }
+  // No cap when edition is unknown on one side — omitting "CD Version" is common
+  // and should not prevent AUTO grouping when family+variant already agree.
+
+  // Bundle flag: a bundle and a bare console must NEVER merge.
+  const rawBundle = Boolean(raw.isBundle);
+  const candidateBundle = Boolean(candidate.isBundle);
+  if (rawBundle !== candidateBundle) {
+    hardConflicts.push(`bundle mismatch: raw=${rawBundle} candidate=${candidateBundle}`);
+  } else if (rawBundle && candidateBundle) {
+    confidence += 5;
+    reasons.push("both bundle +5");
+  }
+
+  // Accessory model (for kind===accessory): primary identity signal.
+  if (raw.kind === "accessory") {
+    if (raw.accessoryModel && candidate.accessoryModel) {
+      if (raw.accessoryModel === candidate.accessoryModel) {
+        confidence += 30;
+        reasons.push("accessoryModel +30");
+      } else {
+        hardConflicts.push(`accessory model differs: ${raw.accessoryModel} vs ${candidate.accessoryModel}`);
+      }
+    } else {
+      caps.push({ value: 75, reason: "accessoryModel unknown max75" });
+    }
+    // Color is part of the accessory exact key, so different-color accessories
+    // never reach the scorer with AUTO confidence; soft-cap only.
+    const rawColor = normalizeColor(raw.color);
+    const candColor = normalizeColor(candidate.color);
+    if (rawColor && candColor && rawColor === candColor) {
+      confidence += 5;
+      reasons.push("color +5");
+    } else if (rawColor && candColor) {
+      caps.push({ value: 80, reason: "accessory color differs soft-cap80" });
+    }
+  }
+
+  return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 60 });
 }
 
 function finalize(
@@ -946,6 +1102,171 @@ function macBookAirPro(model?: string) {
   if (model.includes("macbook_air")) return "air";
   if (model.includes("macbook_pro")) return "pro";
   return undefined;
+}
+
+// ── Gaming / Console extraction ───────────────────────────────────────────────
+
+// Patterns that, when found in a title, indicate the offer is an ACCESSORY
+// (controller, charging stand, headset, media remote, camera) rather than a
+// console unit. Order matters: check before assuming kind===console.
+const GAMING_ACCESSORY_PATTERNS: Array<{ pattern: RegExp; model: string }> = [
+  { pattern: /\bdualsense\b/i, model: "dualsense" },
+  { pattern: /\bdualshock\b/i, model: "dualshock" },
+  { pattern: /\bdualsense\s*edge\b/i, model: "dualsense_edge" },
+  { pattern: /\bpulse\s*3d\b|\bpulse3d\b/i, model: "pulse_3d_headset" },
+  { pattern: /\bpulse\s*explore\b/i, model: "pulse_explore" },
+  { pattern: /\bpulse\s*elite\b/i, model: "pulse_elite" },
+  { pattern: /\bhd\s*camera\b|\bcamera\s+for\s+ps/i, model: "hd_camera" },
+  { pattern: /\bmedia\s+remote\b/i, model: "media_remote" },
+  { pattern: /\bcharging\s+station\b|\bcharging\s+stand\b|\bdocking\s+station\b/i, model: "charging_station" },
+  { pattern: /\bvr\s*sense\b|\bpsvr\b/i, model: "psvr" },
+  { pattern: /\bxbox\s+controller\b|\bxbox\s+wireless\s+controller\b/i, model: "xbox_controller" },
+  { pattern: /\bjoy.?con\b/i, model: "joycon" },
+  { pattern: /\bpro\s+controller\b/i, model: "pro_controller" },
+  { pattern: /\bgamepad\b/i, model: "gamepad" },
+  // A title with "controller" but NOT "with N controller(s)" at the start is an accessory.
+  // "with 2 controllers" is a BUNDLE signal handled separately in detectGamingBundle.
+];
+
+function isGamingAccessory(signal: string): { isAccessory: boolean; accessoryModel: string | undefined } {
+  const normalized = signal.toLowerCase();
+  // Bundle wording: "console with controller(s)" — must NOT be classified as accessory.
+  // If the title has a clear console word AND "with N controller", it's a bundle, not an accessory.
+  const hasConsoleWord = /\bplaystation\b|\bps5\b|\bxbox\b|\bnintendo\s+switch\b|\bswitch\s+2\b/.test(normalized);
+  const bundlePattern = /\bwith\s+\d+\s+controller|\btwo\s+dualsense|\bbundle\b/i.test(signal);
+  if (hasConsoleWord && bundlePattern) return { isAccessory: false, accessoryModel: undefined };
+
+  for (const entry of GAMING_ACCESSORY_PATTERNS) {
+    if (entry.pattern.test(signal)) {
+      // "DualSense" in a bundle title like "PS5 Slim + Two DualSense" must not flip to accessory
+      if (bundlePattern && hasConsoleWord) return { isAccessory: false, accessoryModel: undefined };
+      return { isAccessory: true, accessoryModel: entry.model };
+    }
+  }
+  // A standalone controller title without any console word is also an accessory
+  if (/\bcontroller\b/i.test(signal) && !hasConsoleWord) {
+    return { isAccessory: true, accessoryModel: "controller" };
+  }
+  return { isAccessory: false, accessoryModel: undefined };
+}
+
+// Normalize "PlayStation 5" / "PS 5" / "Playstation5" → "ps5"
+// "Xbox Series X" → "xbox_series_x", "Xbox Series S" → "xbox_series_s"
+// "Nintendo Switch 2" → "switch_2"
+function detectConsoleFamily(signal: string): string | undefined {
+  const s = signal.toLowerCase();
+  if (/\bps5\b|\bplaystation\s*5\b|\bplaystation5\b/.test(s)) return "ps5";
+  if (/\bxbox\s+series\s+x\b/.test(s)) return "xbox_series_x";
+  if (/\bxbox\s+series\s+s\b/.test(s)) return "xbox_series_s";
+  if (/\bxbox\s+one\b/.test(s)) return "xbox_one";
+  if (/\bnintendo\s+switch\s+2\b|\bswitch\s+2\b/.test(s)) return "switch_2";
+  if (/\bnintendo\s+switch\b|\bswitch\s+oled\b/.test(s)) return "switch";
+  if (/\bsteam\s+deck\b/.test(s)) return "steam_deck";
+  if (/\brog\s+ally\b/.test(s)) return "rog_ally";
+  if (/\bmsi\s+claw\b/.test(s)) return "msi_claw";
+  return undefined;
+}
+
+// "Slim" → "slim", "Pro" → "pro", default for current-gen PS5 if neither stated → "slim"
+function detectConsoleVariant(signal: string, family?: string): string | undefined {
+  const s = signal.toLowerCase();
+  if (/\bslim\b/.test(s)) return "slim";
+  if (/\bpro\b/.test(s)) return "pro";
+  if (/\bstandard\b/.test(s)) return "standard";
+  // PS5 2024+ default generation is Slim; omitting the word still means Slim
+  // when storage ≥ 1TB is mentioned (a strong PS5 Slim signal).
+  if (family === "ps5" && /\b1tb\b/.test(s)) return "slim";
+  return undefined;
+}
+
+// "CD Version" / "Disc Version" / "with disc" → "disc"; "Digital" → "digital"
+function detectConsoleEdition(signal: string): string | undefined {
+  const s = signal.toLowerCase();
+  if (/\bcd\s+version\b|\bdisc\s+version\b|\bwith\s+disc\b|\bdisc\s+edition\b/.test(s)) return "disc";
+  if (/\bdigital\s+edition\b|\bdigital\s+version\b|\bdigital\b/.test(s)) return "digital";
+  return undefined;
+}
+
+// Detect bundle: "with N controllers", "Two DualSense", "bundle", "N controller(s)"
+// bundled WITH the console. Standalone controller titles are handled by isGamingAccessory.
+function detectGamingBundle(signal: string): boolean {
+  return /\bwith\s+\d+\s+controller|\btwo\s+dualsense|\bbundle\b|\bwith\s+extra\s+controller/i.test(signal);
+}
+
+// Detect the console brand from title/brand field.
+// "Sony" / "PlayStation" → "sony"; "Microsoft" / "Xbox" → "microsoft"; etc.
+function detectConsoleBrand(rawBrand?: string | null, signal?: string): string | undefined {
+  const b = (rawBrand ?? "").toLowerCase();
+  const s = (signal ?? "").toLowerCase();
+  if (b.includes("sony") || s.includes("sony") || /\bplaystation\b|\bps5\b/.test(s)) return "sony";
+  if (b.includes("microsoft") || s.includes("microsoft") || /\bxbox\b/.test(s)) return "microsoft";
+  if (b.includes("nintendo") || s.includes("nintendo") || /\bnintendo\b|\bswitch\b/.test(s)) return "nintendo";
+  if (b.includes("valve") || s.includes("valve") || /\bsteam\s*deck\b/.test(s)) return "valve";
+  if (b.includes("asus") || /\brog\s+ally\b/.test(s)) return "asus";
+  if (b.includes("msi") || /\bmsi\s+claw\b/.test(s)) return "msi";
+  return undefined;
+}
+
+function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | undefined {
+  const categorySlug: SafeCategorySlug = "gaming";
+  const specsText = flattenSpecs(input.specs);
+  const signalText = [input.title, input.brand, input.model, input.description, specsText].filter(Boolean).join(" ");
+  const normalizedTitle = normalizeProductTitle(input.title);
+  const cleanTitle = removeNoiseWords(input.title);
+  const normalizedSignal = normalizeProductTitle(signalText);
+
+  // Detect brand
+  const brand = detectConsoleBrand(input.brand, signalText) ?? normalizeBrand(input.brand) ?? detectConsoleBrand(undefined, signalText);
+  if (!brand) return undefined;
+
+  // Accessory check — must happen before consoleFamily detection
+  const { isAccessory, accessoryModel } = isGamingAccessory(signalText);
+
+  const consoleFamily = detectConsoleFamily(normalizedSignal);
+  const color = normalizeColor(undefined) ?? detectColor(normalizedSignal);
+
+  if (isAccessory) {
+    // Accessories: brand required, accessoryModel required
+    if (!accessoryModel && !consoleFamily) return undefined;
+    const identity: SafeProductIdentity = {
+      kind: "accessory",
+      categorySlug,
+      brand,
+      consoleFamily: consoleFamily ?? undefined,
+      accessoryModel: accessoryModel ?? undefined,
+      color,
+      normalizedTitle,
+      cleanTitle,
+      source: { title: input.title, specsText: specsText || undefined },
+    };
+    identity.familyKey = buildFamilyKey(identity);
+    identity.exactKey = buildExactKey(identity);
+    return identity;
+  }
+
+  // Console: consoleFamily required
+  if (!consoleFamily) return undefined;
+
+  const consoleVariant = detectConsoleVariant(normalizedSignal, consoleFamily);
+  const consoleEdition = detectConsoleEdition(normalizedSignal);
+  const isBundle = detectGamingBundle(signalText);
+
+  const identity: SafeProductIdentity = {
+    kind: "console",
+    categorySlug,
+    brand,
+    consoleFamily,
+    consoleVariant,
+    consoleEdition,
+    isBundle,
+    color,
+    normalizedTitle,
+    cleanTitle,
+    source: { title: input.title, specsText: specsText || undefined },
+  };
+  identity.familyKey = buildFamilyKey(identity);
+  identity.exactKey = buildExactKey(identity);
+  return identity;
 }
 
 function flattenSpecs(value: unknown, depth = 0): string {

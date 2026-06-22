@@ -158,9 +158,17 @@ async function main() {
         addFailure(report, raw, "Missing brand after safe normalization.");
         continue;
       }
-      if (!identity.model && !identity.modelCode) {
+      // For phones/laptops: model or modelCode required.
+      // For consoles: consoleFamily required.
+      // For accessories: accessoryModel or consoleFamily required.
+      const hasModel =
+        identity.model ||
+        identity.modelCode ||
+        (identity.kind === "console" && identity.consoleFamily) ||
+        (identity.kind === "accessory" && (identity.accessoryModel || identity.consoleFamily));
+      if (!hasModel) {
         report.rejected += 1;
-        addFailure(report, raw, "Missing model/modelCode after safe normalization.");
+        addFailure(report, raw, "Missing model/modelCode/consoleFamily after safe normalization.");
         continue;
       }
 
@@ -627,7 +635,7 @@ function canonicalTitle(identity: SafeProductIdentity, fallback: string) {
 }
 
 function autoThreshold(identity: SafeProductIdentity) {
-  return identity.kind === "phone" ? 85 : 85;
+  return 85;
 }
 
 function discountPercent(price: number, oldPrice?: number) {
