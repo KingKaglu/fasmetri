@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BadgePercent, ChevronDown, Grid3X3, Menu, Search, Store, X } from "lucide-react";
+import { BadgePercent, Flame, Gamepad2, Grid3X3, Laptop, Menu, Search, Smartphone, Store, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -12,6 +12,14 @@ const navLinks = [
   { href: "/deals", label: "აქციები" },
   { href: "/shops", label: "მაღაზიები" },
   { href: "/about", label: "როგორ მუშაობს" },
+];
+
+// Retail category nav (handoff CategoryNav) — the two public catalog
+// categories plus the consoles category, with a deals shortcut on the right.
+const categoryNav = [
+  { href: "/categories/mobiles", label: "სმარტფონები", icon: Smartphone },
+  { href: "/categories/laptops", label: "ლეპტოპები", icon: Laptop },
+  { href: "/categories/gaming", label: "კონსოლები", icon: Gamepad2 },
 ];
 
 export function SiteHeader() {
@@ -45,8 +53,8 @@ export function SiteHeader() {
           <BrandLogo compact />
         </div>
 
-        {/* Search — desktop */}
-        <div className="hidden min-w-0 flex-1 max-w-[34rem] md:block">
+        {/* Search — desktop (mega) */}
+        <div className="hidden min-w-0 flex-1 max-w-[42rem] md:block">
           <SearchBar variant="header" />
         </div>
 
@@ -84,6 +92,37 @@ export function SiteHeader() {
         >
           {mobileOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
         </button>
+      </div>
+
+      {/* Category nav row (retail) — public categories + deals shortcut */}
+      <div className="hidden border-t border-[var(--line)] bg-white md:block">
+        <div className="shell flex h-14 items-center gap-1">
+          {categoryNav.map(({ href, label, icon: Icon }) => {
+            const active = pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={`inline-flex items-center gap-2 rounded-[10px] px-3.5 py-2 text-[13.5px] font-bold ${
+                  active
+                    ? "bg-[var(--accent-soft)] text-[var(--accent-strong)]"
+                    : "text-[var(--brand)] hover:bg-[var(--surface-soft)]"
+                }`}
+              >
+                <Icon className="size-4" />
+                {label}
+              </Link>
+            );
+          })}
+          <Link
+            href="/deals"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-[10px] px-3 py-2 text-[13.5px] font-bold text-[var(--price-deal)] hover:bg-[var(--save-soft)]"
+          >
+            <Flame className="size-4" />
+            აქციები
+          </Link>
+        </div>
       </div>
 
       {/* Search — mobile */}
