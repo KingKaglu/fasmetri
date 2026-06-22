@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Search, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ChevronDown, Menu, Search, X } from "lucide-react";
 import { formatGel } from "@/lib/format";
 
 type Suggestion = {
@@ -166,12 +167,23 @@ export function SearchBar({
       <div
         className={`flex min-w-0 flex-1 items-center overflow-hidden border bg-white ${
           isHeader
-            ? "h-10 rounded-md border-2 border-[var(--accent)] shadow-sm"
+            ? "h-11 rounded-[12px] border-2 border-[var(--accent)] shadow-sm"
             : large
               ? "h-14 rounded-lg border-gray-300 shadow-md"
               : "h-12 rounded-lg border-gray-300 shadow-md"
         } ${open && suggestions.length > 0 ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/10" : "hover:border-gray-300 focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10"}`}
       >
+        {isHeader && (
+          <Link
+            href="/categories"
+            aria-label="კატეგორიები"
+            className="flex h-full shrink-0 items-center gap-1.5 border-r border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 text-[12.5px] font-bold text-[var(--accent-strong)] hover:bg-[#ffe3d1]"
+          >
+            <Menu className="size-3.5" />
+            <span className="hidden sm:inline">კატეგორიები</span>
+            <ChevronDown className="size-3" />
+          </Link>
+        )}
         <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
           <Search className={`shrink-0 text-gray-400 ${isHeader ? "size-3.5" : "size-4.5"}`} />
           <input
@@ -187,7 +199,7 @@ export function SearchBar({
             aria-expanded={open}
             aria-controls="search-suggestions"
             aria-label="პროდუქტის ძებნა"
-            placeholder={isHeader ? "მოძებნე..." : "მოძებნე iPhone 15, MacBook Air, Galaxy S25..."}
+            placeholder={isHeader ? "მოძებნე iPhone, ლეპტოპი ან მაღაზია…" : "მოძებნე iPhone 15, MacBook Air, Galaxy S25..."}
             className={`w-full min-w-0 bg-transparent font-medium text-gray-900 outline-none placeholder:text-gray-400 ${
               isHeader ? "text-sm" : large ? "text-base" : "text-sm"
             }`}
