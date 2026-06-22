@@ -23,6 +23,7 @@
     "match:products": "tsx scripts/match-products.ts",
     "match:phones": "tsx scripts/match-products.ts --category=mobiles",
     "match:laptops": "tsx scripts/match-products.ts --category=laptops",
+    "match:consoles": "tsx scripts/match-products.ts --category=gaming",
     "validate:matches": "tsx scripts/validate-matches.ts",
     "alerts:evaluate": "tsx scripts/evaluate-alerts.ts",
     "recategorize-products": "tsx scripts/recategorize-products.ts",
