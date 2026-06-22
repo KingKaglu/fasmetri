@@ -47,6 +47,9 @@ const heroTabs = [
   { href: "/deals", label: "აქციები", active: false },
 ];
 
+// Popular brands strip (retail handoff) — link to filtered search.
+const POPULAR_BRANDS = ["Apple", "Samsung", "Xiaomi", "HUAWEI", "ASUS", "Lenovo", "Sony", "HP"];
+
 type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
 
 export default async function Home() {
@@ -263,6 +266,22 @@ export default async function Home() {
       <section className="shell pt-8 pb-4">
         <SectionBar eyebrow="ხშირად შედარებული" title="პოპულარული პროდუქტები" href="/search?sort=priority" action="ყველა" />
         <ProductGrid products={trending} density="compact" resetHref="/search" priorityImages={0} emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
+      </section>
+
+      {/* Popular brands (retail handoff) */}
+      <section className="shell pt-8 pb-4">
+        <SectionBar eyebrow="ბრენდები" title="პოპულარული ბრენდები" href="/search" action="ყველა" />
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
+          {POPULAR_BRANDS.map((brand) => (
+            <Link
+              key={brand}
+              href={`/search?q=${encodeURIComponent(brand)}`}
+              className="flex h-16 items-center justify-center rounded-2xl border border-[var(--line)] bg-white text-sm font-extrabold text-[var(--brand)] shadow-[var(--shadow-card)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            >
+              {brand}
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* Shops */}
