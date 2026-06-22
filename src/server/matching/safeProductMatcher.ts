@@ -2,7 +2,7 @@ import { COLOR_ALIASES } from "@/config/productAliases";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 import { extractVariantIdentity } from "@/lib/variantMatching";
 
-export const SAFE_MATCHER_VERSION = "safe-products-v3";
+export const SAFE_MATCHER_VERSION = "safe-products-v4";
 
 export type SafeCategorySlug = "mobiles" | "laptops" | "gaming";
 export type SafeProductKind = "phone" | "laptop" | "console" | "accessory";
@@ -569,16 +569,30 @@ function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity):
     } else {
       caps.push({ value: 75, reason: "accessoryModel unknown max75" });
     }
-    // Color is part of the accessory exact key, so different-color accessories
-    // never reach the scorer with AUTO confidence; soft-cap only.
+    // Color for accessories is a genuine differentiator (a DualSense White is a
+    // different product from a DualSense Black / Midnight Black / Volcanic Red).
+    // Policy:
+    //   • Both known + same  → bonus (+5)
+    //   • Both known + differ → HARD CONFLICT (different SKU; must not merge)
+    //   • One known, one unknown → cap at 84 (never auto-merge; human review only)
+    //   • Both unknown → no cap (match on accessoryModel alone)
     const rawColor = normalizeColor(raw.color);
     const candColor = normalizeColor(candidate.color);
-    if (rawColor && candColor && rawColor === candColor) {
-      confidence += 5;
-      reasons.push("color +5");
-    } else if (rawColor && candColor) {
-      caps.push({ value: 80, reason: "accessory color differs soft-cap80" });
+    if (rawColor && candColor) {
+      if (rawColor === candColor) {
+        confidence += 5;
+        reasons.push("color +5");
+      } else {
+        // Different known colors → definitely a different SKU.
+        hardConflicts.push(`accessory color differs: ${rawColor} vs ${candColor}`);
+      }
+    } else if (rawColor || candColor) {
+      // One side has a known color, the other doesn't.  We don't know if they
+      // match, so prevent AUTO to avoid collapsing distinct-color accessories.
+      caps.push({ value: 84, reason: "accessory color one-side-unknown max84" });
     }
+    // If both colors are undefined: no cap — same accessoryModel line is likely the
+    // same product when neither store reports a color.
   }
 
   return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 60 });
@@ -1108,18 +1122,46 @@ function macBookAirPro(model?: string) {
 
 // Patterns that, when found in a title, indicate the offer is an ACCESSORY
 // (controller, charging stand, headset, media remote, camera) rather than a
-// console unit. Order matters: check before assuming kind===console.
+// console unit.
+//
+// ORDERING RULES:
+//   1. Peripheral-type patterns (charging station, stand, wheel, keyboard, shell)
+//      MUST come BEFORE controller/dualsense patterns so that a title like
+//      "DualSense Controller Charging Station" is classified as charging_station,
+//      not as a dualsense controller.
+//   2. Within a group, more-specific variants come before generic ones
+//      (e.g. dualsense_edge before dualsense).
 const GAMING_ACCESSORY_PATTERNS: Array<{ pattern: RegExp; model: string }> = [
+  // ── Peripheral-type identifiers (checked first) ──────────────────────────
+  // Charging / docking — broad enough to catch "Charging Black Stand", "Charging Dock".
+  { pattern: /\bcharging\s+station\b|\bcharging\s+stand\b|\bdocking\s+station\b|\bcharging\s+dock\b|\bcharge\s+dock\b|\bchargeplay\b/i, model: "charging_station" },
+  // Standalone stand / vertical stand (not the console itself).
+  { pattern: /\bvertical\s+stand\b|\bcooling\s+stand\b/i, model: "stand" },
+  // PS5 Portal (remote player), disk/disc drive add-on.
+  { pattern: /\bportal\s+remote\s+player\b|\bps5\s+portal\b/i, model: "portal_remote_player" },
+  { pattern: /\bdisk\s+reader\b|\bdisc\s+reader\b|\bdisc\s+drive\b|\bdisk\s+drive\b/i, model: "disc_drive" },
+  // Racing wheels, shifters, sim accessories.
+  { pattern: /\bracing\s+wheel\b|\bsim\s+racing\b|\bthrustmaster\b/i, model: "racing_wheel" },
+  { pattern: /\bshifter\b/i, model: "racing_shifter" },
+  // Keyboard attachments.
+  { pattern: /\bkeyboard\b/i, model: "keyboard_attachment" },
+  // Console shells / faceplates / cases.
+  { pattern: /\bbottom\s+shell\b|\bfaceplate\b|\bsilicone\s+case\b|\bprotective\s+case\b/i, model: "shell_accessory" },
+  // HD camera and media remote.
+  { pattern: /\bhd\s*camera\b|\bcamera\s+for\s+ps/i, model: "hd_camera" },
+  { pattern: /\bmedia\s+remote\b/i, model: "media_remote" },
+  // VR headsets.
+  { pattern: /\bvr\s*sense\b|\bpsvr\b|\bvr2\b|\bvr\s*2\b/i, model: "psvr" },
+
+  // ── Controller-type identifiers (checked after peripheral types) ──────────
+  // DualSense Edge — must precede the generic DualSense entry.
+  { pattern: /\bdualsense\s*edge\b/i, model: "dualsense_edge" },
   { pattern: /\bdualsense\b/i, model: "dualsense" },
   { pattern: /\bdualshock\b/i, model: "dualshock" },
-  { pattern: /\bdualsense\s*edge\b/i, model: "dualsense_edge" },
+  // Pulse headsets — specific lines before generic.
   { pattern: /\bpulse\s*3d\b|\bpulse3d\b/i, model: "pulse_3d_headset" },
   { pattern: /\bpulse\s*explore\b/i, model: "pulse_explore" },
   { pattern: /\bpulse\s*elite\b/i, model: "pulse_elite" },
-  { pattern: /\bhd\s*camera\b|\bcamera\s+for\s+ps/i, model: "hd_camera" },
-  { pattern: /\bmedia\s+remote\b/i, model: "media_remote" },
-  { pattern: /\bcharging\s+station\b|\bcharging\s+stand\b|\bdocking\s+station\b/i, model: "charging_station" },
-  { pattern: /\bvr\s*sense\b|\bpsvr\b/i, model: "psvr" },
   { pattern: /\bxbox\s+controller\b|\bxbox\s+wireless\s+controller\b/i, model: "xbox_controller" },
   { pattern: /\bjoy.?con\b/i, model: "joycon" },
   { pattern: /\bpro\s+controller\b/i, model: "pro_controller" },
@@ -1207,6 +1249,29 @@ function detectConsoleBrand(rawBrand?: string | null, signal?: string): string |
   return undefined;
 }
 
+// Third-party accessory brands that make PS5/Xbox/Switch accessories.
+// When detected in the title, they take priority over the console maker's brand
+// so that a "Razer charging stand for PS5" gets brand=razer, not brand=sony.
+const THIRD_PARTY_GAMING_BRANDS: Array<{ pattern: RegExp; brand: string }> = [
+  { pattern: /\brazer\b/i, brand: "razer" },
+  { pattern: /\bhyperx\b/i, brand: "hyperx" },
+  { pattern: /\bdobe\b/i, brand: "dobe" },
+  { pattern: /\botvo\b/i, brand: "otvo" },
+  { pattern: /\bthrustmaster\b/i, brand: "thrustmaster" },
+  { pattern: /\blogitech\b/i, brand: "logitech" },
+  { pattern: /\bscuf\b/i, brand: "scuf" },
+  { pattern: /\bnacon\b/i, brand: "nacon" },
+  { pattern: /\beswap\b/i, brand: "nacon" },
+  { pattern: /\bpowerA\b/i, brand: "powera" },
+];
+
+function detectThirdPartyGamingBrand(signal: string): string | undefined {
+  for (const entry of THIRD_PARTY_GAMING_BRANDS) {
+    if (entry.pattern.test(signal)) return entry.brand;
+  }
+  return undefined;
+}
+
 function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | undefined {
   const categorySlug: SafeCategorySlug = "gaming";
   const specsText = flattenSpecs(input.specs);
@@ -1215,15 +1280,34 @@ function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | 
   const cleanTitle = removeNoiseWords(input.title);
   const normalizedSignal = normalizeProductTitle(signalText);
 
-  // Detect brand
-  const brand = detectConsoleBrand(input.brand, signalText) ?? normalizeBrand(input.brand) ?? detectConsoleBrand(undefined, signalText);
+  // Accessory check — must happen before brand detection so we can use
+  // third-party brand logic for accessories. Run it on the TITLE only (not the
+  // description/specs): a PS5 console's spec sheet says "Ultra HD Blu-ray disc
+  // drive", which would otherwise mis-classify the console itself as a
+  // disc_drive accessory. The accessory type always appears in the title.
+  const accessorySignal = [input.title, input.brand, input.model].filter(Boolean).join(" ");
+  const { isAccessory, accessoryModel } = isGamingAccessory(accessorySignal);
+
+  // For accessories, detect third-party brands first (Razer, HyperX, DOBE…).
+  // A Razer stand "for PS5" should NOT be grouped under brand=sony.
+  // For consoles (first-party hardware), always use the console maker's brand.
+  let brand: string | undefined;
+  if (isAccessory) {
+    brand =
+      detectThirdPartyGamingBrand(signalText) ??
+      detectConsoleBrand(input.brand, signalText) ??
+      normalizeBrand(input.brand) ??
+      detectConsoleBrand(undefined, signalText);
+  } else {
+    brand =
+      detectConsoleBrand(input.brand, signalText) ??
+      normalizeBrand(input.brand) ??
+      detectConsoleBrand(undefined, signalText);
+  }
   if (!brand) return undefined;
 
-  // Accessory check — must happen before consoleFamily detection
-  const { isAccessory, accessoryModel } = isGamingAccessory(signalText);
-
   const consoleFamily = detectConsoleFamily(normalizedSignal);
-  const color = normalizeColor(undefined) ?? detectColor(normalizedSignal);
+  const color = detectColor(normalizedSignal);
 
   if (isAccessory) {
     // Accessories: brand required, accessoryModel required
