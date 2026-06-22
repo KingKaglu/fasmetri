@@ -34,6 +34,9 @@ const ADVISORY_LOCK_ID = 90000000002;
 
 // Filter: only genuine PS5/PlayStation/DualSense gear
 const PS5_FILTER = /playstation|ps5|dualsense|dualshock|ps4/i;
+// Exclude game software (discs/downloads) — the consoles category is hardware
+// only (console + accessories). Game titles read "<Name> Game For PS5".
+const GAME_SOFTWARE_FILTER = /\bgames?\b/i;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -352,8 +355,9 @@ async function discoverListing() {
   const unique = new Map<string, StagedZoommerConsole>();
   let duplicateUrlCount = 0;
   for (const item of allProducts) {
-    // Filter to genuine PS5/PlayStation/DualSense gear
-    if (!PS5_FILTER.test(String(item.product.name ?? ""))) continue;
+    // Filter to genuine PS5/PlayStation/DualSense hardware (exclude game software)
+    const listingName = String(item.product.name ?? "");
+    if (!PS5_FILTER.test(listingName) || GAME_SOFTWARE_FILTER.test(listingName)) continue;
     const staged = stagedFromListing(item.product, item.page);
     if (!staged.productUrl) continue;
     if (unique.has(staged.productUrl)) {

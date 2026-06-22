@@ -43,6 +43,7 @@ const heroTabs = [
   { href: "/search", label: "ყველა", active: true },
   { href: "/categories/mobiles", label: "ტელეფონები", active: false },
   { href: "/categories/laptops", label: "ლეპტოპები", active: false },
+  { href: "/categories/gaming", label: "კონსოლები", active: false },
   { href: "/deals", label: "აქციები", active: false },
 ];
 
@@ -51,7 +52,7 @@ type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
 export default async function Home() {
   // One pool per public category so the front page always mixes phones and
   // laptops instead of whatever a single global sort happens to surface.
-  const [categoryDeals, categoryPopular, shops, stats, categories, priceChanges] = await Promise.all([
+  const [categoryDeals, categoryPopular, shops, stats, categories, priceChanges, gamingPool] = await Promise.all([
     Promise.all(
       PRIORITY_CATEGORIES.map((category) =>
         listPublicProducts({ category, dealsOnly: true, sort: "discount", pageSize: 60 }),
@@ -64,7 +65,13 @@ export default async function Home() {
     getCatalogStats(),
     listPublicCategories(),
     listRecentPriceChanges(),
+    listPublicProducts({ category: "gaming", sort: "priority", pageSize: 12 }),
   ]);
+  // Lead the PS5/console row with the products compared across the most shops
+  // (the PlayStation 5 console itself), so the comparison is the first thing seen.
+  const gamingProducts = [...gamingPool].sort(
+    (left, right) => uniqueShopCount(right) - uniqueShopCount(left) || compareProductPriority(left, right),
+  );
   // listPublicShops already returns only publicly active shops (same list as
   // /shops and the filter dropdowns), sorted by product count.
   const activeShops = shops;
@@ -217,6 +224,26 @@ export default async function Home() {
           <ProductGrid products={discounts} deal density="compact" resetHref="/deals" emptyTitle="აქციები მალე გამოჩნდება" emptyDescription="ფასმეტრი ახალი ფასდაკლებების დამატებისთანავე აჩვენებს საუკეთესო შეთავაზებებს." />
         )}
       </section>
+
+      {/* Consoles / PlayStation 5 — cross-shop comparison */}
+      {gamingProducts.length > 0 && (
+        <section className="shell pt-8 pb-4">
+          <SectionBar
+            eyebrow="კონსოლები"
+            title="PlayStation 5 — შეადარე მაღაზიებში"
+            href="/categories/gaming"
+            action="ყველა კონსოლი"
+          />
+          <ProductGrid
+            products={gamingProducts}
+            density="compact"
+            resetHref="/categories/gaming"
+            priorityImages={0}
+            emptyTitle="კონსოლები მალე დაემატება"
+            emptyDescription="PlayStation 5 და აქსესუარები მაღაზიების მიხედვით."
+          />
+        </section>
+      )}
 
       {/* Recently updated prices */}
       {priceChanges.length > 0 && (
