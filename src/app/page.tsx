@@ -5,8 +5,10 @@ import {
   ArrowUpDown,
   ArrowUpRight,
   Flame,
+  Laptop,
   Search,
   ShieldCheck,
+  Smartphone,
   Store,
   TrendingDown,
 } from "lucide-react";
@@ -169,18 +171,24 @@ export default async function Home() {
               )}
             </div>
 
-            {/* Right: featured product */}
-            <div className="hidden lg:block lg:w-[300px] xl:w-[320px]">
-              {heroProduct ? (
-                <HeroProduct product={heroProduct} />
-              ) : (
-                <div className="glass-panel grid min-h-[22rem] place-items-center rounded-xl p-6 text-center">
-                  <div>
-                    <Search className="mx-auto size-8 text-white/80" />
-                    <p className="mt-3 text-base font-semibold text-white">კატალოგი იტვირთება</p>
-                  </div>
-                </div>
-              )}
+            {/* Right: promo cards (retail handoff) */}
+            <div className="hidden lg:flex lg:w-[320px] xl:w-[340px] lg:flex-col lg:gap-4">
+              <HeroPromo
+                href="/categories/mobiles"
+                badge="ბესტსელერი"
+                badgeTone="accent"
+                title="iPhone 16 სერია"
+                subtitle="შეადარე 3 მაღაზიის ფასი"
+                icon={<Smartphone className="size-9 text-[var(--accent)]" />}
+              />
+              <HeroPromo
+                href="/categories/laptops"
+                badge="-15%"
+                badgeTone="save"
+                title="გეიმინგ ლეპტოპები"
+                subtitle="RTX 5060 — დან"
+                icon={<Laptop className="size-9 text-[var(--accent)]" />}
+              />
             </div>
           </div>
         </div>
@@ -581,6 +589,42 @@ function HeroMobileDealCard({ product }: { product: ProductView }) {
           {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : offer.shop.name}
         </span>
       </div>
+    </Link>
+  );
+}
+
+function HeroPromo({
+  href,
+  badge,
+  badgeTone,
+  title,
+  subtitle,
+  icon,
+}: {
+  href: string;
+  badge: string;
+  badgeTone: "accent" | "save";
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)]"
+    >
+      <div className="min-w-0 flex-1">
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white ${
+            badgeTone === "save" ? "bg-[var(--price-deal)]" : "bg-[var(--accent)]"
+          }`}
+        >
+          {badge}
+        </span>
+        <p className="mt-1.5 truncate text-[15px] font-extrabold text-[var(--brand)]">{title}</p>
+        <p className="truncate text-xs font-medium text-[var(--muted)]">{subtitle}</p>
+      </div>
+      <span className="grid size-16 shrink-0 place-items-center rounded-xl bg-[var(--surface-soft)]">{icon}</span>
     </Link>
   );
 }
