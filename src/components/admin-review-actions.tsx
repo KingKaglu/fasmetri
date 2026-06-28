@@ -2,7 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { Check, Loader2, Wand2, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, Wand2, X } from "lucide-react";
+
+// Opens the store page and the existing public product page in two tabs at
+// once, so a reviewer can eyeball both before deciding. Pure client-side.
+export function OpenBothButton({ storeUrl, publicUrl }: { storeUrl: string; publicUrl?: string | null }) {
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        window.open(storeUrl, "_blank", "noopener,noreferrer");
+        if (publicUrl) window.open(publicUrl, "_blank", "noopener,noreferrer");
+      }}
+      className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--muted-strong)] hover:border-[#0a0a0a]"
+    >
+      <ExternalLink className="size-3.5" />
+      ორივეს გახსნა
+    </button>
+  );
+}
 
 export function ReviewRowActions({ matchId }: { matchId: string }) {
   const router = useRouter();
