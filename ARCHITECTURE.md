@@ -1,6 +1,6 @@
-# CLAUDE.md
+# Architecture & Operations
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file documents the architecture, data pipeline, and operational workflows for this repository.
 
 ## About
 
@@ -260,9 +260,9 @@ agent-reach install --env=auto
 agent-reach doctor
 ```
 
-After install, the optional MCP server can be wired into Claude Code:
+After install, the optional MCP server can be wired into an MCP-compatible client:
 ```json
-// .claude/settings.json — add to mcpServers
+// MCP client config — add to mcpServers
 "agent-reach": {
   "command": "python",
   "args": ["-m", "agent_reach.integrations.mcp_server"]

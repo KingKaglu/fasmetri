@@ -402,7 +402,7 @@ function comparableTitle(value: string) {
 // They are a different condition (used/returned/display) and must not be
 // compared against new-product prices, so they are excluded from the public
 // catalog — otherwise a cheaper outlet unit would masquerade as the shop's
-// new price. See the EE outlet special case in CLAUDE.md.
+// new price. See the EE outlet special case in ARCHITECTURE.md.
 function isOutletOfferUrl(value: string) {
   try {
     return /\/autleti(\/|$)/i.test(new URL(value).pathname);

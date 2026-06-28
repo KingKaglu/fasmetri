@@ -7,7 +7,7 @@
  *   - RSS feeds from Georgian tech/business news sources
  *
  * Twitter/X requires authenticated cookies (twitter-cli or OpenCLI) — see
- * the Agent-Reach MCP section in CLAUDE.md for setup instructions.
+ * the Agent-Reach MCP section in ARCHITECTURE.md for setup instructions.
  *
  * Usage: npx tsx scripts/market-intel.ts
  */
@@ -187,7 +187,7 @@ async function main(): Promise<void> {
   console.log("═══════════════════════════════════════════════════\n");
 
   console.log("Note: Twitter/X requires authenticated cookies.");
-  console.log("      See CLAUDE.md § Agent-Reach MCP for setup.");
+  console.log("      See ARCHITECTURE.md § Agent-Reach MCP for setup.");
 }
 
 main().catch(err => {
