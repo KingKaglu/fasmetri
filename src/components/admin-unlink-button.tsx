@@ -10,7 +10,7 @@ export function UnlinkOfferButton({ offerId, offerTitle }: { offerId: string; of
   const [error, setError] = useState("");
 
   async function unlink() {
-    if (!window.confirm(`áƒ’áƒáƒ•áƒáƒªáƒáƒšáƒ™áƒ”áƒ áƒ”áƒ¡ áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ áƒ¡áƒáƒ™áƒ£áƒ—áƒáƒ  áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒáƒ“?\n\n${offerTitle}`)) return;
+    if (!window.confirm(`გავაცალკეო ეს შეთავაზება საკუთარ პროდუქტად?\n\n${offerTitle}`)) return;
     setBusy(true);
     setError("");
     const response = await fetch(`/api/admin/offers/${offerId}/unlink`, { method: "POST" });
@@ -18,7 +18,7 @@ export function UnlinkOfferButton({ offerId, offerTitle }: { offerId: string; of
       router.refresh();
     } else {
       const payload = await response.json().catch(() => null);
-      setError(payload?.error ?? "Unlink áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
+      setError(payload?.error ?? "Unlink ვერ შესრულდა.");
     }
     setBusy(false);
   }

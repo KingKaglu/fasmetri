@@ -43,7 +43,7 @@ export function ProductSelectCheckbox({ id, title, activeOffers }: Selected) {
   return (
     <input
       type="checkbox"
-      aria-label={`áƒáƒ áƒ©áƒ”áƒ•áƒ: ${title}`}
+      aria-label={`არჩევა: ${title}`}
       checked={isSelected(id)}
       onChange={() => toggle({ id, title, activeOffers })}
       onClick={(event) => event.stopPropagation()}
@@ -67,14 +67,14 @@ export function ProductBulkBar() {
     try {
       const result = await task();
       if (result.ok) {
-        setMessage(result.detail ?? "áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
+        setMessage(result.detail ?? "შესრულდა.");
         clear();
         router.refresh();
       } else {
-        setMessage(result.error ?? "áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
+        setMessage(result.error ?? "ვერ შესრულდა.");
       }
     } catch {
-      setMessage("áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
+      setMessage("ვერ შესრულდა.");
     }
     setBusy(null);
   }
@@ -84,13 +84,13 @@ export function ProductBulkBar() {
 
   return (
     <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-[#0a0a0a] bg-[#0a0a0a] p-3 text-white shadow-lg">
-      <span className="text-xs font-black">{selected.length} áƒáƒ áƒ©áƒ”áƒ£áƒšáƒ˜</span>
+      <span className="text-xs font-black">{selected.length} არჩეული</span>
       <button
         type="button"
         disabled={busy !== null}
-        title="áƒ§áƒ•áƒ”áƒšáƒ áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ áƒ’áƒáƒ“áƒáƒ“áƒ˜áƒ¡ áƒ¡áƒáƒ™áƒ£áƒ—áƒáƒ  áƒªáƒáƒšáƒ™áƒ”áƒ£áƒš áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ¨áƒ˜ (áƒ¯áƒ’áƒ£áƒ¤áƒ˜áƒ¡ áƒ“áƒáƒ¨áƒšáƒ)"
+        title="ყველა შეთავაზება გადადის საკუთარ ცალკეულ პროდუქტში (ჯგუფის დაშლა)"
         onClick={() => {
-          if (!window.confirm(`áƒ“áƒáƒ˜áƒ¨áƒáƒšáƒáƒ¡ ${selected.length} áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ˜áƒ¡ áƒ§áƒ•áƒ”áƒšáƒ áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ áƒªáƒáƒšáƒ™áƒ”áƒ£áƒš áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ”áƒ‘áƒáƒ“?`)) return;
+          if (!window.confirm(`დაიშალოს ${selected.length} პროდუქტის ყველა შეთავაზება ცალკეულ პროდუქტებად?`)) return;
           run("unlink", () => bulkUnlinkProducts(selected.map((entry) => entry.id)));
         }}
         className={`${button} border-[#d4d4d8] bg-[#f4f4f5] text-[var(--danger)] hover:border-white`}
@@ -101,32 +101,32 @@ export function ProductBulkBar() {
       <button
         type="button"
         disabled={busy !== null || orphanCount === 0}
-        title="áƒ¬áƒáƒ˜áƒ¨áƒšáƒ”áƒ‘áƒ áƒ›áƒ®áƒáƒšáƒáƒ“ áƒ˜áƒ¡ áƒáƒ áƒ©áƒ”áƒ£áƒšáƒ˜ áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ”áƒ‘áƒ˜, áƒ áƒáƒ›áƒšáƒ”áƒ‘áƒ¡áƒáƒª áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ áƒáƒ  áƒáƒ¥áƒ•áƒ—"
+        title="წაიშლება მხოლოდ ის არჩეული პროდუქტები, რომლებსაც შეთავაზება არ აქვთ"
         onClick={() => {
-          if (!window.confirm(`áƒ¬áƒáƒ˜áƒ¨áƒáƒšáƒáƒ¡ ${orphanCount} áƒáƒ‘áƒáƒšáƒ˜ (0 áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ) áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ˜?`)) return;
+          if (!window.confirm(`წაიშალოს ${orphanCount} ობოლი (0 შეთავაზება) პროდუქტი?`)) return;
           run("delete", () => bulkDeleteOrphans(selected.map((entry) => entry.id)));
         }}
         className={`${button} border-[#d4d4d8] bg-[#f4f4f5] text-[var(--danger)] hover:border-white`}
       >
         {busy === "delete" ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
-        áƒáƒ‘áƒšáƒ”áƒ‘áƒ˜áƒ¡ áƒ¬áƒáƒ¨áƒšáƒ ({orphanCount})
+        ობლების წაშლა ({orphanCount})
       </button>
       <button
         type="button"
         disabled={busy !== null || selected.length !== 2}
-        title="áƒ–áƒ£áƒ¡áƒ¢áƒáƒ“ 2 áƒáƒ áƒ©áƒ”áƒ£áƒšáƒ˜: áƒžáƒ˜áƒ áƒ•áƒ”áƒšáƒ˜ áƒ áƒ©áƒ”áƒ‘áƒ, áƒ›áƒ”áƒáƒ áƒ˜áƒ¡ áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ”áƒ‘áƒ˜ áƒ’áƒáƒ“áƒáƒ“áƒ˜áƒ¡ áƒ›áƒáƒ¡áƒ¨áƒ˜"
+        title="ზუსტად 2 არჩეული: პირველი რჩება, მეორის შეთავაზებები გადადის მასში"
         onClick={() => {
           const [target, source] = selected;
-          if (!window.confirm(`áƒ’áƒáƒ”áƒ áƒ—áƒ˜áƒáƒœáƒ”áƒ‘áƒ:\n\n"${source.title}"\nâ†’ áƒ’áƒáƒ“áƒáƒ“áƒ˜áƒ¡ â†’\n"${target.title}"\n\n(áƒžáƒ˜áƒ áƒ•áƒ”áƒšáƒ˜ áƒáƒ áƒ©áƒ”áƒ£áƒšáƒ˜ áƒ áƒ©áƒ”áƒ‘áƒ, áƒ›áƒ”áƒáƒ áƒ” áƒ˜áƒ¨áƒšáƒ”áƒ‘áƒ)`)) return;
+          if (!window.confirm(`გაერთიანება:\n\n"${source.title}"\n→ გადადის →\n"${target.title}"\n\n(პირველი არჩეული რჩება, მეორე იშლება)`)) return;
           run("merge", () => mergeCanonicalProducts(target.id, source.id));
         }}
         className={`${button} border-[#b8edf2] bg-[var(--aqua-soft)] text-[#087d8f] hover:border-white`}
       >
         {busy === "merge" ? <Loader2 className="size-3.5 animate-spin" /> : <GitMerge className="size-3.5" />}
-        áƒ’áƒáƒ”áƒ áƒ—áƒ˜áƒáƒœáƒ”áƒ‘áƒ 2â†’1
+        გაერთიანება 2→1
       </button>
       <button type="button" disabled={busy !== null} onClick={clear} className={`${button} border-white/30 bg-transparent text-white hover:border-white`}>
-        <X className="size-3.5" /> áƒ’áƒáƒ¡áƒ£áƒ¤áƒ—áƒáƒ•áƒ”áƒ‘áƒ
+        <X className="size-3.5" /> გასუფთავება
       </button>
       {message ? <span className="text-xs font-bold text-[#d4d4d8]">{message}</span> : null}
     </div>

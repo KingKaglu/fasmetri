@@ -17,11 +17,11 @@ export function MatchCandidateActions({ id }: { id: string }) {
     setStatus(
       response.ok
         ? action === "confirm"
-          ? "áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ áƒ›áƒ˜áƒ”áƒ‘áƒ áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ¡."
+          ? "შეთავაზება მიება პროდუქტს."
           : action === "lock"
-            ? "áƒ’áƒáƒ“áƒáƒ¬áƒ§áƒ•áƒ”áƒ¢áƒ˜áƒšáƒ”áƒ‘áƒ áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ˜áƒšáƒ˜ áƒ“áƒ áƒ“áƒáƒ‘áƒšáƒáƒ™áƒ˜áƒšáƒ˜áƒ."
-            : "áƒ™áƒáƒœáƒ“áƒ˜áƒ“áƒáƒ¢áƒ˜ áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ˜áƒšáƒ˜áƒ."
-        : "review áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.",
+            ? "გადაწყვეტილება უარყოფილი და დაბლოკილია."
+            : "კანდიდატი უარყოფილია."
+        : "review ვერ შესრულდა.",
     );
     setBusy(null);
   }
@@ -36,7 +36,7 @@ export function MatchCandidateActions({ id }: { id: string }) {
           className="inline-flex h-10 items-center gap-2 rounded-2xl bg-[#0a0a0a] px-3 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-70"
         >
           <Check className="size-4 text-[var(--accent)]" />
-          áƒ˜áƒ’áƒ˜áƒ•áƒ” áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ˜áƒ
+          იგივე პროდუქტია
         </button>
         <button
           type="button"
@@ -45,7 +45,7 @@ export function MatchCandidateActions({ id }: { id: string }) {
           className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-3 text-sm font-black text-[var(--danger)] disabled:cursor-wait disabled:opacity-70"
         >
           <X className="size-4" />
-          áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ
+          უარყოფა
         </button>
         <button
           type="button"
@@ -54,7 +54,7 @@ export function MatchCandidateActions({ id }: { id: string }) {
           className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-black text-[var(--muted-strong)] disabled:cursor-wait disabled:opacity-70"
         >
           <Lock className="size-4" />
-          áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ áƒ“áƒ áƒ©áƒáƒ™áƒ”áƒ¢áƒ•áƒ
+          უარყოფა და ჩაკეტვა
         </button>
       </div>
       {status ? <p className="rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
