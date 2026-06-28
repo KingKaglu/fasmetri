@@ -10,7 +10,7 @@ on:
 
 jobs:
   health:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
+          cache: "npm"
 
       - run: npm ci
 

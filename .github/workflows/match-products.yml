@@ -17,7 +17,7 @@ jobs:
   match:
     # For workflow_run, only chain when the sync actually succeeded.
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
+          cache: "npm"
 
       - run: npm ci
 
