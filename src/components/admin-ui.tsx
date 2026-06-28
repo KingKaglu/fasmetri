@@ -37,7 +37,7 @@ export function AdminBreadcrumbs({ items }: { items: AdminCrumb[] }) {
               {crumb.label}
             </Link>
           ) : (
-            <span className="text-[var(--accent)]">{crumb.label}</span>
+            <span className="text-white">{crumb.label}</span>
           )}
         </span>
       ))}
@@ -59,13 +59,13 @@ export function AdminPageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden rounded-[1.15rem] border border-[#c8d7bd] bg-[#151713] p-4 text-white shadow-[0_22px_54px_rgba(18,19,15,0.14)] sm:rounded-[1.4rem] sm:p-5">
-      <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_75%_30%,rgba(187,244,81,0.34),transparent_36%),linear-gradient(135deg,transparent,rgba(255,255,255,0.07))]" />
+    <header className="relative overflow-hidden rounded-[1.15rem] border border-[#e4e4e7] bg-[#0a0a0a] p-4 text-white shadow-[0_22px_54px_rgba(10,10,10,0.14)] sm:rounded-[1.4rem] sm:p-5">
+      <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_75%_30%,rgba(255,255,255,0.16),transparent_36%),linear-gradient(135deg,transparent,rgba(255,255,255,0.07))]" />
       <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           {breadcrumbs?.length ? <AdminBreadcrumbs items={breadcrumbs} /> : null}
           {!breadcrumbs?.length && eyebrow ? (
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">{eyebrow}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white">{eyebrow}</p>
           ) : null}
           <h1 className="mt-2 text-2xl font-black leading-tight sm:text-4xl">{title}</h1>
           {description ? <p className="mt-2 text-sm font-bold leading-6 text-white/64">{description}</p> : null}
@@ -97,7 +97,7 @@ export function AdminMetricCard({
   trend?: AdminTrend;
 }) {
   return (
-    <article className="rounded-[1.1rem] border border-[#c8d7bd] bg-white/92 p-4 shadow-[0_12px_30px_rgba(18,19,15,0.07)]">
+    <article className="rounded-[1.1rem] border border-[#e4e4e7] bg-white/92 p-4 shadow-[0_12px_30px_rgba(10,10,10,0.07)]">
       <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>
       <div className="mt-2 flex flex-wrap items-baseline gap-2">
         <p className={`text-2xl font-black tabular-nums sm:text-3xl ${toneClass(tone)}`}>{value}</p>
@@ -137,9 +137,9 @@ export function AdminPanel({
   actions?: ReactNode;
 }) {
   return (
-    <section className={`overflow-hidden rounded-[1.15rem] border border-[#c8d7bd] bg-white/92 shadow-[0_12px_30px_rgba(18,19,15,0.07)] ${className}`}>
+    <section className={`overflow-hidden rounded-[1.15rem] border border-[#e4e4e7] bg-white/92 shadow-[0_12px_30px_rgba(10,10,10,0.07)] ${className}`}>
       {(title || description || actions) ? (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#dbe5d3] bg-[#f8fbf4] px-4 py-3">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#ededee] bg-[#fafafa] px-4 py-3">
           <div>
             {title ? <h2 className="text-base font-black text-[var(--brand)]">{title}</h2> : null}
             {description ? <p className="mt-1 text-sm font-bold leading-5 text-[var(--muted)]">{description}</p> : null}
@@ -189,7 +189,7 @@ export function AdminConfidenceBar({ value }: { value: number }) {
   const text = clamped >= 85 ? "text-[#1c8b43]" : clamped >= 70 ? "text-[#a45a12]" : "text-[#d9412f]";
   return (
     <div className="flex min-w-32 items-center gap-2">
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#e7eede]">
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#ededee]">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${clamped}%` }} />
       </div>
       <span className={`text-xs font-black tabular-nums ${text}`}>{clamped}%</span>
@@ -214,9 +214,9 @@ export function AdminActionCard({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-3 rounded-[1.1rem] border border-[#c8d7bd] bg-white p-4 shadow-[0_10px_24px_rgba(18,19,15,0.06)] transition hover:-translate-y-0.5 hover:border-[#151713] hover:shadow-[0_16px_34px_rgba(18,19,15,0.12)]"
+      className="group flex items-start gap-3 rounded-[1.1rem] border border-[#e4e4e7] bg-white p-4 shadow-[0_10px_24px_rgba(10,10,10,0.06)] transition hover:-translate-y-0.5 hover:border-[#0a0a0a] hover:shadow-[0_16px_34px_rgba(10,10,10,0.12)]"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#151713] text-white">{icon}</span>
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#0a0a0a] text-white">{icon}</span>
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-black text-[var(--brand)]">{title}</span>
@@ -249,7 +249,7 @@ export function AdminShopAvatar({ name, slug }: { name: string; slug: string }) 
 
 export function AdminEmptyState({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="rounded-[1.1rem] border border-dashed border-[#c8d7bd] bg-[#f8fbf4] p-6 text-center">
+    <div className="rounded-[1.1rem] border border-dashed border-[#e4e4e7] bg-[#fafafa] p-6 text-center">
       <p className="text-base font-black text-[var(--brand)]">{title}</p>
       {description ? <p className="mx-auto mt-2 max-w-xl text-sm font-bold leading-6 text-[var(--muted)]">{description}</p> : null}
     </div>
@@ -258,7 +258,7 @@ export function AdminEmptyState({ title, description }: { title: string; descrip
 
 export function AdminCodeBlock({ children }: { children: ReactNode }) {
   return (
-    <pre className="max-h-52 overflow-auto rounded-xl border border-[#263024] bg-[#151713] p-3 text-xs font-bold leading-5 text-[#dff8bd]">
+    <pre className="max-h-52 overflow-auto rounded-xl border border-[#27272a] bg-[#0a0a0a] p-3 text-xs font-bold leading-5 text-[#e4e4e7]">
       {children}
     </pre>
   );
@@ -266,7 +266,7 @@ export function AdminCodeBlock({ children }: { children: ReactNode }) {
 
 export function AdminKeyValue({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2">
+    <div className="rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2">
       <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>
       <div className="mt-1 break-words text-sm font-black text-[var(--brand)]">{value}</div>
     </div>
@@ -286,5 +286,5 @@ function pillClass(tone: AdminTone) {
   if (tone === "warn") return "border-[#d4d4d8] bg-[var(--warn-soft)] text-[var(--warn)]";
   if (tone === "danger") return "border-[#d4d4d8] bg-[#f4f4f5] text-[var(--danger)]";
   if (tone === "info") return "border-[#b8edf2] bg-[var(--aqua-soft)] text-[#087d8f]";
-  return "border-[#c8d7bd] bg-[#eef4e7] text-[var(--muted-strong)]";
+  return "border-[#e4e4e7] bg-[#f5f5f5] text-[var(--muted-strong)]";
 }

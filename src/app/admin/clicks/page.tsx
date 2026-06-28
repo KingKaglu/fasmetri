@@ -128,7 +128,7 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
       actions={<AdminStatusPill tone="info">{Math.min(rows.length, total)} / {total}</AdminStatusPill>}
     >
       {rows.length ? (
-        <div className="divide-y divide-[#edf2e8]">
+        <div className="divide-y divide-[#ededee]">
           {rows.map((row) => {
             const productTitle = clickProductTitle(row);
             const shopName = row.shopName ?? row.offer?.shop.name ?? "უცნობი მაღაზია";
@@ -152,19 +152,19 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs font-black">
                     {productSlug ? (
-                      <Link href={`/products/${productSlug}`} target="_blank" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-[#f8fbf4] px-3 text-[var(--brand)] hover:border-[#151713]">
+                      <Link href={`/products/${productSlug}`} target="_blank" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#e4e4e7] bg-[#fafafa] px-3 text-[var(--brand)] hover:border-[#0a0a0a]">
                         <PackageSearch className="size-3.5" />
                         Public product
                       </Link>
                     ) : null}
-                    <a href={row.targetUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 max-w-full items-center gap-1 rounded-2xl bg-[#151713] px-3 text-white hover:bg-black">
+                    <a href={row.targetUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 max-w-full items-center gap-1 rounded-2xl bg-[#0a0a0a] px-3 text-white hover:bg-black">
                       <span className="truncate">მაღაზიაში ნახვა</span>
                       <ExternalLink className="size-3.5 text-[var(--accent)]" />
                     </a>
                   </div>
                 </div>
 
-                <div className="grid gap-2 rounded-2xl border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+                <div className="grid gap-2 rounded-2xl border border-[#ededee] bg-[#fafafa] p-3">
                   <p className="inline-flex min-w-0 items-center gap-2 text-sm font-black text-[var(--brand)]">
                     <Store className="size-4 shrink-0 text-[var(--accent-strong)]" />
                     <span className="truncate">{shopName}</span>
@@ -231,7 +231,7 @@ function ReportTable({ title, head, rows }: { title: string; head: string; rows:
       {rows.length ? (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[28rem] text-sm">
-            <thead className="bg-[#f8fbf4]">
+            <thead className="bg-[#fafafa]">
               <tr className="text-left text-[11px] font-black uppercase tracking-wider text-[var(--muted)]">
                 <th className="px-4 py-3">{head}</th>
                 <th className="px-4 py-3 text-right">გადასვლები</th>
@@ -239,7 +239,7 @@ function ReportTable({ title, head, rows }: { title: string; head: string; rows:
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.key} className="border-t border-[#edf2e8]">
+                <tr key={row.key} className="border-t border-[#ededee]">
                   <td className="max-w-0 truncate px-4 py-3 font-bold text-[var(--brand)]">{row.key}</td>
                   <td className="px-4 py-3 text-right font-black tabular-nums text-[var(--brand)]">{row.count}</td>
                 </tr>

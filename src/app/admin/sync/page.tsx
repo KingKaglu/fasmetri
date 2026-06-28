@@ -146,7 +146,7 @@ export default async function AdminSyncPage() {
               </div>
 
               {module.report ? (
-                <div className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] p-3 text-xs font-bold text-[var(--muted-strong)]">
+                <div className="rounded-xl border border-[#ededee] bg-[#fafafa] p-3 text-xs font-bold text-[var(--muted-strong)]">
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">ბოლო ლოკალური რეპორტი</p>
                   <p className="mt-1">
                     {module.report.mode} — ნაპოვნია {module.report.discoveredCount ?? "?"}, განახლდა {module.report.updatedCount ?? "?"}, ჩავარდა {module.report.failedCount ?? 0} —{" "}
@@ -160,7 +160,7 @@ export default async function AdminSyncPage() {
               ) : null}
 
               {!module.syncLogs.length && !module.lastSuccess ? (
-                <div className="rounded-xl border border-dashed border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2.5 text-sm font-bold text-[var(--muted)]">
+                <div className="rounded-xl border border-dashed border-[#ededee] bg-[#fafafa] px-3 py-2.5 text-sm font-bold text-[var(--muted)]">
                   სინქრონიზაცია არ მომხდარა
                 </div>
               ) : null}
@@ -168,7 +168,7 @@ export default async function AdminSyncPage() {
               {module.syncLogs.length ? (
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">Sync ისტორია</p>
-                  <ol className="mt-2 border-l-2 border-[#dbe5d3] pl-4">
+                  <ol className="mt-2 border-l-2 border-[#ededee] pl-4">
                     {module.syncLogs.map((log) => {
                       const tone = logTone(log.status);
                       const dotColor = tone === "good" ? "bg-[#22c55e]" : tone === "warn" ? "bg-[#eab308]" : "bg-[#ef4444]";
@@ -201,7 +201,7 @@ export default async function AdminSyncPage() {
                       href={run.htmlUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#151713]"
+                      className="flex items-center justify-between gap-2 rounded-xl border border-[#ededee] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#0a0a0a]"
                     >
                       <span className="inline-flex items-center gap-2">
                         <AdminStatusDot tone={run.conclusion === "success" ? "good" : run.conclusion === null ? "warn" : "danger"} pulse={run.conclusion === null} />
@@ -232,7 +232,7 @@ export default async function AdminSyncPage() {
             {matcherRuns?.length ? (
               <div className="grid gap-1.5">
                 {matcherRuns.map((run) => (
-                  <a key={run.id} href={run.htmlUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-[#dbe5d3] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#151713]">
+                  <a key={run.id} href={run.htmlUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-[#ededee] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#0a0a0a]">
                     <span className="inline-flex items-center gap-2">
                       <AdminStatusDot tone={run.conclusion === "success" ? "good" : run.conclusion === null ? "warn" : "danger"} pulse={run.conclusion === null} />
                       {run.conclusion ?? run.status}

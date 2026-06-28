@@ -33,7 +33,7 @@ export function MatchCandidateActions({ id }: { id: string }) {
           type="button"
           onClick={() => review("confirm")}
           disabled={busy !== null}
-          className="inline-flex h-10 items-center gap-2 rounded-2xl bg-[#151713] px-3 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex h-10 items-center gap-2 rounded-2xl bg-[#0a0a0a] px-3 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-70"
         >
           <Check className="size-4 text-[var(--accent)]" />
           áƒ˜áƒ’áƒ˜áƒ•áƒ” áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ˜áƒ
@@ -51,13 +51,13 @@ export function MatchCandidateActions({ id }: { id: string }) {
           type="button"
           onClick={() => review("lock")}
           disabled={busy !== null}
-          className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--muted-strong)] disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-black text-[var(--muted-strong)] disabled:cursor-wait disabled:opacity-70"
         >
           <Lock className="size-4" />
           áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ áƒ“áƒ áƒ©áƒáƒ™áƒ”áƒ¢áƒ•áƒ
         </button>
       </div>
-      {status ? <p className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
+      {status ? <p className="rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
     </div>
   );
 }

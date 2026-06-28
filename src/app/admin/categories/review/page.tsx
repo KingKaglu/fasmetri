@@ -34,7 +34,7 @@ export default async function AdminCategoryReviewPage() {
         {products.map((product) => (
           <AdminPanel key={product.id}>
             <article className="grid gap-4 p-4 lg:grid-cols-[8rem_minmax(0,1fr)]">
-              <div className="overflow-hidden rounded-2xl border border-[#dbe5d3] bg-[#f8fbf4]">
+              <div className="overflow-hidden rounded-2xl border border-[#ededee] bg-[#fafafa]">
                 <ProductImage src={product.imageUrl} alt={product.name} />
               </div>
               <div className="min-w-0">
@@ -55,10 +55,10 @@ export default async function AdminCategoryReviewPage() {
                   <AdminKeyValue label="შეთავაზებების რაოდენობა" value={product.offers.length} />
                 </div>
 
-                <div className="mt-3 rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+                <div className="mt-3 rounded-[1rem] border border-[#ededee] bg-[#fafafa] p-3">
                   <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">შემოწმების ლინკები</p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Link href={`/products/${product.slug}`} target="_blank" className="inline-flex h-10 items-center gap-1 rounded-2xl bg-[#151713] px-3 text-xs font-black text-white hover:bg-black">
+                    <Link href={`/products/${product.slug}`} target="_blank" className="inline-flex h-10 items-center gap-1 rounded-2xl bg-[#0a0a0a] px-3 text-xs font-black text-white hover:bg-black">
                       Public product <ExternalLink className="size-3.5 text-[var(--accent)]" />
                     </Link>
                     {product.offers.map((offer) => (
@@ -67,7 +67,7 @@ export default async function AdminCategoryReviewPage() {
                         href={offer.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex h-10 max-w-full items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]"
+                        className="inline-flex h-10 max-w-full items-center gap-1 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#0a0a0a]"
                       >
                         <span className="truncate">{offer.shop.name}</span>
                         <ExternalLink className="size-3.5 shrink-0" />

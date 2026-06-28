@@ -78,7 +78,7 @@ export function ReviewKeyboardNav({ matchIds }: { matchIds: string[] }) {
 
   return (
     <div className="pointer-events-none fixed bottom-20 left-1/2 z-30 -translate-x-1/2 lg:bottom-5">
-      <div className="flex items-center gap-2 rounded-full border border-[#263024] bg-[#151713]/95 px-4 py-2 text-[11px] font-black text-white/85 shadow-[0_14px_34px_rgba(18,19,15,0.35)]">
+      <div className="flex items-center gap-2 rounded-full border border-[#27272a] bg-[#0a0a0a]/95 px-4 py-2 text-[11px] font-black text-white/85 shadow-[0_14px_34px_rgba(10,10,10,0.35)]">
         <Keyboard className="size-3.5 text-[var(--accent)]" />
         <span className="tabular-nums">{index + 1}/{matchIds.length}</span>
         <span className="text-white/40">·</span>

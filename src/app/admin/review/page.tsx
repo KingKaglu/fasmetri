@@ -118,7 +118,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                 key={filter.href}
                 href={filter.href}
                 className={`inline-flex h-10 items-center rounded-2xl px-4 text-sm font-black ${
-                  filter.active ? "bg-[#151713] text-white" : "border border-[#c8d7bd] bg-white text-[var(--brand)] hover:border-[#151713]"
+                  filter.active ? "bg-[#0a0a0a] text-white" : "border border-[#e4e4e7] bg-white text-[var(--brand)] hover:border-[#0a0a0a]"
                 }`}
               >
                 {filter.label}
@@ -138,7 +138,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
             <div
               key={match.id}
               data-review-row={match.id}
-              className="rounded-[1.15rem] transition data-[selected=true]:ring-2 data-[selected=true]:ring-[#151713] data-[selected=true]:ring-offset-2"
+              className="rounded-[1.15rem] transition data-[selected=true]:ring-2 data-[selected=true]:ring-[#0a0a0a] data-[selected=true]:ring-offset-2"
             >
               <AdminPanel>
                 <article className="p-4">
@@ -153,11 +153,11 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                     </time>
                   </div>
 
-                  <p className="mt-2 rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{match.reason}</p>
+                  <p className="mt-2 rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{match.reason}</p>
 
                   <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_14rem]">
-                    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
-                      <div className="overflow-hidden rounded-xl border border-[#dbe5d3] bg-white">
+                    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#ededee] bg-[#fafafa] p-3">
+                      <div className="overflow-hidden rounded-xl border border-[#ededee] bg-white">
                         <ProductImage src={raw.originalImageUrl} alt={raw.originalTitle} />
                       </div>
                       <div className="min-w-0">
@@ -170,8 +170,8 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#dbe5d3] bg-white p-3">
-                      <div className="overflow-hidden rounded-xl border border-[#dbe5d3] bg-[#f8fbf4]">
+                    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#ededee] bg-white p-3">
+                      <div className="overflow-hidden rounded-xl border border-[#ededee] bg-[#fafafa]">
                         <ProductImage src={canonical.primaryImage} alt={canonical.title} />
                       </div>
                       <div className="min-w-0">

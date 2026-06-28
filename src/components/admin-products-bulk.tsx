@@ -47,7 +47,7 @@ export function ProductSelectCheckbox({ id, title, activeOffers }: Selected) {
       checked={isSelected(id)}
       onChange={() => toggle({ id, title, activeOffers })}
       onClick={(event) => event.stopPropagation()}
-      className="size-4 shrink-0 cursor-pointer accent-[#151713]"
+      className="size-4 shrink-0 cursor-pointer accent-[#0a0a0a]"
     />
   );
 }
@@ -83,7 +83,7 @@ export function ProductBulkBar() {
     "inline-flex h-9 items-center gap-1.5 rounded-2xl border px-3 text-xs font-black transition disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
-    <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-[#151713] bg-[#151713] p-3 text-white shadow-lg">
+    <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-[#0a0a0a] bg-[#0a0a0a] p-3 text-white shadow-lg">
       <span className="text-xs font-black">{selected.length} áƒáƒ áƒ©áƒ”áƒ£áƒšáƒ˜</span>
       <button
         type="button"

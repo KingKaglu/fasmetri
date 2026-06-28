@@ -27,9 +27,9 @@ export function AdminLogin() {
   return (
     <form
       onSubmit={submit}
-      className="relative w-full max-w-md overflow-hidden rounded-[1.45rem] border border-[#c8d7bd] bg-white p-5 shadow-[0_24px_70px_rgba(18,19,15,0.16)]"
+      className="relative w-full max-w-md overflow-hidden rounded-[1.45rem] border border-[#e4e4e7] bg-white p-5 shadow-[0_24px_70px_rgba(10,10,10,0.16)]"
     >
-      <div className="absolute inset-x-0 top-0 h-28 bg-[#151713]" />
+      <div className="absolute inset-x-0 top-0 h-28 bg-[#0a0a0a]" />
       <div className="relative">
         <span className="grid size-12 place-items-center rounded-2xl bg-[var(--accent)] text-[var(--accent-ink)] shadow-[0_12px_26px_rgba(127,194,29,0.25)]">
           <ShieldCheck className="size-5" />
@@ -48,13 +48,13 @@ export function AdminLogin() {
               type="password"
               required
               placeholder="áƒ¨áƒ”áƒ˜áƒ§áƒ•áƒáƒœáƒ” áƒžáƒáƒ áƒáƒšáƒ˜"
-              className="h-12 w-full rounded-2xl border border-[#c8d7bd] bg-[#f8fbf4] pl-10 pr-3 text-sm font-black text-[var(--brand)] outline-none focus:border-[#151713] focus:ring-2 focus:ring-[rgba(16,191,208,0.2)]"
+              className="h-12 w-full rounded-2xl border border-[#e4e4e7] bg-[#fafafa] pl-10 pr-3 text-sm font-black text-[var(--brand)] outline-none focus:border-[#0a0a0a] focus:ring-2 focus:ring-[rgba(16,191,208,0.2)]"
             />
           </span>
         </label>
         <button
           disabled={loading}
-          className="h-12 rounded-2xl bg-[#151713] text-sm font-black text-white shadow-[0_14px_28px_rgba(18,19,15,0.18)] hover:bg-black disabled:cursor-wait disabled:opacity-70"
+          className="h-12 rounded-2xl bg-[#0a0a0a] text-sm font-black text-white shadow-[0_14px_28px_rgba(10,10,10,0.18)] hover:bg-black disabled:cursor-wait disabled:opacity-70"
         >
           {loading ? "áƒ›áƒáƒ¬áƒ›áƒ“áƒ”áƒ‘áƒ..." : "áƒ¨áƒ”áƒ¡áƒ•áƒšáƒ"}
         </button>

@@ -127,7 +127,7 @@ export default async function AdminDashboardPage() {
         title="საიტის მართვა"
         description="კატალოგი, sync-ის ჯანმრთელობა და review queue ერთ ეკრანზე."
       >
-        <Link href="/admin/review" className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[#151713] hover:bg-[var(--accent)]">
+        <Link href="/admin/review" className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[#0a0a0a] hover:bg-white/85">
           <GitCompareArrows className="size-4" />
           Review queue ({pendingReview})
         </Link>
@@ -190,7 +190,7 @@ export default async function AdminDashboardPage() {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_.85fr]">
         <AdminPanel title="მაღაზიების სტატუსი" description="🟢 sync ბოლო 6სთ-ში · 🟡 ბოლო 24სთ-ში · 🔴 24სთ+">
-          <div className="divide-y divide-[#edf2e8]">
+          <div className="divide-y divide-[#ededee]">
             {shopStatus.map((shop) => (
               <div key={shop.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
@@ -218,7 +218,7 @@ export default async function AdminDashboardPage() {
             <StaleOfferCleanupButton staleCount={staleOffers} />
             <Link
               href="/admin/offers?view=oos"
-              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]"
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]"
             >
               <Tags className="size-4" />
               Out-of-stock შეთავაზებები ({outOfStock})
@@ -229,7 +229,7 @@ export default async function AdminDashboardPage() {
 
       <AdminPanel title="ბოლო აქტივობა" description="ბოლო ფასის ცვლილებები sync-ებიდან და matcher-ის ბოლო გადაწყვეტილებები.">
         {activity.length ? (
-          <div className="divide-y divide-[#edf2e8]">
+          <div className="divide-y divide-[#ededee]">
             {activity.map((item) => (
               <div key={item.id} className="flex flex-wrap items-start justify-between gap-2 p-4">
                 <div className="min-w-0">

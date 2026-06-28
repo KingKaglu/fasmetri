@@ -41,7 +41,7 @@ export function AdminDebouncedSearch({ placeholder }: { placeholder: string }) {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-2xl border border-[#c8d7bd] bg-white pl-10 pr-10 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#151713]"
+        className="h-11 w-full rounded-2xl border border-[#e4e4e7] bg-white pl-10 pr-10 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#0a0a0a]"
       />
       <span className="absolute right-3 top-1/2 -translate-y-1/2">
         {pending ? (

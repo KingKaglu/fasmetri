@@ -55,7 +55,7 @@ export function AdminNav() {
 function AdminSidebar({ pathname }: { pathname: string }) {
   return (
     <nav className="hidden shrink-0 lg:block lg:w-60">
-      <div className="rounded-[1.15rem] border border-[#263024] bg-[#151713] p-2 text-white shadow-[0_18px_44px_rgba(18,19,15,0.22)] lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:min-h-[34rem] lg:flex-col">
+      <div className="rounded-[1.15rem] border border-[#27272a] bg-[#0a0a0a] p-2 text-white shadow-[0_18px_44px_rgba(10,10,10,0.22)] lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:min-h-[34rem] lg:flex-col">
         <p className="px-3 pb-2 pt-3 text-[11px] font-black uppercase tracking-[0.18em] text-white">
           fasmetri admin
         </p>
@@ -69,7 +69,7 @@ function AdminSidebar({ pathname }: { pathname: string }) {
                 aria-current={active ? "page" : undefined}
                 className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-black transition ${
                   active
-                    ? "bg-[var(--accent)] text-[var(--accent-ink)] shadow-[0_8px_18px_rgba(0,0,0,0.25)]"
+                    ? "bg-white text-[#0a0a0a] shadow-[0_8px_18px_rgba(0,0,0,0.25)]"
                     : "text-white/72 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -113,7 +113,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
       {moreOpen ? (
         <div className="fixed inset-0 z-40 bg-black/45" onClick={() => setMoreOpen(false)}>
           <div
-            className="absolute inset-x-3 bottom-20 rounded-[1.15rem] border border-[#263024] bg-[#151713] p-2 text-white shadow-[0_-18px_44px_rgba(18,19,15,0.35)]"
+            className="absolute inset-x-3 bottom-20 rounded-[1.15rem] border border-[#27272a] bg-[#0a0a0a] p-2 text-white shadow-[0_-18px_44px_rgba(10,10,10,0.35)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between px-3 py-2">
@@ -129,7 +129,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
                   key={href}
                   href={href}
                   className={`flex items-center gap-2.5 rounded-xl px-3 py-3 text-sm font-black ${
-                    active ? "bg-[var(--accent)] text-[var(--accent-ink)]" : "text-white/80 hover:bg-white/10"
+                    active ? "bg-white text-[#0a0a0a]" : "text-white/80 hover:bg-white/10"
                   }`}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -155,7 +155,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#263024] bg-[#151713] pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1.5 text-white shadow-[0_-12px_30px_rgba(18,19,15,0.3)]">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#27272a] bg-[#0a0a0a] pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1.5 text-white shadow-[0_-12px_30px_rgba(10,10,10,0.3)]">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {mobilePrimary.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);

@@ -92,7 +92,7 @@ export function AutoTriageButton() {
         type="button"
         disabled={busy}
         onClick={run}
-        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713] disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a] disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}
         Run Auto-Triage
@@ -130,7 +130,7 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
 
   return (
     <form onSubmit={submit} className="flex flex-wrap items-center gap-2">
-      <label className="inline-flex h-11 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--brand)]">
+      <label className="inline-flex h-11 items-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-black text-[var(--brand)]">
         min confidence
         <input
           name="minConfidence"
@@ -144,7 +144,7 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
       </label>
       <button
         disabled={busy}
-        className="inline-flex h-11 items-center justify-center rounded-2xl bg-[#151713] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center rounded-2xl bg-[#0a0a0a] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? "áƒ›áƒ£áƒ¨áƒáƒ•áƒ“áƒ”áƒ‘áƒ..." : "Bulk áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ”áƒ‘áƒ"}
       </button>

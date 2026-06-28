@@ -130,7 +130,7 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
       </div>
 
       <AdminPanel>
-        <div className="flex overflow-x-auto border-b border-[#dbe5d3] bg-[#f8fbf4]">
+        <div className="flex overflow-x-auto border-b border-[#ededee] bg-[#fafafa]">
           {tabs.map((tab) => {
             const active = view === tab.view;
             return (
@@ -142,10 +142,10 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                 }`}
               >
                 {tab.label}
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${active ? "bg-[#151713] text-white" : "bg-[#e7eede] text-[var(--muted-strong)]"}`}>
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${active ? "bg-[#0a0a0a] text-white" : "bg-[#ededee] text-[var(--muted-strong)]"}`}>
                   {tab.count}
                 </span>
-                {active ? <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#151713]" /> : null}
+                {active ? <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#0a0a0a]" /> : null}
               </Link>
             );
           })}
@@ -155,7 +155,7 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
           <div className="flex flex-wrap gap-2">
             <Link
               href={query({ shop: undefined })}
-              className={`inline-flex h-10 items-center rounded-2xl px-3 text-xs font-black ${!shopSlug ? "bg-[#151713] text-white" : "border border-[#c8d7bd] bg-white text-[var(--brand)] hover:border-[#151713]"}`}
+              className={`inline-flex h-10 items-center rounded-2xl px-3 text-xs font-black ${!shopSlug ? "bg-[#0a0a0a] text-white" : "border border-[#e4e4e7] bg-white text-[var(--brand)] hover:border-[#0a0a0a]"}`}
             >
               ყველა მაღაზია
             </Link>
@@ -165,7 +165,7 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                 <Link
                   key={shop.id}
                   href={query({ shop: shop.slug })}
-                  className={`inline-flex h-10 items-center gap-1.5 rounded-2xl px-3 text-xs font-black ${shopSlug === shop.slug ? "bg-[#151713] text-white" : "border border-[#c8d7bd] bg-white text-[var(--brand)] hover:border-[#151713]"}`}
+                  className={`inline-flex h-10 items-center gap-1.5 rounded-2xl px-3 text-xs font-black ${shopSlug === shop.slug ? "bg-[#0a0a0a] text-white" : "border border-[#e4e4e7] bg-white text-[var(--brand)] hover:border-[#0a0a0a]"}`}
                 >
                   {shop.name} <span className="opacity-60">({count})</span>
                 </Link>
@@ -181,7 +181,7 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
           title={group.shop.name}
           actions={<AdminStatusPill tone="info">{group.rows.length} ამ გვერდზე</AdminStatusPill>}
         >
-          <div className="divide-y divide-[#edf2e8]">
+          <div className="divide-y divide-[#ededee]">
             {group.rows.map((offer) => {
               const unlinked = !offer.canonicalProduct;
               return (
@@ -208,7 +208,7 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713]">
+                    <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#0a0a0a]">
                       ნახვა <ExternalLink className="size-3.5" />
                     </a>
                     {offer.canonicalProduct ? <UnlinkOfferButton offerId={offer.id} offerTitle={`${offer.shop.name}: ${offer.title}`} /> : null}
@@ -224,13 +224,13 @@ export default async function AdminOffersPage({ searchParams }: { searchParams: 
       {totalPages > 1 ? (
         <div className="flex items-center justify-center gap-2">
           {page > 1 ? (
-            <Link href={query({ page: String(page - 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]">
+            <Link href={query({ page: String(page - 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]">
               წინა
             </Link>
           ) : null}
           <span className="text-sm font-black text-[var(--muted)]">{page} / {totalPages}</span>
           {page < totalPages ? (
-            <Link href={query({ page: String(page + 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]">
+            <Link href={query({ page: String(page + 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]">
               შემდეგი
             </Link>
           ) : null}

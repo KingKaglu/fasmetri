@@ -4,14 +4,14 @@ import { FormEvent, useState } from "react";
 import { CategoryView, ProductView, ShopView } from "@/lib/catalog-types";
 
 const inputClassName =
-  "h-11 w-full rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#151713] focus:ring-2 focus:ring-[rgba(16,191,208,0.18)]";
+  "h-11 w-full rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#0a0a0a] focus:ring-2 focus:ring-[rgba(16,191,208,0.18)]";
 const buttonClassName =
-  "inline-flex h-11 items-center justify-center rounded-2xl bg-[#151713] px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(18,19,15,0.14)] hover:bg-black";
+  "inline-flex h-11 items-center justify-center rounded-2xl bg-[#0a0a0a] px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(10,10,10,0.14)] hover:bg-black";
 const outlineButtonClassName =
-  "inline-flex h-11 items-center justify-center rounded-2xl border border-[#c8d7bd] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#151713]";
+  "inline-flex h-11 items-center justify-center rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]";
 
 function Status({ text }: { text: string }) {
-  return text ? <p className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{text}</p> : null;
+  return text ? <p className="rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{text}</p> : null;
 }
 
 export function ShopEditor({ shop }: { shop: ShopView }) {
@@ -32,7 +32,7 @@ export function ShopEditor({ shop }: { shop: ShopView }) {
   }
 
   return (
-    <details className="group rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+    <details className="group rounded-[1rem] border border-[#ededee] bg-[#fafafa] p-3">
       <summary className="cursor-pointer list-none text-sm font-black text-[var(--brand)] marker:hidden">
         ინფორმაციის რედაქტირება
       </summary>
@@ -90,7 +90,7 @@ export function ProductEditor({ product, categories }: { product: ProductView; c
   }
 
   return (
-    <details className="mt-3 rounded-[1rem] border border-[#dbe5d3] bg-[#f8fbf4] p-3">
+    <details className="mt-3 rounded-[1rem] border border-[#ededee] bg-[#fafafa] p-3">
       <summary className="cursor-pointer list-none text-sm font-black text-[var(--brand)] marker:hidden">
         პროდუქტის რედაქტირება
       </summary>
@@ -106,11 +106,11 @@ export function ProductEditor({ product, categories }: { product: ProductView; c
         </select>
         <input name="brand" defaultValue={product.brand ?? ""} placeholder="ბრენდი" className={inputClassName} />
         <input name="model" defaultValue={product.model ?? ""} placeholder="მოდელი" className={inputClassName} />
-        <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--brand)]">
+        <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-black text-[var(--brand)]">
           <input name="categoryLocked" type="checkbox" defaultChecked={product.categoryLocked || Boolean(product.manualCategoryId)} className="accent-[var(--accent-strong)]" />
           კატეგორიის ჩაკეტვა
         </label>
-        <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--brand)]">
+        <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-black text-[var(--brand)]">
           <input name="matchingLocked" type="checkbox" defaultChecked={product.matchingLocked} className="accent-[var(--accent-strong)]" />
           matching-ის ჩაკეტვა
         </label>
@@ -157,7 +157,7 @@ export function CategoryEditor({ categories }: { categories: CategoryView[] }) {
   }
 
   return (
-    <details className="rounded-[1.15rem] border border-[#c8d7bd] bg-white/92 p-4 shadow-[0_12px_30px_rgba(18,19,15,0.07)]">
+    <details className="rounded-[1.15rem] border border-[#e4e4e7] bg-white/92 p-4 shadow-[0_12px_30px_rgba(10,10,10,0.07)]">
       <summary className="cursor-pointer list-none text-lg font-black text-[var(--brand)] marker:hidden">
         კატეგორიის რედაქტირება
       </summary>
