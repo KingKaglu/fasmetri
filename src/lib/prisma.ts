@@ -13,7 +13,10 @@ function createClient() {
       connectionString,
       max: Number.isFinite(max) && max > 0 ? max : 1,
       idleTimeoutMillis: 10_000,
-      connectionTimeoutMillis: 10_000,
+      // Tolerate slow/flaky connects (self-hosted CI runner -> Supabase pooler
+      // intermittently needs >10s); keepAlive stops idle TCP drops mid-job.
+      connectionTimeoutMillis: 30_000,
+      keepAlive: true,
     }),
   });
 }
