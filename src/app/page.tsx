@@ -99,11 +99,11 @@ export default async function Home() {
               {/* Brand badge */}
               <div className="mb-5">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3.5 backdrop-blur-sm">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#ffffff]">
                     <svg viewBox="0 0 32 28" className="size-4" fill="none" aria-hidden="true">
-                      <path d="M8.63 22.17 A9 9 0 1 1 23.37 22.17" stroke="var(--accent)" strokeWidth="2.7" strokeLinecap="round" />
-                      <path d="M16 17 L10.9 21.3" stroke="var(--aqua)" strokeWidth="2.7" strokeLinecap="round" />
-                      <circle cx="16" cy="17" r="2.4" fill="var(--accent)" />
+                      <path d="M8.63 22.17 A9 9 0 1 1 23.37 22.17" stroke="#0a0a0a" strokeWidth="2.7" strokeLinecap="round" />
+                      <path d="M16 17 L10.9 21.3" stroke="#0a0a0a" strokeWidth="2.7" strokeLinecap="round" opacity="0.45" />
+                      <circle cx="16" cy="17" r="2.4" fill="#0a0a0a" />
                     </svg>
                   </span>
                   <span className="text-[13px] font-bold text-white">ფასმეტრი</span>
@@ -179,7 +179,7 @@ export default async function Home() {
                 badgeTone="accent"
                 title="iPhone 16 სერია"
                 subtitle="შეადარე 3 მაღაზიის ფასი"
-                icon={<Smartphone className="size-9 text-[var(--accent)]" />}
+                icon={<Smartphone className="size-7 text-white" />}
               />
               <HeroPromo
                 href="/categories/laptops"
@@ -187,7 +187,7 @@ export default async function Home() {
                 badgeTone="save"
                 title="გეიმინგ ლეპტოპები"
                 subtitle="RTX 5060 — დან"
-                icon={<Laptop className="size-9 text-[var(--accent)]" />}
+                icon={<Laptop className="size-7 text-white" />}
               />
             </div>
           </div>
@@ -216,7 +216,8 @@ export default async function Home() {
       )}
 
       {/* Deals */}
-      <section className="shell pt-8 pb-4">
+      <section className="section-mist mt-8 border-y border-[var(--line)]">
+        <div className="shell pt-8 pb-8">
         <SectionBar eyebrow="ფასდაკლებები" title="დღის საუკეთესო ფასები" href="/deals" action="ყველა აქცია" dealCount={stats.deals ?? null} />
         {discounts.length ? (
           <div className="grid gap-4 lg:grid-cols-12">
@@ -234,11 +235,13 @@ export default async function Home() {
         ) : (
           <ProductGrid products={discounts} deal density="compact" resetHref="/deals" emptyTitle="აქციები მალე გამოჩნდება" emptyDescription="ფასმეტრი ახალი ფასდაკლებების დამატებისთანავე აჩვენებს საუკეთესო შეთავაზებებს." />
         )}
+        </div>
       </section>
 
-      {/* Consoles / PlayStation 5 — cross-shop comparison */}
+      {/* Consoles / PlayStation 5 — cross-shop comparison (full ink band) */}
       {gamingProducts.length > 0 && (
-        <section className="shell pt-8 pb-4">
+        <section className="section-ink section-ink-grain mt-8">
+          <div className="shell pt-9 pb-9">
           <SectionBar
             eyebrow="კონსოლები"
             title="PlayStation 5 — შეადარე მაღაზიებში"
@@ -253,6 +256,7 @@ export default async function Home() {
             emptyTitle="კონსოლები მალე დაემატება"
             emptyDescription="PlayStation 5 და აქსესუარები მაღაზიების მიხედვით."
           />
+          </div>
         </section>
       )}
 
@@ -271,24 +275,28 @@ export default async function Home() {
       )}
 
       {/* Trending */}
-      <section className="shell pt-8 pb-4">
+      <section className="section-mist mt-8 border-y border-[var(--line)]">
+        <div className="shell pt-8 pb-8">
         <SectionBar eyebrow="ხშირად შედარებული" title="პოპულარული პროდუქტები" href="/search?sort=priority" action="ყველა" />
         <ProductGrid products={trending} density="compact" resetHref="/search" priorityImages={0} emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
+        </div>
       </section>
 
-      {/* Popular brands (retail handoff) */}
-      <section className="shell pt-8 pb-4">
+      {/* Popular brands (retail handoff) — hatched band */}
+      <section className="section-hatch mt-8 border-b border-[var(--line)]">
+        <div className="shell pt-8 pb-8">
         <SectionBar eyebrow="ბრენდები" title="პოპულარული ბრენდები" href="/search" action="ყველა" />
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
           {POPULAR_BRANDS.map((brand) => (
             <Link
               key={brand}
               href={`/search?q=${encodeURIComponent(brand)}`}
-              className="flex h-16 items-center justify-center rounded-2xl border border-[var(--line)] bg-white text-sm font-extrabold text-[var(--brand)] shadow-[var(--shadow-card)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              className="flex h-16 items-center justify-center rounded-2xl border border-[var(--line-strong)] bg-white text-sm font-extrabold tracking-tight text-[var(--brand)] shadow-[var(--shadow-card)] transition-colors hover:border-zinc-900 hover:bg-zinc-950 hover:text-white"
             >
               {brand}
             </Link>
           ))}
+        </div>
         </div>
       </section>
 
@@ -472,7 +480,7 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
         {delta > 0 && (
           <span
             className={`hidden shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold sm:inline-flex ${
-              dropped ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-500"
+              dropped ? "bg-zinc-950 text-white" : "border border-zinc-200 bg-white text-zinc-500"
             }`}
           >
             <TrendingDown className={`size-3 ${dropped ? "" : "rotate-180"}`} />
@@ -483,7 +491,7 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
           {change.previousPrice != null && (
             <span className="block text-[11px] text-gray-400 line-through">{formatGel(change.previousPrice)}</span>
           )}
-          <span className={`block text-sm font-bold ${dropped ? "text-green-700" : "text-gray-900"}`}>
+          <span className="block text-sm font-bold text-gray-900">
             {formatGel(change.currentPrice)}
           </span>
         </span>
@@ -515,18 +523,21 @@ function SectionBar({
   dealCount?: number | null;
 }) {
   return (
-    <div className="mb-4 flex items-center justify-between gap-3">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{eyebrow}</p>
-        <h2 className="mt-0.5 text-lg font-bold text-gray-900 sm:text-xl">{title}</h2>
+    <div className="mb-4 flex items-end justify-between gap-3 border-b border-[var(--line)] pb-2.5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="hidden h-7 w-1 shrink-0 rounded-full bg-[var(--brand)] sm:block" />
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">{eyebrow}</p>
+          <h2 className="mt-0.5 truncate text-lg font-extrabold tracking-tight text-[var(--brand)] sm:text-xl">{title}</h2>
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {dealCount != null && (
-          <span className="hidden rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-500 sm:inline">
+          <span className="hidden rounded-full border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--muted)] sm:inline">
             {dealCount.toLocaleString()} აქცია
           </span>
         )}
-        <Link href={href} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]">
+        <Link href={href} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand)] underline-offset-4 hover:underline">
           {action}
           <ArrowRight className="size-3.5" />
         </Link>
@@ -546,7 +557,7 @@ function TrustItem({
 }) {
   return (
     <div className="flex items-start gap-3 px-4 py-4 sm:px-5">
-      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
+      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-zinc-950 text-white">
         <Icon className="size-4" />
       </span>
       <div className="min-w-0">
@@ -611,12 +622,20 @@ function HeroPromo({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-card-hover)]"
+      className="card-hover group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[var(--shadow-card)]"
     >
-      <div className="min-w-0 flex-1">
+      {/* soft corner glow for depth */}
+      <span className="pointer-events-none absolute -right-8 -top-10 size-24 rounded-full bg-[var(--surface-soft)] opacity-80 blur-2xl" />
+      {/* dark icon tile — premium ink treatment */}
+      <span className="relative grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#27272a] to-[#0a0a0a] text-white shadow-[0_8px_20px_rgba(10,10,10,0.25)] ring-1 ring-black/5">
+        {icon}
+      </span>
+      <div className="relative min-w-0 flex-1">
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white ${
-            badgeTone === "save" ? "bg-[var(--price-deal)]" : "bg-[var(--accent)]"
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+            badgeTone === "save"
+              ? "border border-zinc-900 bg-white text-zinc-900"
+              : "bg-zinc-950 text-white"
           }`}
         >
           {badge}
@@ -624,7 +643,10 @@ function HeroPromo({
         <p className="mt-1.5 truncate text-[15px] font-extrabold text-[var(--brand)]">{title}</p>
         <p className="truncate text-xs font-medium text-[var(--muted)]">{subtitle}</p>
       </div>
-      <span className="grid size-16 shrink-0 place-items-center rounded-xl bg-[var(--surface-soft)]">{icon}</span>
+      {/* arrow cue — fills ink on hover */}
+      <span className="relative grid size-7 shrink-0 place-items-center rounded-full bg-[var(--surface-soft)] text-[var(--muted-strong)] transition-colors duration-200 ease-in-out group-hover:bg-[var(--brand)] group-hover:text-white">
+        <ArrowUpRight className="size-4 transition-transform duration-200 ease-in-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      </span>
     </Link>
   );
 }
@@ -719,10 +741,10 @@ function FeaturedDeal({ product }: { product: ProductView }) {
   const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-lg border-2 border-orange-200 bg-white shadow-sm">
+    <article className="group flex h-full flex-col overflow-hidden rounded-lg border-2 border-zinc-900 bg-white shadow-sm">
       <Link href={`/products/${product.slug}`} className="relative block overflow-hidden border-b border-gray-100 bg-gray-50">
         <ProductImage src={image} alt={product.name} priority tall />
-        <span className="absolute left-3 top-3 rounded-md bg-orange-500 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+        <span className="absolute left-3 top-3 rounded-md bg-zinc-950 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
           დღის ლიდერი
         </span>
         {discount > 0 && (
@@ -748,7 +770,7 @@ function FeaturedDeal({ product }: { product: ProductView }) {
         <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} />
 
         {savings > 0 && (
-          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-[11px] font-semibold text-green-700">
+          <span className="inline-flex w-fit items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-semibold text-zinc-900">
             <TrendingDown className="size-3" /> -{formatGel(savings)}
           </span>
         )}

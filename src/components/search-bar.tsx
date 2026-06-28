@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowRight, ChevronDown, Menu, Search, X } from "lucide-react";
+import { ArrowRight, Search, X } from "lucide-react";
 import { formatGel } from "@/lib/format";
+import { CategoryMenu } from "@/components/category-menu";
 
 type Suggestion = {
   slug: string;
@@ -173,17 +173,7 @@ export function SearchBar({
               : "h-12 rounded-lg border-gray-300 shadow-md"
         } ${open && suggestions.length > 0 ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/10" : "hover:border-gray-300 focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10"}`}
       >
-        {isHeader && (
-          <Link
-            href="/categories"
-            aria-label="კატეგორიები"
-            className="flex h-full shrink-0 items-center gap-1.5 border-r border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 text-[12.5px] font-bold text-[var(--accent-strong)] hover:bg-[#ffe3d1]"
-          >
-            <Menu className="size-3.5" />
-            <span className="hidden sm:inline">კატეგორიები</span>
-            <ChevronDown className="size-3" />
-          </Link>
-        )}
+        {isHeader && <CategoryMenu />}
         <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
           <Search className={`shrink-0 text-gray-400 ${isHeader ? "size-3.5" : "size-4.5"}`} />
           <input
@@ -258,7 +248,7 @@ export function SearchBar({
                   setOpen(false);
                   router.push(`/products/${item.slug}`);
                 }}
-                className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-200 ease-in-out ${
                   index === activeIndex ? "bg-[var(--accent-soft)]" : "hover:bg-gray-50"
                 }`}
               >
@@ -317,7 +307,7 @@ export function SearchBar({
                   className="inline-flex h-7 items-center gap-1 rounded-full border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-2.5 text-xs font-medium text-[var(--accent)] hover:border-[var(--accent)]"
                 >
                   {category.nameKa}
-                  <span className="text-[10px] text-orange-400">{category.productCount}</span>
+                  <span className="text-[10px] text-zinc-400">{category.productCount}</span>
                 </button>
               ))}
             </li>

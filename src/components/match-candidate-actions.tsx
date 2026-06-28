@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Check, Lock, X } from "lucide-react";
 import { useState } from "react";
@@ -17,11 +17,11 @@ export function MatchCandidateActions({ id }: { id: string }) {
     setStatus(
       response.ok
         ? action === "confirm"
-          ? "შეთავაზება მიება პროდუქტს."
+          ? "áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ áƒ›áƒ˜áƒ”áƒ‘áƒ áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ¡."
           : action === "lock"
-            ? "გადაწყვეტილება უარყოფილი და დაბლოკილია."
-            : "კანდიდატი უარყოფილია."
-        : "review ვერ შესრულდა.",
+            ? "áƒ’áƒáƒ“áƒáƒ¬áƒ§áƒ•áƒ”áƒ¢áƒ˜áƒšáƒ”áƒ‘áƒ áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ˜áƒšáƒ˜ áƒ“áƒ áƒ“áƒáƒ‘áƒšáƒáƒ™áƒ˜áƒšáƒ˜áƒ."
+            : "áƒ™áƒáƒœáƒ“áƒ˜áƒ“áƒáƒ¢áƒ˜ áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ˜áƒšáƒ˜áƒ."
+        : "review áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.",
     );
     setBusy(null);
   }
@@ -36,16 +36,16 @@ export function MatchCandidateActions({ id }: { id: string }) {
           className="inline-flex h-10 items-center gap-2 rounded-2xl bg-[#151713] px-3 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-70"
         >
           <Check className="size-4 text-[var(--accent)]" />
-          იგივე პროდუქტია
+          áƒ˜áƒ’áƒ˜áƒ•áƒ” áƒžáƒ áƒáƒ“áƒ£áƒ¥áƒ¢áƒ˜áƒ
         </button>
         <button
           type="button"
           onClick={() => review("reject")}
           disabled={busy !== null}
-          className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#f3bbb3] bg-[#fff1ef] px-3 text-sm font-black text-[var(--danger)] disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-3 text-sm font-black text-[var(--danger)] disabled:cursor-wait disabled:opacity-70"
         >
           <X className="size-4" />
-          უარყოფა
+          áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ
         </button>
         <button
           type="button"
@@ -54,7 +54,7 @@ export function MatchCandidateActions({ id }: { id: string }) {
           className="inline-flex h-10 items-center gap-2 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-sm font-black text-[var(--muted-strong)] disabled:cursor-wait disabled:opacity-70"
         >
           <Lock className="size-4" />
-          უარყოფა და ჩაკეტვა
+          áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ áƒ“áƒ áƒ©áƒáƒ™áƒ”áƒ¢áƒ•áƒ
         </button>
       </div>
       {status ? <p className="rounded-xl border border-[#dbe5d3] bg-[#f8fbf4] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}

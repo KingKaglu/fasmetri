@@ -38,15 +38,15 @@ export async function SiteFooter() {
     .catch(() => null);
 
   return (
-    <footer className="mt-16 border-t border-gray-200 bg-[var(--brand)]">
+    <footer className="mt-16 border-t border-white/10 bg-[var(--ink-surface)]">
       <div className="shell grid gap-10 py-12 md:grid-cols-[2fr_1fr_1fr_1fr]">
         {/* Brand column */}
         <div>
           <BrandLogo compact tone="light" />
-          <p className="mt-4 text-sm leading-6 text-gray-400 max-w-xs">
+          <p className="mt-4 text-sm leading-6 text-zinc-300 max-w-xs">
             ფასმეტრი — ქართული ონლაინ მაღაზიების დამოუკიდებელი ფასების შედარების პლატფორმა.
           </p>
-          <p className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3 text-[11px] leading-5 text-gray-500">
+          <p className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3 text-[11px] leading-5 text-zinc-400">
             ფასმეტრი არ არის ჩამოთვლილი მაღაზიების ოფიციალური პარტნიორი. ყიდვამდე საბოლოო ფასი მაღაზიის გვერდზე გადაამოწმე.
           </p>
         </div>
@@ -54,11 +54,11 @@ export async function SiteFooter() {
         {/* Link columns */}
         {columns.map(([title, items]) => (
           <div key={title}>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{title}</p>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{title}</p>
             <ul className="grid gap-2">
               {items.map(([href, label]) => (
                 <li key={href}>
-                  <Link href={href} className="text-sm text-gray-400 hover:text-white transition-colors">
+                  <Link href={href} className="text-sm text-zinc-300 hover:text-white transition-colors">
                     {label}
                   </Link>
                 </li>
@@ -70,7 +70,7 @@ export async function SiteFooter() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[11px] text-gray-600">
+        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[11px] text-zinc-400">
           <span>© {new Date().getFullYear()} ფასმეტრი. ყველა უფლება დაცულია.</span>
           {latestUpdate ? (
             <span className="inline-flex items-center gap-1">

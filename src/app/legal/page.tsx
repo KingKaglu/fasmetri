@@ -33,12 +33,12 @@ export default function LegalPage() {
           <p>
             მაღაზიის ბმულზე გადასვლა შესაძლოა აღირიცხოს ანონიმური სტატისტიკისთვის (რომელი პროდუქტი,
             რომელი მაღაზია, დრო) — დეტალები იხილე{" "}
-            <a className="font-semibold text-blue-600 hover:underline" href="/privacy">კონფიდენციალურობის პოლიტიკაში</a>.
+            <a className="font-semibold text-zinc-900 underline underline-offset-2 hover:text-black" href="/privacy">კონფიდენციალურობის პოლიტიკაში</a>.
           </p>
           <p>
             მაღაზიების სახელები გამოყენებულია მხოლოდ წყაროს იდენტიფიკაციისთვის. ისინი ეკუთვნით შესაბამის
             მფლობელებს. თუ ხარ მაღაზიის წარმომადგენელი და გსურს მონაცემების შესწორება ან ამოღება,
-            დაგვიკავშირდი <a className="font-semibold text-blue-600 hover:underline" href="/contact">კონტაქტის გვერდზე</a>.
+            დაგვიკავშირდი <a className="font-semibold text-zinc-900 underline underline-offset-2 hover:text-black" href="/contact">კონტაქტის გვერდზე</a>.
           </p>
           <p className="text-xs text-gray-500">ბოლო განახლება: 2026 წელი.</p>
         </div>

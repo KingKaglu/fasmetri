@@ -54,7 +54,7 @@ export function ProductImage({
   const shape = tall ? "h-full min-h-[16rem]" : "aspect-square";
 
   return (
-    <div className={`relative isolate ${shape} overflow-hidden bg-[linear-gradient(145deg,#ffffff,#f1f4ec)]`}>
+    <div className={`relative isolate ${shape} overflow-hidden bg-[linear-gradient(145deg,#ffffff,#f4f4f5)]`}>
       <div className="absolute inset-x-4 bottom-5 h-8 rounded-full bg-black/8 blur-xl" />
       {showImage ? (
         <Image

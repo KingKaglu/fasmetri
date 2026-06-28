@@ -101,12 +101,12 @@ export default async function ComparePage({
               return (
                 <div key={column.product.id} className="flex flex-col gap-1">
                   <span
-                    className={`text-base font-bold tabular-nums ${isCheapest ? "text-green-700" : "text-gray-900"}`}
+                    className="text-base font-bold tabular-nums text-gray-900"
                   >
                     {Number.isFinite(column.lowestPrice) ? formatGel(column.lowestPrice) : "—"}
                   </span>
                   {isCheapest && columns.length > 1 ? (
-                    <span className="w-fit rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="w-fit rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-semibold text-white">
                       საუკეთესო ფასი
                     </span>
                   ) : null}

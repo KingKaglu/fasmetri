@@ -112,7 +112,7 @@ export function AlertForm({
   return (
     <form onSubmit={submit} noValidate className="grid gap-2.5 rounded-lg border border-gray-200 bg-white p-4">
       <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-        <BellRing className="size-4 text-green-600" /> ფასის შეტყობინება
+        <BellRing className="size-4 text-zinc-900" /> ფასის შეტყობინება
       </h2>
       <input
         name="email"
@@ -154,7 +154,7 @@ export function AlertForm({
         ) : null}
       </p>
       {success ? (
-        <p role="status" className="flex items-start gap-1.5 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+        <p role="status" className="flex items-start gap-1.5 rounded-md border border-zinc-900 bg-zinc-950 px-3 py-2 text-xs font-medium text-white">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
           შეტყობინება დაყენებულია — ფასის დაკლებისას ელფოსტაზე მოგწერთ.
         </p>
@@ -172,7 +172,7 @@ export function AlertForm({
         </button>
       ) : null}
       {pushState === "enabled" ? (
-        <p role="status" className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+        <p role="status" className="rounded-md border border-zinc-900 bg-zinc-950 px-3 py-2 text-xs font-medium text-white">
           ბრაუზერის შეტყობინებები ჩართულია.
         </p>
       ) : null}
@@ -183,7 +183,7 @@ export function AlertForm({
         <p className="text-[11px] leading-5 text-gray-500">შეტყობინების ჩართვა ვერ მოხერხდა — სცადე თავიდან.</p>
       ) : null}
       {error ? (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+        <p role="alert" className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-900">
           {error}
         </p>
       ) : null}

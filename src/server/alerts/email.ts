@@ -78,24 +78,24 @@ export function priceDropEmailHtml(params: {
       <tr><td align="center">
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%;">
           <tr>
-            <td style="background:#15172b;padding:20px 28px;">
+            <td style="background:#0a0a0a;padding:20px 28px;">
               <span style="color:#ffffff;font-size:18px;font-weight:700;">ფასმეტრი</span>
               <span style="color:#94a3b8;font-size:13px;margin-left:8px;">ფასის შეტყობინება</span>
             </td>
           </tr>
           <tr>
             <td style="padding:28px;">
-              <h1 style="margin:0 0 8px;font-size:20px;color:#15172b;">ფასი დაიკლო 🎉</h1>
+              <h1 style="margin:0 0 8px;font-size:20px;color:#0a0a0a;">ფასი დაიკლო 🎉</h1>
               <p style="margin:0 0 20px;font-size:15px;color:#334155;line-height:1.5;">${name}</p>
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
                 <tr>
                   <td style="font-size:16px;color:#94a3b8;text-decoration:line-through;padding-right:12px;">${oldPrice.toFixed(2)} ₾</td>
-                  <td style="font-size:24px;font-weight:700;color:#16a34a;padding-right:12px;">${newPrice.toFixed(2)} ₾</td>
-                  <td><span style="display:inline-block;background:#dcfce7;color:#166534;font-size:13px;font-weight:600;border-radius:999px;padding:4px 10px;">-${savingPercent.toFixed(0)}%</span></td>
+                  <td style="font-size:24px;font-weight:700;color:#0a0a0a;padding-right:12px;">${newPrice.toFixed(2)} ₾</td>
+                  <td><span style="display:inline-block;background:#0a0a0a;color:#ffffff;font-size:13px;font-weight:600;border-radius:999px;padding:4px 10px;">-${savingPercent.toFixed(0)}%</span></td>
                 </tr>
               </table>
-              <p style="margin:0 0 24px;font-size:14px;color:#64748b;">საუკეთესო ფასი ამჟამად: <strong style="color:#15172b;">${shop}</strong></p>
-              <a href="${productUrl}" style="display:inline-block;background:#4f46e5;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;padding:12px 24px;">ფასების შედარება ფასმეტრზე</a>
+              <p style="margin:0 0 24px;font-size:14px;color:#64748b;">საუკეთესო ფასი ამჟამად: <strong style="color:#0a0a0a;">${shop}</strong></p>
+              <a href="${productUrl}" style="display:inline-block;background:#0a0a0a;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;padding:12px 24px;">ფასების შედარება ფასმეტრზე</a>
             </td>
           </tr>
           <tr>

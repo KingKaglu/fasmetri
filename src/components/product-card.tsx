@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BarChart2, TrendingDown } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, BarChart2 } from "lucide-react";
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
 import { extractProductAttributes } from "@/lib/productNormalization";
@@ -36,7 +36,7 @@ export function ProductCard({
   return (
     <article
       data-kind={deal ? "deal" : "product"}
-      className="group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-card)] transition-all duration-150 hover:border-gray-300 hover:shadow-[var(--shadow-card-hover)]"
+      className="card-hover group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-card)]"
     >
       {/* Compare toggle — additive, sits above the image link, never navigates */}
       <CompareToggle slug={product.slug} name={product.name} />
@@ -95,9 +95,12 @@ export function ProductCard({
 
         {/* Savings badge */}
         {deal && savings > 0 && (
-          <span className="mb-2 inline-flex w-fit items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
-            <TrendingDown className="size-3" />
-            -{formatGel(savings)}
+          <span
+            className="mb-2 inline-flex w-fit items-center gap-1 rounded-full border border-zinc-300 bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-900"
+            title="რეალური ფასდაკლება — ძველი ფასი დადასტურებულია"
+          >
+            <BadgeCheck className="size-3" />
+            ნამდვილი −{formatGel(savings)}
           </span>
         )}
 
@@ -113,7 +116,7 @@ export function ProductCard({
         <div className="grid grid-cols-2 gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="flex h-9 items-center justify-center gap-1 rounded-md border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-2 text-[11px] font-semibold text-[var(--accent)] hover:border-[var(--accent)]/50 hover:bg-orange-100"
+            className="flex h-9 items-center justify-center gap-1 rounded-md border border-zinc-900 bg-zinc-950 px-2 text-[11px] font-semibold text-white hover:bg-black"
           >
             <BarChart2 className="size-3 shrink-0" />
             <span className="truncate">შედარება</span>

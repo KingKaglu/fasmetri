@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -22,11 +22,11 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
         router.refresh();
       } else {
         const payload = await response.json().catch(() => null);
-        setError(payload?.error ?? "მოქმედება ვერ შესრულდა.");
+        setError(payload?.error ?? "áƒ›áƒáƒ¥áƒ›áƒ”áƒ“áƒ”áƒ‘áƒ áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
         setBusy(null);
       }
     } catch {
-      setError("ქსელის შეცდომა — სცადე თავიდან.");
+      setError("áƒ¥áƒ¡áƒ”áƒšáƒ˜áƒ¡ áƒ¨áƒ”áƒªáƒ“áƒáƒ›áƒ â€” áƒ¡áƒªáƒáƒ“áƒ” áƒ—áƒáƒ•áƒ˜áƒ“áƒáƒœ.");
       setBusy(null);
     }
   }
@@ -41,19 +41,19 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
           className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#1c8b43] px-4 text-sm font-black text-white hover:bg-[#157035] disabled:cursor-wait disabled:opacity-60"
         >
           {busy === "approve" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-          დადასტურება
+          áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ”áƒ‘áƒ
         </button>
         <button
           type="button"
           disabled={busy !== null}
           onClick={() => act("reject")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-[#f3bbb3] bg-[#fff1ef] px-4 text-sm font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-4 text-sm font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
         >
           {busy === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
-          უარყოფა
+          áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ
         </button>
       </div>
-      {error ? <p className="rounded-xl border border-[#f3bbb3] bg-[#fff1ef] px-3 py-2 text-xs font-bold text-[var(--danger)]">{error}</p> : null}
+      {error ? <p className="rounded-xl border border-[#d4d4d8] bg-[#f4f4f5] px-3 py-2 text-xs font-bold text-[var(--danger)]">{error}</p> : null}
     </div>
   );
 }
@@ -64,7 +64,7 @@ export function AutoTriageButton() {
   const [status, setStatus] = useState("");
 
   async function run() {
-    if (!window.confirm("გაეშვას auto-triage? კონფლიქტები უარყოფა, model code/70+ match-ები დადასტურდება.")) return;
+    if (!window.confirm("áƒ’áƒáƒ”áƒ¨áƒ•áƒáƒ¡ auto-triage? áƒ™áƒáƒœáƒ¤áƒšáƒ˜áƒ¥áƒ¢áƒ”áƒ‘áƒ˜ áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ, model code/70+ match-áƒ”áƒ‘áƒ˜ áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ“áƒ”áƒ‘áƒ.")) return;
     setBusy(true);
     setStatus("");
     try {
@@ -75,13 +75,13 @@ export function AutoTriageButton() {
       });
       const payload = await response.json().catch(() => null);
       if (response.ok) {
-        setStatus(`დადასტურდა ${payload?.approved ?? 0}, უარყოფილია ${payload?.rejected ?? 0}, დარჩა ${payload?.kept ?? 0}, ვერ შესრულდა ${payload?.failed ?? 0}.`);
+        setStatus(`áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ“áƒ ${payload?.approved ?? 0}, áƒ£áƒáƒ áƒ§áƒáƒ¤áƒ˜áƒšáƒ˜áƒ ${payload?.rejected ?? 0}, áƒ“áƒáƒ áƒ©áƒ ${payload?.kept ?? 0}, áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ ${payload?.failed ?? 0}.`);
         router.refresh();
       } else {
-        setStatus(payload?.error ?? "Auto-triage ვერ შესრულდა.");
+        setStatus(payload?.error ?? "Auto-triage áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
       }
     } catch {
-      setStatus("ქსელის შეცდომა — სცადე თავიდან.");
+      setStatus("áƒ¥áƒ¡áƒ”áƒšáƒ˜áƒ¡ áƒ¨áƒ”áƒªáƒ“áƒáƒ›áƒ â€” áƒ¡áƒªáƒáƒ“áƒ” áƒ—áƒáƒ•áƒ˜áƒ“áƒáƒœ.");
     }
     setBusy(false);
   }
@@ -110,7 +110,7 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const minConfidence = Number(new FormData(event.currentTarget).get("minConfidence"));
-    if (!window.confirm(`დაადასტურო ყველა pending match confidence >= ${minConfidence}%?`)) return;
+    if (!window.confirm(`áƒ“áƒáƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ áƒ§áƒ•áƒ”áƒšáƒ pending match confidence >= ${minConfidence}%?`)) return;
     setBusy(true);
     setStatus("");
     const response = await fetch("/api/admin/review/bulk", {
@@ -120,10 +120,10 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
     });
     const payload = await response.json().catch(() => null);
     if (response.ok) {
-      setStatus(`დადასტურდა ${payload?.approved ?? 0}, გამოტოვდა ${payload?.skipped ?? 0}, ვერ შესრულდა ${payload?.failed ?? 0}.`);
+      setStatus(`áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ“áƒ ${payload?.approved ?? 0}, áƒ’áƒáƒ›áƒáƒ¢áƒáƒ•áƒ“áƒ ${payload?.skipped ?? 0}, áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ ${payload?.failed ?? 0}.`);
       router.refresh();
     } else {
-      setStatus(payload?.error ?? "Bulk დადასტურება ვერ შესრულდა.");
+      setStatus(payload?.error ?? "Bulk áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ”áƒ‘áƒ áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
     }
     setBusy(false);
   }
@@ -146,7 +146,7 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
         disabled={busy}
         className="inline-flex h-11 items-center justify-center rounded-2xl bg-[#151713] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
       >
-        {busy ? "მუშავდება..." : "Bulk დადასტურება"}
+        {busy ? "áƒ›áƒ£áƒ¨áƒáƒ•áƒ“áƒ”áƒ‘áƒ..." : "Bulk áƒ“áƒáƒ“áƒáƒ¡áƒ¢áƒ£áƒ áƒ”áƒ‘áƒ"}
       </button>
       {status ? <p className="text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
     </form>

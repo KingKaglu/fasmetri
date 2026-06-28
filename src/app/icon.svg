@@ -1,22 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1275ff"/>
-      <stop offset="52%" stop-color="#0054d2"/>
-      <stop offset="100%" stop-color="#003a9a"/>
+      <stop offset="0%" stop-color="#27272a"/>
+      <stop offset="55%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#000000"/>
     </linearGradient>
   </defs>
 
   <!-- Rounded square background -->
   <rect width="32" height="32" rx="7.5" fill="url(#bg)"/>
 
-  <!-- Rising bar chart (price comparison) -->
-  <!-- Orange bar — shortest -->
-  <rect x="4" y="23.5" width="5.5" height="5.5" rx="1.2" fill="#ff6800"/>
-  <!-- White bar — medium -->
-  <rect x="12" y="18.5" width="5.5" height="10.5" rx="1.2" fill="white" fill-opacity="0.92"/>
-  <!-- Gold bar — tallest -->
-  <rect x="20.5" y="12" width="5.5" height="17" rx="1.2" fill="#ffb000"/>
+  <!-- Rising bar chart (price comparison) — greyscale ramp -->
+  <!-- Dim bar — shortest -->
+  <rect x="4" y="23.5" width="5.5" height="5.5" rx="1.2" fill="white" fill-opacity="0.45"/>
+  <!-- Mid bar — medium -->
+  <rect x="12" y="18.5" width="5.5" height="10.5" rx="1.2" fill="white" fill-opacity="0.7"/>
+  <!-- Bright bar — tallest -->
+  <rect x="20.5" y="12" width="5.5" height="17" rx="1.2" fill="white"/>
 
   <!-- Search magnifier (foreground) -->
   <circle cx="14.5" cy="13.5" r="5.8" stroke="white" stroke-width="2.4" stroke-opacity="0.97"/>

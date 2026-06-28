@@ -16,8 +16,8 @@ export function CompareTray() {
   const href = `/compare?items=${items.map(encodeURIComponent).join(",")}`;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-4 sm:pb-4">
-      <div className="pointer-events-auto mx-auto flex max-w-5xl flex-col gap-3 rounded-xl border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:gap-4">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-[8.5rem] sm:px-4 sm:pb-4">
+      <div className="pointer-events-auto mx-auto flex max-w-5xl flex-col gap-3 rounded-xl border border-gray-200 bg-white/95 p-3 shadow-[var(--shadow-lg)] backdrop-blur sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
           <span className="shrink-0 text-xs font-semibold text-gray-500">
             შედარება ({items.length}/4)
@@ -52,8 +52,7 @@ export function CompareTray() {
           {canCompare ? (
             <Link
               href={href}
-              className="flex h-9 items-center gap-1.5 rounded-md px-4 text-xs font-semibold text-white shadow-sm"
-              style={{ background: "var(--accent)" }}
+              className="btn-accent flex h-9 items-center gap-1.5 px-4 text-xs"
             >
               <BarChart2 className="size-4" />
               შედარება ({items.length})

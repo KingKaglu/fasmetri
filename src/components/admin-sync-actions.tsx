@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Eraser, Loader2, Play, Wand2 } from "lucide-react";
@@ -16,7 +16,7 @@ function useTrigger() {
       body: JSON.stringify({ workflow, mode }),
     });
     const payload = await response.json().catch(() => null);
-    setStatus(response.ok ? "გაშვება მიღებულია — GitHub Actions-ში დაიწყება წუთში." : payload?.error ?? "გაშვება ვერ შესრულდა.");
+    setStatus(response.ok ? "áƒ’áƒáƒ¨áƒ•áƒ”áƒ‘áƒ áƒ›áƒ˜áƒ¦áƒ”áƒ‘áƒ£áƒšáƒ˜áƒ â€” GitHub Actions-áƒ¨áƒ˜ áƒ“áƒáƒ˜áƒ¬áƒ§áƒ”áƒ‘áƒ áƒ¬áƒ£áƒ—áƒ¨áƒ˜." : payload?.error ?? "áƒ’áƒáƒ¨áƒ•áƒ”áƒ‘áƒ áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
     setBusy(false);
   }
 
@@ -36,7 +36,7 @@ export function SyncTriggerButtons({ workflow }: { workflow: string }) {
           className="inline-flex h-10 items-center gap-1.5 rounded-2xl bg-[#151713] px-3 text-xs font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5 text-[var(--accent)]" />}
-          ფასების სინქი
+          áƒ¤áƒáƒ¡áƒ”áƒ‘áƒ˜áƒ¡ áƒ¡áƒ˜áƒœáƒ¥áƒ˜
         </button>
         <button
           type="button"
@@ -45,7 +45,7 @@ export function SyncTriggerButtons({ workflow }: { workflow: string }) {
           className="inline-flex h-10 items-center gap-1.5 rounded-2xl border border-[#c8d7bd] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#151713] disabled:cursor-wait disabled:opacity-60"
         >
           <Play className="size-3.5" />
-          სრული სინქი
+          áƒ¡áƒ áƒ£áƒšáƒ˜ áƒ¡áƒ˜áƒœáƒ¥áƒ˜
         </button>
       </div>
       {status ? <p className="text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
@@ -65,7 +65,7 @@ export function MatcherTriggerButton() {
         className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-[#151713] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4 text-[var(--accent)]" />}
-        Matcher-ის გაშვება
+        Matcher-áƒ˜áƒ¡ áƒ’áƒáƒ¨áƒ•áƒ”áƒ‘áƒ
       </button>
       {status ? <p className="text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
     </div>
@@ -77,7 +77,7 @@ export function StaleOfferCleanupButton({ staleCount }: { staleCount: number }) 
   const [status, setStatus] = useState("");
 
   async function cleanup() {
-    if (!window.confirm(`გამოირთოს ${staleCount} შეთავაზება, რომელიც 7 დღეა აღარ ჩანს sync-ში?`)) return;
+    if (!window.confirm(`áƒ’áƒáƒ›áƒáƒ˜áƒ áƒ—áƒáƒ¡ ${staleCount} áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ, áƒ áƒáƒ›áƒ”áƒšáƒ˜áƒª 7 áƒ“áƒ¦áƒ”áƒ áƒáƒ¦áƒáƒ  áƒ©áƒáƒœáƒ¡ sync-áƒ¨áƒ˜?`)) return;
     setBusy(true);
     setStatus("");
     const response = await fetch("/api/admin/offers/cleanup", {
@@ -86,7 +86,7 @@ export function StaleOfferCleanupButton({ staleCount }: { staleCount: number }) 
       body: JSON.stringify({ days: 7, dryRun: false }),
     });
     const payload = await response.json().catch(() => null);
-    setStatus(response.ok ? `გამოირთო ${payload?.deactivated ?? 0} შეთავაზება.` : payload?.error ?? "ვერ შესრულდა.");
+    setStatus(response.ok ? `áƒ’áƒáƒ›áƒáƒ˜áƒ áƒ—áƒ ${payload?.deactivated ?? 0} áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ.` : payload?.error ?? "áƒ•áƒ”áƒ  áƒ¨áƒ”áƒ¡áƒ áƒ£áƒšáƒ“áƒ.");
     setBusy(false);
   }
 
@@ -96,10 +96,10 @@ export function StaleOfferCleanupButton({ staleCount }: { staleCount: number }) 
         type="button"
         disabled={busy || staleCount === 0}
         onClick={cleanup}
-        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#ffdca6] bg-[var(--warn-soft)] px-4 text-sm font-black text-[var(--warn)] hover:border-[var(--warn)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[var(--warn-soft)] px-4 text-sm font-black text-[var(--warn)] hover:border-[var(--warn)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Eraser className="size-4" />}
-        ძველი შეთავაზებების გასუფთავება ({staleCount})
+        áƒ«áƒ•áƒ”áƒšáƒ˜ áƒ¨áƒ”áƒ—áƒáƒ•áƒáƒ–áƒ”áƒ‘áƒ”áƒ‘áƒ˜áƒ¡ áƒ’áƒáƒ¡áƒ£áƒ¤áƒ—áƒáƒ•áƒ”áƒ‘áƒ ({staleCount})
       </button>
       {status ? <p className="text-xs font-bold text-[var(--muted-strong)]">{status}</p> : null}
     </div>

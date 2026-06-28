@@ -46,7 +46,7 @@ export default function TermsPage() {
               ფასმეტრი დამოუკიდებელი პლატფორმაა და არ არის აფილირებული ჩამოთვლილ მაღაზიებთან. მაღაზიის
               ბმულზე გადასვლისას ტოვებ ფასმეტრს და ყიდვა ხორციელდება მაღაზიის ვებსაიტზე, მაღაზიის
               პირობებით. გარე ბმულზე გადასვლები შესაძლოა აღირიცხოს ანონიმური სტატისტიკისთვის (იხ.{" "}
-              <a className="font-semibold text-blue-600 hover:underline" href="/privacy">კონფიდენციალურობის პოლიტიკა</a>).
+              <a className="font-semibold text-zinc-900 underline underline-offset-2 hover:text-black" href="/privacy">კონფიდენციალურობის პოლიტიკა</a>).
             </p>
           </div>
 

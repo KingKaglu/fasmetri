@@ -31,15 +31,17 @@ const descriptions: Record<string, string> = {
   monitors: "სამუშაო და gaming მონიტორები.",
 };
 
+// Monochrome variety: each category gets a distinct greyscale tile (black →
+// light grey) so the grid reads as varied without using any hue.
 const accentColors: Record<string, string> = {
-  mobiles: "bg-[var(--accent-soft)] text-[var(--accent)]",
-  laptops: "bg-[var(--accent-soft)] text-[var(--accent)]",
-  tablets: "bg-sky-50 text-sky-600",
-  audio: "bg-purple-50 text-purple-600",
-  wearables: "bg-rose-50 text-rose-600",
-  gaming: "bg-orange-50 text-orange-600",
-  televisions: "bg-teal-50 text-teal-600",
-  monitors: "bg-[var(--accent-soft)] text-[var(--accent)]",
+  mobiles: "bg-zinc-950 text-white",
+  laptops: "bg-zinc-800 text-white",
+  tablets: "bg-zinc-200 text-zinc-900",
+  audio: "bg-zinc-100 text-zinc-800",
+  wearables: "bg-zinc-300 text-zinc-900",
+  gaming: "bg-zinc-900 text-white",
+  televisions: "bg-zinc-700 text-white",
+  monitors: "bg-zinc-600 text-white",
 };
 
 export function CategoryCard({
@@ -57,7 +59,7 @@ export function CategoryCard({
     return (
       <Link
         href={`/categories/${category.slug}`}
-        className="group flex items-center gap-4 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md sm:p-5"
+        className="card-hover group flex items-center gap-4 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5"
       >
         {/* Left: icon tile */}
         <span className={`grid size-14 shrink-0 place-items-center rounded-xl sm:size-16 ${colorClass}`}>
@@ -78,13 +80,13 @@ export function CategoryCard({
               პროდუქტი
             </span>
             {!comingSoon && (category.dealCount ?? 0) > 0 && (
-              <span className="inline-flex items-center gap-1 text-green-700">
+              <span className="inline-flex items-center gap-1 text-zinc-900">
                 <span className="font-semibold">{(category.dealCount ?? 0).toLocaleString()}</span>
                 აქტიური აქცია
               </span>
             )}
             {comingSoon && (
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-600">მალე</span>
+              <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 font-semibold text-zinc-600">მალე</span>
             )}
           </div>
         </div>
@@ -102,7 +104,7 @@ export function CategoryCard({
   return (
     <Link
       href={`/categories/${category.slug}`}
-      className="group flex min-h-36 flex-col gap-3 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
+      className="card-hover group flex min-h-36 flex-col gap-3 overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
     >
       <div className="flex items-start justify-between gap-3">
         <span className={`grid size-10 place-items-center rounded-lg ${colorClass}`}>
@@ -111,7 +113,7 @@ export function CategoryCard({
         <span
           className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
             comingSoon
-              ? "bg-amber-50 text-amber-600"
+              ? "border border-zinc-200 bg-zinc-50 text-zinc-600"
               : "bg-gray-100 text-gray-500"
           }`}
         >

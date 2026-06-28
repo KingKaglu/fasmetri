@@ -49,7 +49,7 @@ export default async function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(135deg, #0b1220 0%, #15172b 55%, #232544 100%)",
+          background: "linear-gradient(135deg, #000000 0%, #0a0a0a 55%, #27272a 100%)",
           color: "#ffffff",
           padding: "72px 80px",
           fontFamily: fonts.length ? "Noto Sans Georgian" : "sans-serif",
@@ -65,7 +65,8 @@ export default async function OpengraphImage() {
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "#4f46e5",
+              background: "#ffffff",
+              color: "#0a0a0a",
               fontSize: 40,
               fontWeight: 700,
             }}
@@ -80,15 +81,15 @@ export default async function OpengraphImage() {
           <div style={{ fontSize: 108, fontWeight: 700, lineHeight: 1, letterSpacing: "-2px" }}>
             ფასმეტრი
           </div>
-          <div style={{ fontSize: 40, fontWeight: 400, color: "#cbd5e1", maxWidth: 920 }}>
+          <div style={{ fontSize: 40, fontWeight: 400, color: "#d4d4d8", maxWidth: 920 }}>
             შეადარე ფასები ქართულ მაღაზიებში — იპოვე საუკეთესო შეთავაზება
           </div>
         </div>
 
         {/* Bottom accent bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 120, height: 6, borderRadius: 999, background: "#4f46e5" }} />
-          <div style={{ fontSize: 26, color: "#94a3b8", fontWeight: 400 }}>
+          <div style={{ width: 120, height: 6, borderRadius: 999, background: "#ffffff" }} />
+          <div style={{ fontSize: 26, color: "#a1a1aa", fontWeight: 400 }}>
             მობილურები · ლეპტოპები · ფასების ისტორია
           </div>
         </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
@@ -216,7 +216,7 @@ export function AdminActionCard({
       href={href}
       className="group flex items-start gap-3 rounded-[1.1rem] border border-[#c8d7bd] bg-white p-4 shadow-[0_10px_24px_rgba(18,19,15,0.06)] transition hover:-translate-y-0.5 hover:border-[#151713] hover:shadow-[0_16px_34px_rgba(18,19,15,0.12)]"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#151713] text-[var(--accent)]">{icon}</span>
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#151713] text-white">{icon}</span>
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-black text-[var(--brand)]">{title}</span>
@@ -283,8 +283,8 @@ function toneClass(tone: AdminTone) {
 
 function pillClass(tone: AdminTone) {
   if (tone === "good") return "border-[#bfeecf] bg-[var(--savings-soft)] text-[var(--savings)]";
-  if (tone === "warn") return "border-[#ffdca6] bg-[var(--warn-soft)] text-[var(--warn)]";
-  if (tone === "danger") return "border-[#f3bbb3] bg-[#fff1ef] text-[var(--danger)]";
+  if (tone === "warn") return "border-[#d4d4d8] bg-[var(--warn-soft)] text-[var(--warn)]";
+  if (tone === "danger") return "border-[#d4d4d8] bg-[#f4f4f5] text-[var(--danger)]";
   if (tone === "info") return "border-[#b8edf2] bg-[var(--aqua-soft)] text-[#087d8f]";
   return "border-[#c8d7bd] bg-[#eef4e7] text-[var(--muted-strong)]";
 }

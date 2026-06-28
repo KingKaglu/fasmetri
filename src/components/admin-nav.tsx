@@ -56,7 +56,7 @@ function AdminSidebar({ pathname }: { pathname: string }) {
   return (
     <nav className="hidden shrink-0 lg:block lg:w-60">
       <div className="rounded-[1.15rem] border border-[#263024] bg-[#151713] p-2 text-white shadow-[0_18px_44px_rgba(18,19,15,0.22)] lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:min-h-[34rem] lg:flex-col">
-        <p className="px-3 pb-2 pt-3 text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">
+        <p className="px-3 pb-2 pt-3 text-[11px] font-black uppercase tracking-[0.18em] text-white">
           fasmetri admin
         </p>
         <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -117,7 +117,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between px-3 py-2">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">სხვა გვერდები</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white">სხვა გვერდები</p>
               <button type="button" aria-label="დახურვა" onClick={() => setMoreOpen(false)} className="rounded-lg p-1 text-white/70 hover:bg-white/10">
                 <X className="size-4" />
               </button>
@@ -165,7 +165,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-black ${
-                  active ? "text-[var(--accent)]" : "text-white/60"
+                  active ? "text-white" : "text-white/60"
                 }`}
               >
                 <Icon className="size-5" />
@@ -177,7 +177,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
             type="button"
             onClick={() => setMoreOpen((open) => !open)}
             className={`flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-black ${
-              moreOpen || overflowActive ? "text-[var(--accent)]" : "text-white/60"
+              moreOpen || overflowActive ? "text-white" : "text-white/60"
             }`}
           >
             <MoreHorizontal className="size-5" />

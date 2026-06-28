@@ -1,53 +1,75 @@
 @import "tailwindcss";
 
 :root {
-  /* ── Retail redesign tokens (orange / marketplace) ── */
-  --background: #f5f6f8;
-  --foreground: #16181d;
-  --surface: #ffffff;
-  --surface-soft: #f1f3f6;
-  --surface-mute: #f1f3f6;
-  --surface-ink: #16181d;
-  --line: #e8eaef;
-  --line-strong: #d8dbe2;
-  --muted: #6b7280;
-  --muted-strong: #4b5563;
+  /* ── Monochrome redesign tokens (black / white / blackish / whitish) ── */
+  /* Greyscale ramp: 0 white → 1000 black */
+  --c-000: #ffffff;
+  --c-025: #fafafa;
+  --c-050: #f5f5f5;
+  --c-100: #ededee;
+  --c-150: #e4e4e7;
+  --c-200: #d4d4d8;
+  --c-300: #b8b8bd;
+  --c-400: #8f8f96;
+  --c-500: #71717a;
+  --c-600: #52525b;
+  --c-700: #3f3f46;
+  --c-800: #27272a;
+  --c-850: #1c1c1f;
+  --c-900: #141416;
+  --c-950: #0a0a0a;
+  --c-999: #000000;
 
-  /* ink = primary text + dark top strip / footer */
-  --brand: #16181d;
-  --brand-soft: #2a2d35;
+  --background: var(--c-025);
+  /* Text ramp tuned to spec: primary #111, secondary #333, muted #666 */
+  --foreground: #111111;
+  --surface: var(--c-000);
+  --surface-soft: var(--c-050);
+  --surface-mute: var(--c-050);
+  --surface-ink: var(--c-950);
+  /* Hairline borders use translucent black so they sit softly on any surface */
+  --line: rgba(0, 0, 0, 0.08);
+  --line-strong: rgba(0, 0, 0, 0.12);
+  --muted: #666666;
+  --muted-strong: #333333;
+
+  /* ink = primary text + dark sections / footer */
+  --brand: #111111;
+  --brand-soft: #333333;
   --brand-ink: #ffffff;
-  /* accent = brand orange (primary actions, links, active states) */
-  --accent: #ff6a13;
-  --accent-strong: #e85a06;
-  --accent-soft: #fff0e6;
+  /* always-dark surface (footer, header strip, logo tile) — does NOT flip in dark mode */
+  --ink-surface: var(--c-950);
+  /* accent is now monochrome ink (primary actions, links, active states) */
+  --accent: #111111;
+  --accent-strong: #000000;
+  --accent-soft: var(--c-050);
   --accent-ink: #ffffff;
-  --aqua: #0a8f5b;
-  --aqua-soft: #e3f6ec;
+  --aqua: var(--c-800);
+  --aqua-soft: var(--c-050);
 
-  --price: #16181d;
-  --price-deal: #e11d48;
-  --savings: #0a8f5b;
-  --savings-soft: #e3f6ec;
-  --save-ink: #be123c;
-  --save-soft: #ffe4ea;
-  --star: #ffb800;
-  --danger: #e11d48;
-  --warn: #d97706;
-  --warn-soft: #fffbeb;
+  --price: var(--c-950);
+  --price-deal: var(--c-950);
+  --savings: var(--c-900);
+  --savings-soft: var(--c-050);
+  --save-ink: #ffffff;
+  --save-soft: var(--c-950);
+  --star: var(--c-950);
+  --danger: var(--c-950);
+  --warn: var(--c-700);
+  --warn-soft: var(--c-050);
 
-  /* hero banner gradient (white text on top) */
-  --hero-bg: linear-gradient(120deg, #ff6a13 0%, #ff8a3d 55%, #ffb04d 100%);
+  /* hero is now ink black with subtle grain (white text on top) */
+  --hero-bg: radial-gradient(120% 140% at 80% 0%, #1c1c1f 0%, #0a0a0a 60%, #000000 100%);
 
   --radius-card: 1rem;       /* 16px — cards, banners */
   --radius-control: 0.75rem; /* 12px — buttons, inputs */
   --radius-chip: 999px;
 
-  --shadow-card: 0 1px 2px rgba(20, 20, 30, 0.05), 0 6px 18px rgba(20, 20, 30, 0.05);
-  --shadow-card-hover: 0 20px 50px rgba(20, 20, 30, 0.12);
-  --shadow-sm: 0 1px 2px rgba(20, 20, 30, 0.05);
-  --shadow-md: 0 6px 18px rgba(20, 20, 30, 0.06);
-  --shadow-lg: 0 20px 50px rgba(20, 20, 30, 0.12);
+  --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.05), 0 6px 18px rgba(10, 10, 10, 0.06);
+  --shadow-card-hover: 0 20px 50px rgba(10, 10, 10, 0.14);
+  --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.06);
+  --shadow-md: 0 6px 18px rgba(10, 10, 10, 0.08);
+  --shadow-lg: 0 20px 50px rgba(10, 10, 10, 0.14);
 }
 
 @theme inline {
@@ -81,7 +103,17 @@ button,
 input,
 select,
 textarea {
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease, transform 120ms ease, opacity 120ms ease;
+  transition: background-color 220ms ease-in-out, border-color 220ms ease-in-out, color 220ms ease-in-out, box-shadow 220ms ease-in-out, transform 220ms ease-in-out, opacity 220ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    transition-duration: 0.01ms;
+  }
 }
 
 :is(a, button, input, select, textarea):focus-visible {
@@ -108,19 +140,92 @@ textarea {
   }
 }
 
+/* ─── Section variety ────────────────────────────────────
+   So not every block looks the same: alternate paper / mist /
+   ink / framed treatments down a page. Each sets its own --line
+   and text color so nested cards adapt automatically. */
+
+.section-paper {
+  background: var(--c-000);
+  color: var(--c-950);
+}
+
+.section-mist {
+  background: var(--c-050);
+  color: var(--c-950);
+}
+
+.section-frame {
+  background: var(--c-000);
+  color: var(--c-950);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.section-ink {
+  background: var(--c-950);
+  color: #ffffff;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.2);
+  --muted: rgba(255, 255, 255, 0.6);
+  --muted-strong: rgba(255, 255, 255, 0.82);
+  --brand: #ffffff;
+  --surface: rgba(255, 255, 255, 0.04);
+}
+
+.section-ink-grain {
+  position: relative;
+  isolation: isolate;
+}
+.section-ink-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 34px 34px;
+  pointer-events: none;
+}
+
+/* Hairline-striped panel — another distinct texture for variety */
+.section-hatch {
+  background-color: var(--c-000);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--c-050) 0,
+    var(--c-050) 1px,
+    transparent 1px,
+    transparent 11px
+  );
+  color: var(--c-950);
+}
+
+/* ─── Card hover (one shared motion language) ────────── */
+
+.card-hover {
+  transition: transform 240ms ease-in-out, box-shadow 240ms ease-in-out, border-color 240ms ease-in-out;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-card-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
 /* ─── Surfaces ───────────────────────────────────────── */
 
 .surface-card {
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: var(--shadow-card);
-}
-
-.surface-flat {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  background: #ffffff;
 }
 
 .surface-mute {
@@ -128,32 +233,23 @@ textarea {
   background: var(--surface-mute);
 }
 
-.glass-panel {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(20px);
+/* Inverted card — black tile for use on light sections */
+.surface-ink {
+  border: 1px solid var(--c-850);
+  border-radius: var(--radius-card);
+  background: var(--c-950);
+  color: #ffffff;
 }
 
 /* ─── Header ─────────────────────────────────────────── */
 
 .site-header {
   border-bottom: 1px solid var(--line);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: saturate(140%) blur(12px);
 }
 
 /* ─── Buttons ────────────────────────────────────────── */
-
-.btn-primary {
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
-}
-.btn-primary:hover {
-  background: var(--accent-strong);
-  box-shadow: var(--shadow-md);
-}
 
 .btn-accent {
   border-radius: var(--radius-control);
@@ -163,19 +259,7 @@ textarea {
 }
 .btn-accent:hover {
   background: var(--accent-strong);
-  box-shadow: 0 4px 14px rgba(255, 106, 19, 0.3);
-}
-
-.btn-outline {
-  border: 1.5px solid var(--line-strong);
-  border-radius: var(--radius-control);
-  background: #ffffff;
-  color: var(--brand);
-  font-weight: 600;
-}
-.btn-outline:hover {
-  border-color: var(--brand);
-  background: var(--surface-soft);
+  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.25);
 }
 
 /* ─── Chips / Badges ─────────────────────────────────── */
@@ -192,19 +276,14 @@ textarea {
 }
 
 .chip-deal {
-  background: var(--price-deal);
-  color: #fff;
-}
-
-.chip-accent {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--c-950);
+  color: #ffffff;
 }
 
 .chip-savings {
-  border: 1px solid #bbf7d0;
-  background: var(--savings-soft);
-  color: var(--savings);
+  border: 1px solid var(--c-200);
+  background: var(--c-050);
+  color: var(--c-900);
 }
 
 .chip-muted {
@@ -220,7 +299,7 @@ textarea {
   width: 100%;
   border-radius: var(--radius-control);
   border: 1px solid var(--line-strong);
-  background: #ffffff;
+  background: var(--surface);
   padding-inline: 0.75rem;
   font-weight: 500;
   font-size: 0.875rem;
@@ -230,7 +309,7 @@ textarea {
 .filter-control:focus,
 .contact-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 106, 19, 0.12);
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.12);
   outline: none;
 }
 
@@ -246,7 +325,7 @@ textarea {
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
 }
 
 /* ─── Hero ───────────────────────────────────────────── */
@@ -263,11 +342,11 @@ textarea {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.06;
+  opacity: 0.5;
   background-image:
-    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 34px 34px;
   pointer-events: none;
 }
 
@@ -278,15 +357,18 @@ textarea {
   right: -10%;
   width: 50%;
   height: 140%;
-  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.22) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
 /* Highlighter-pen emphasis for a single heading word on the hero */
 .hero-highlight {
-  background-image: linear-gradient(to top, rgba(255, 255, 255, 0.32) 0.36em, transparent 0.36em);
-  border-radius: 3px;
-  padding-inline: 0.06em;
+  position: relative;
+  color: var(--c-950);
+  background: #ffffff;
+  border-radius: 7px;
+  padding: 0.02em 0.2em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -440,7 +522,7 @@ textarea {
 .section-header-link {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--brand);
   white-space: nowrap;
 }
 .section-header-link:hover {

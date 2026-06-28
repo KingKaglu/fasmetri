@@ -17,13 +17,14 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
   if (hideUnknown && availability === "UNKNOWN") return null;
   const meta =
     availability === "IN_STOCK"
-      ? { label: "მარაგშია", className: "border-green-200 bg-green-50 text-green-700" }
+      ? { label: "მარაგშია", className: "border-zinc-900 bg-zinc-900 text-white", dot: "bg-white" }
       : availability === "OUT_OF_STOCK"
-        ? { label: "არ არის მარაგში", className: "border-gray-200 bg-gray-50 text-gray-500" }
-        : { label: "მარაგი მოწმდება", className: "border-amber-200 bg-amber-50 text-amber-700" };
+        ? { label: "არ არის მარაგში", className: "border-zinc-200 bg-zinc-50 text-zinc-400", dot: "bg-zinc-300" }
+        : { label: "მარაგი მოწმდება", className: "border-zinc-300 bg-white text-zinc-600", dot: "bg-zinc-400" };
 
   return (
-    <span className={`inline-flex h-5 items-center rounded-full border px-1.5 text-[10px] font-medium ${meta.className}`}>
+    <span className={`inline-flex h-5 items-center gap-1 rounded-full border px-1.5 text-[10px] font-medium ${meta.className}`}>
+      <span className={`size-1.5 rounded-full ${meta.dot}`} />
       {meta.label}
     </span>
   );
@@ -32,7 +33,7 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
 export function DiscountBadge({ percent, label }: { percent: number; label?: string }) {
   if (!percent) return null;
   return (
-    <span className="inline-flex items-center rounded-md bg-red-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+    <span className="inline-flex items-center rounded-md bg-zinc-950 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
       {label ?? `-${percent}%`}
     </span>
   );
@@ -51,12 +52,13 @@ export function PriceDisplay({
   deal?: boolean;
   tone?: "dark" | "light";
 }) {
-  const priceClass = tone === "light" ? "text-white" : deal ? "text-red-600 price-now" : "price-now";
+  const priceClass = tone === "light" ? "text-white" : "price-now";
+  const dealClass = deal ? "underline decoration-2 underline-offset-4 decoration-zinc-900/40" : "";
   const oldPriceClass = tone === "light" ? "text-white/50" : "price-old";
   const validOldPrice = oldPrice && oldPrice > price ? oldPrice : null;
   return (
     <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-      <strong className={`${strong ? "text-2xl sm:text-3xl" : "text-base sm:text-lg"} ${priceClass} font-bold leading-none`}>
+      <strong className={`${strong ? "text-2xl sm:text-3xl" : "text-base sm:text-lg"} ${priceClass} ${dealClass} font-bold leading-none`}>
         {formatGel(price)}
       </strong>
       {validOldPrice ? <span className={`${oldPriceClass} text-xs line-through`}>{formatGel(validOldPrice)}</span> : null}
@@ -89,10 +91,10 @@ export function ShopStatusBadge({ shop }: { shop: ShopView }) {
   const hasComparedProducts = shop.productCount == null ? Boolean(shop.lastScrapedAt) : shop.productCount > 0;
   const meta =
     hasComparedProducts && shop.lastScrapedAt
-      ? { label: "აქტიური", className: "border-green-200 bg-green-50 text-green-700" }
+      ? { label: "აქტიური", className: "border-zinc-900 bg-zinc-900 text-white" }
       : shop.enabled
-        ? { label: "მოწმდება", className: "border-amber-200 bg-amber-50 text-amber-700" }
-        : { label: "მალე", className: "border-gray-200 bg-gray-50 text-gray-500" };
+        ? { label: "მოწმდება", className: "border-zinc-300 bg-white text-zinc-600" }
+        : { label: "მალე", className: "border-zinc-200 bg-zinc-50 text-zinc-400" };
 
   return (
     <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${meta.className}`}>
@@ -154,7 +156,7 @@ export function EmptyState({
         <h2 className="mt-4 text-base font-semibold text-gray-900">{title}</h2>
         <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
         {href ? (
-          <Link href={href} className="mt-5 inline-flex h-9 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
+          <Link href={href} className="mt-5 inline-flex h-9 items-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white hover:bg-black">
             {action}
           </Link>
         ) : null}
@@ -175,7 +177,7 @@ export function ErrorState({
   return (
     <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-5 py-10 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-zinc-300 bg-zinc-950 text-white">
           <AlertCircle className="size-5" />
         </span>
         <h1 className="mt-4 text-lg font-bold text-gray-900">{title}</h1>
@@ -190,7 +192,7 @@ export function TrustNote({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`rounded-lg border border-gray-200 bg-white ${compact ? "p-4" : "p-5"}`}>
       <p className="flex gap-2 text-sm font-semibold text-gray-900">
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-green-600" />
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-zinc-900" />
         ფასები და მარაგი რეგულარულად ახლდება.
       </p>
       <p className="mt-1.5 text-sm leading-5 text-gray-500">

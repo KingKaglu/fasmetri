@@ -5,6 +5,7 @@ import { ArrowUpRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { getPublicProduct, listPublicProductMatches } from "@/lib/catalog";
 import { HistoryPoint, isPublicMatchStatus, ProductView } from "@/lib/catalog-types";
 import { PriceChart } from "@/components/price-chart";
+import { Sparkline } from "@/components/sparkline";
 import { AlertForm } from "@/components/alert-form";
 import { ProductGrid } from "@/components/product-grid";
 import { ShopClickLink } from "@/components/shop-click-link";
@@ -156,7 +157,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {/* Badges row */}
               <div className="mb-2 flex flex-wrap items-center gap-1.5">
                 <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
-                  <BadgeCheck className="mr-1 inline size-3 text-green-500" />
+                  <BadgeCheck className="mr-1 inline size-3 text-zinc-900" />
                   {product.offers.length > 1 ? `${product.offers.length} შეთავაზება` : "1 შეთავაზება"}
                 </span>
                 {cheapestDiscount > 0 && <DiscountBadge percent={cheapestDiscount} />}
@@ -240,7 +241,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     key={offer.id}
                     className={`grid min-w-0 gap-3 rounded-lg border p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
                       index === 0
-                        ? "border-green-300 bg-white ring-1 ring-green-200"
+                        ? "border-zinc-900 bg-white ring-1 ring-zinc-900"
                         : outOfStock
                           ? "border-gray-200 bg-gray-50 opacity-70"
                           : "border-gray-200 bg-white"
@@ -252,7 +253,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="text-sm font-semibold text-gray-900">{offer.shop.name}</p>
                           {index === 0 && (
-                            <span className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            <span className="rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-semibold text-white">
                               საუკეთესო ფასი
                             </span>
                           )}
@@ -281,7 +282,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-3 md:flex-col md:items-end">
-                      <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={offerDiscount > 0} />
+                      <div className="flex flex-col items-end gap-1">
+                        <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={offerDiscount > 0} />
+                        <Sparkline history={offer.history} className="text-gray-900" />
+                      </div>
                       <ShopClickLink
                         offerId={offer.id}
                         productId={product.id}
@@ -385,7 +389,7 @@ function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number;
           დაბალ ფასში
         </span>
       ) : (
-        <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+        <span className="inline-flex items-center rounded-full border border-zinc-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-zinc-600">
           ისტორიულ მინიმუმზე +{percentAbove}%
         </span>
       )}
@@ -395,11 +399,11 @@ function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number;
 
 function StatCell({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <span className={`flex flex-col gap-0.5 rounded-md border p-2 ${accent ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50"}`}>
-      <strong className={`text-[10px] font-semibold uppercase tracking-wider ${accent ? "text-green-700" : "text-gray-400"}`}>
+    <span className={`flex flex-col gap-0.5 rounded-md border p-2 ${accent ? "border-zinc-900 bg-zinc-950" : "border-gray-200 bg-gray-50"}`}>
+      <strong className={`text-[10px] font-semibold uppercase tracking-wider ${accent ? "text-white/60" : "text-gray-400"}`}>
         {label}
       </strong>
-      <span className={`text-sm font-bold tabular-nums ${accent ? "text-green-700" : "text-gray-900"}`}>{value}</span>
+      <span className={`text-sm font-bold tabular-nums ${accent ? "text-white" : "text-gray-900"}`}>{value}</span>
     </span>
   );
 }
@@ -433,10 +437,10 @@ function MatchConfidenceBadge({ confidence, status, singleStore = false }: { con
   const isPublic = isPublicMatchStatus(status);
   const tier =
     isPublic && confidence >= 95
-      ? { label: "ზუსტი დამთხვევა", styles: "border-green-200 bg-green-50 text-green-700" }
+      ? { label: "ზუსტი დამთხვევა", styles: "border-zinc-900 bg-zinc-950 text-white" }
       : isPublic && confidence >= 90
-        ? { label: "ძლიერი დამთხვევა", styles: "border-orange-200 bg-orange-50 text-orange-700" }
-        : { label: "მსგავსი პროდუქტი", styles: "border-amber-200 bg-amber-50 text-amber-700" };
+        ? { label: "ძლიერი დამთხვევა", styles: "border-zinc-400 bg-zinc-100 text-zinc-800" }
+        : { label: "მსგავსი პროდუქტი", styles: "border-zinc-300 bg-white text-zinc-500" };
   return (
     <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${tier.styles}`}>
       {tier.label} · {confidence}%

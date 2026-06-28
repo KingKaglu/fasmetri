@@ -29,13 +29,13 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 site-header">
       {/* Announcement bar — dark ink top strip */}
-      <div className="hidden bg-[var(--brand)] md:block">
+      <div className="hidden bg-[var(--ink-surface)] md:block">
         <div className="shell flex h-[2.375rem] items-center justify-between">
           <span className="text-[12.5px] font-medium text-white/[0.78]">
             ფასმეტრი აერთიანებს ქართულ მაღაზიებს — ყიდვამდე საბოლოო ფასი მაღაზიაში გადაამოწმე
           </span>
           <div className="flex items-center gap-4 text-[12.5px]">
-            <Link href="/deals" className="inline-flex items-center gap-1 font-semibold text-[#ff8a3d] hover:text-white">
+            <Link href="/deals" className="inline-flex items-center gap-1 font-bold text-white hover:text-white/70">
               <BadgePercent className="size-3" />
               დღის ფასდაკლებები
             </Link>
@@ -83,7 +83,7 @@ export function SiteHeader() {
           </Link>
         </div>
 
-        {/* Mobile menu toggle */}
+        {/* Mobile menu */}
         <button
           type="button"
           aria-label="მენიუ"
@@ -117,7 +117,7 @@ export function SiteHeader() {
           })}
           <Link
             href="/deals"
-            className="ml-auto inline-flex items-center gap-1.5 rounded-[10px] px-3 py-2 text-[13.5px] font-bold text-[var(--price-deal)] hover:bg-[var(--save-soft)]"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-[10px] px-3 py-2 text-[13.5px] font-bold text-[var(--brand)] hover:bg-[var(--surface-soft)]"
           >
             <Flame className="size-4" />
             აქციები

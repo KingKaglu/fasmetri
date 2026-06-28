@@ -98,13 +98,13 @@ export function ContactMailForm() {
         ელფოსტაში გახსნა
       </button>
       {submitted ? (
-        <p className="mt-3 flex items-start gap-1.5 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium leading-5 text-green-700">
+        <p className="mt-3 flex items-start gap-1.5 rounded-md border border-zinc-900 bg-zinc-950 px-3 py-2 text-xs font-medium leading-5 text-white">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
           წერილი მომზადდა შენს ელფოსტის აპში — გადახედე და გააგზავნე. თუ აპი არ გაიხსნა, მოგვწერე პირდაპირ: hello@fasmetri.ge
         </p>
       ) : null}
       {!submitted && Object.keys(errors).length > 0 ? (
-        <p className="mt-3 text-xs font-medium text-red-600">შეასწორე მონიშნული ველები და სცადე თავიდან.</p>
+        <p className="mt-3 text-xs font-medium text-zinc-900">შეასწორე მონიშნული ველები და სცადე თავიდან.</p>
       ) : null}
     </form>
   );
@@ -115,7 +115,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     <label className="mb-3 block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
       {label}
       <span className="mt-1 block text-sm font-medium text-gray-900 normal-case tracking-normal">{children}</span>
-      {error ? <span className="mt-1 block text-[11px] font-medium normal-case tracking-normal text-red-600">{error}</span> : null}
+      {error ? <span className="mt-1 block text-[11px] font-medium normal-case tracking-normal text-zinc-900">{error}</span> : null}
     </label>
   );
 }
