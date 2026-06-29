@@ -122,7 +122,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
         ? [{ matchedAt: "desc" as const }]
         : [{ confidence: "desc" as const }, { matchedAt: "desc" as const }];
 
-  const [matches, totalPending, mobilesPending, laptopsPending] = await Promise.all([
+  const data = await Promise.all([
     prisma.possibleMatch.findMany({
       where: {
         status: "PENDING",
@@ -166,7 +166,22 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
     prisma.possibleMatch.count({ where: { status: "PENDING" } }),
     prisma.possibleMatch.count({ where: { status: "PENDING", canonicalProduct: { categorySlug: "mobiles" } } }),
     prisma.possibleMatch.count({ where: { status: "PENDING", canonicalProduct: { categorySlug: "laptops" } } }),
-  ]);
+  ]).catch(() => null);
+
+  // A transient DB outage (the Supabase pooler occasionally drops) must not hard
+  // 500 the whole admin page — degrade to a retry panel instead.
+  if (!data) {
+    return (
+      <AdminShell>
+        <AdminEmptyState
+          title="ბაზა დროებით მიუწვდომელია"
+          description="მონაცემთა ბაზასთან კავშირი ვერ დამყარდა. გადატვირთე გვერდი რამდენიმე წამში."
+        />
+      </AdminShell>
+    );
+  }
+
+  const [matches, totalPending, mobilesPending, laptopsPending] = data;
 
   // Offers already linked to this exact canonical (e.g. by a later matcher
   // run) don't need a decision — hide them from the queue.
