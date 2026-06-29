@@ -51,26 +51,24 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
 
   return (
     <div className="grid gap-2">
-      <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={busy !== null}
-          onClick={() => act("approve")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#1c8b43] px-4 text-sm font-black text-white hover:bg-[#157035] disabled:cursor-wait disabled:opacity-60"
-        >
-          {busy === "approve" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-          დადასტურება
-        </button>
-        <button
-          type="button"
-          disabled={busy !== null}
-          onClick={() => act("reject")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-4 text-sm font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
-        >
-          {busy === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
-          უარყოფა
-        </button>
-      </div>
+      <button
+        type="button"
+        disabled={busy !== null}
+        onClick={() => act("approve")}
+        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl bg-[#1c8b43] px-4 text-sm font-black text-white hover:bg-[#157035] disabled:cursor-wait disabled:opacity-60"
+      >
+        {busy === "approve" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+        დადასტურება
+      </button>
+      <button
+        type="button"
+        disabled={busy !== null}
+        onClick={() => act("reject")}
+        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-4 text-sm font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
+      >
+        {busy === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+        უარყოფა
+      </button>
       {error ? <p className="rounded-xl border border-[#d4d4d8] bg-[#f4f4f5] px-3 py-2 text-xs font-bold text-[var(--danger)]">{error}</p> : null}
     </div>
   );
