@@ -13,7 +13,7 @@
  * Bump CACHE when this file changes so the old cache is purged on activate.
  */
 
-const CACHE = "fasmetri-v3";
+const CACHE = "fasmetri-v4";
 
 // Content-hashed static asset prefixes + stable static file extensions.
 const STATIC_PREFIXES = ["/_next/static/"];
