@@ -36,12 +36,13 @@ function firstParam(value: string | string[] | undefined) {
 
 // Build a /admin/review href that preserves the current filters, overriding
 // only the keys passed in. Empty/undefined values drop the param entirely.
-function reviewHref(current: { category?: string; sort?: string; max?: string }, override: Partial<typeof current>) {
+function reviewHref(current: { category?: string; sort?: string; max?: string; shop?: string }, override: Partial<typeof current>) {
   const next = { ...current, ...override };
   const sp = new URLSearchParams();
   if (next.category) sp.set("category", next.category);
   if (next.sort && next.sort !== "best") sp.set("sort", next.sort);
   if (next.max) sp.set("max", next.max);
+  if (next.shop) sp.set("shop", next.shop);
   const query = sp.toString();
   return query ? `/admin/review?${query}` : "/admin/review";
 }
@@ -114,6 +115,8 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
   const sort: SortKey = sortParam === "risky" || sortParam === "gap" || sortParam === "newest" ? sortParam : "best";
   const maxParam = firstParam(params.max);
   const maxConfidence = maxParam === "70" || maxParam === "60" ? Number(maxParam) : undefined;
+  const shopParam = firstParam(params.shop);
+  const shopSlug = shopParam && /^[a-z0-9-]+$/.test(shopParam) ? shopParam : undefined;
 
   const orderBy =
     sort === "risky"
@@ -126,6 +129,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
     prisma.possibleMatch.findMany({
       where: {
         status: "PENDING",
+        shop: shopSlug ? { slug: shopSlug } : undefined,
         canonicalProduct: category ? { categorySlug: category } : undefined,
         confidence: maxConfidence ? { lte: maxConfidence } : undefined,
       },
@@ -166,6 +170,15 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
     prisma.possibleMatch.count({ where: { status: "PENDING" } }),
     prisma.possibleMatch.count({ where: { status: "PENDING", canonicalProduct: { categorySlug: "mobiles" } } }),
     prisma.possibleMatch.count({ where: { status: "PENDING", canonicalProduct: { categorySlug: "laptops" } } }),
+    prisma.shop.findMany({
+      where: { enabled: true },
+      select: {
+        slug: true,
+        name: true,
+        _count: { select: { safePossibleMatches: { where: { status: "PENDING" } } } },
+      },
+      orderBy: { name: "asc" },
+    }),
   ]).catch(() => null);
 
   // A transient DB outage (the Supabase pooler occasionally drops) must not hard
@@ -181,7 +194,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
     );
   }
 
-  const [matches, totalPending, mobilesPending, laptopsPending] = data;
+  const [matches, totalPending, mobilesPending, laptopsPending, shopCounts] = data;
 
   // Offers already linked to this exact canonical (e.g. by a later matcher
   // run) don't need a decision — hide them from the queue.
@@ -199,7 +212,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
 
   const shownPending = category ? (category === "mobiles" ? mobilesPending : laptopsPending) : totalPending;
   const flaggedCount = rows.filter((row) => row.spread && row.spread.multiple >= 1.35).length;
-  const filters = { category, sort, max: maxParam };
+  const filters = { category, sort, max: maxParam, shop: shopSlug };
 
   return (
     <AdminShell>
@@ -233,6 +246,18 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
             <SegLink href={reviewHref(filters, { category: "laptops" })} active={category === "laptops"}>
               ლეპტოპები ({laptopsPending})
             </SegLink>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)]">მაღაზია</span>
+            <SegLink href={reviewHref(filters, { shop: undefined })} active={!shopSlug}>
+              ყველა
+            </SegLink>
+            {shopCounts.map((shop) => (
+              <SegLink key={shop.slug} href={reviewHref(filters, { shop: shop.slug })} active={shopSlug === shop.slug}>
+                {shop.name} ({shop._count.safePossibleMatches})
+              </SegLink>
+            ))}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

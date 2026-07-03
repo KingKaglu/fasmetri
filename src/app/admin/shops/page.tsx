@@ -1,4 +1,5 @@
-import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, ExternalLink } from "lucide-react";
 import { AdminLogin } from "@/components/admin-login";
 import { AdminShopActions } from "@/components/admin-shop-actions";
 import { ShopEditor } from "@/components/admin-metadata-editors";
@@ -33,7 +34,10 @@ export default async function AdminShopsPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">{shop.slug}</p>
-                    <h2 className="mt-1 truncate text-2xl font-black text-[var(--brand)]">{shop.name}</h2>
+                    <Link href={`/admin/shops/${shop.slug}`} className="group mt-1 flex items-center gap-1">
+                      <h2 className="truncate text-2xl font-black text-[var(--brand)] underline-offset-4 group-hover:underline">{shop.name}</h2>
+                      <ChevronRight className="size-5 shrink-0 text-[var(--muted)] transition group-hover:translate-x-0.5 group-hover:text-[var(--brand)]" />
+                    </Link>
                     <a href={shop.baseUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex max-w-full items-center gap-1 text-sm font-bold text-[var(--muted)] hover:text-[var(--brand)]">
                       <span className="truncate">{shop.needsConfiguration ? "needs selector/API configuration" : shop.baseUrl}</span>
                       <ExternalLink className="size-3.5 shrink-0" />
@@ -48,6 +52,13 @@ export default async function AdminShopsPage() {
                 </div>
               </div>
               <div className="grid content-start gap-3">
+                <Link
+                  href={`/admin/shops/${shop.slug}`}
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-[#0a0a0a] px-4 text-sm font-black text-white hover:bg-black"
+                >
+                  სრული დეტალები
+                  <ChevronRight className="size-4" />
+                </Link>
                 <AdminShopActions id={shop.id} enabled={shop.enabled} needsConfiguration={shop.needsConfiguration} />
                 <ShopEditor shop={shop} />
               </div>

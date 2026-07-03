@@ -203,7 +203,7 @@ export default async function AdminDashboardPage() {
                     {shop.lastSeen ? ` — ბოლო sync ${formatRelativeTime(shop.lastSeen)}` : ""}
                   </p>
                 </div>
-                <Link href="/admin/sync" className="text-xs font-black text-[var(--muted)] underline-offset-2 hover:text-[var(--brand)] hover:underline">
+                <Link href={`/admin/shops/${shop.slug}`} className="text-xs font-black text-[var(--muted)] underline-offset-2 hover:text-[var(--brand)] hover:underline">
                   დეტალები
                 </Link>
               </div>
