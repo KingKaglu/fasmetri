@@ -14,6 +14,9 @@ const MODULES: Array<{ store: string; category: string }> = [
   { store: "zoommer", category: "laptops" },
   { store: "ee", category: "phones" },
   { store: "ee", category: "laptops" },
+  { store: "pcshop", category: "phones" },
+  { store: "pcshop", category: "laptops" },
+  { store: "pcshop", category: "consoles" },
 ];
 
 function hoursAgo(date: Date): number {
