@@ -52,8 +52,8 @@ export default async function AdminSyncPage() {
         shop: { slug: module.shopSlug },
         rawOffer: { categorySlug: module.categorySlug },
       };
-      // SyncLog keys: store = shop slug, category = "phones" | "laptops".
-      const syncLogCategory = module.categorySlug === "mobiles" ? "phones" : "laptops";
+      // SyncLog keys: store = shop slug, category = "phones" | "laptops" | "consoles".
+      const syncLogCategory = module.categorySlug === "mobiles" ? "phones" : module.categorySlug === "gaming" ? "consoles" : "laptops";
       const [activeCount, lastSeen, seen24h, missing, runs, syncLogs, lastSuccess] = await Promise.all([
         db.productOffer.count({ where: { ...offerWhere, isActive: true } }),
         db.productOffer.aggregate({ where: offerWhere, _max: { lastSeenAt: true } }),

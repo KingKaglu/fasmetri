@@ -9,6 +9,7 @@ import {
   ReviewRowActions,
 } from "@/components/admin-review-actions";
 import { ReviewKeyboardNav } from "@/components/admin-review-keyboard";
+import { ReviewSelectCheckbox, ReviewSelectionProvider } from "@/components/admin-review-select";
 import {
   AdminConfidenceBar,
   AdminEmptyState,
@@ -280,6 +281,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
         </div>
       </AdminPanel>
 
+      <ReviewSelectionProvider allIds={rows.map((row) => row.match.id)}>
       <div className="grid gap-3">
         {rows.map(({ match, spread }) => {
           const raw = match.rawOffer;
@@ -299,6 +301,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                 <article className="p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <ReviewSelectCheckbox matchId={match.id} />
                       <AdminConfidenceBar value={match.confidence} />
                       <AdminStatusPill tone="info">{canonical.categorySlug}</AdminStatusPill>
                       <AdminStatusPill>{match.shop.name}</AdminStatusPill>
@@ -389,6 +392,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
           />
         ) : null}
       </div>
+      </ReviewSelectionProvider>
 
       <ReviewKeyboardNav matchIds={rows.map(({ match }) => match.id)} />
     </AdminShell>

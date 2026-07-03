@@ -20,8 +20,17 @@ export function AdminShopActions({ id, enabled, needsConfiguration }: { id: stri
 
   async function scrape() {
     setBusy("scrape");
-    const response = await fetch(`/api/admin/scrape/${id}`, { method: "POST" });
-    setMessage(response.ok ? "სკრეპის გაშვება მიღებულია." : "სკრეპის გაშვება ვერ შესრულდა.");
+    try {
+      const response = await fetch(`/api/admin/scrape/${id}`, { method: "POST" });
+      const payload = await response.json().catch(() => null);
+      if (response.ok) {
+        setMessage(`Sync გაეშვა GitHub Actions-ზე (${(payload?.dispatched ?? []).join(", ")}). შედეგი რამდენიმე წუთში — ნახე Sync პანელზე.`);
+      } else {
+        setMessage(payload?.error ?? "Sync-ის გაშვება ვერ შესრულდა.");
+      }
+    } catch {
+      setMessage("ქსელის შეცდომა — სცადე თავიდან.");
+    }
     setBusy(null);
   }
 

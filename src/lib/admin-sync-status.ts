@@ -2,11 +2,11 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 export type SyncModule = {
-  key: "zoommer-phones" | "zoommer-laptops" | "ee-phones" | "ee-laptops";
+  key: "zoommer-phones" | "zoommer-laptops" | "ee-phones" | "ee-laptops" | "pcshop-phones" | "pcshop-laptops" | "pcshop-consoles";
   label: string;
-  shopSlug: "zoommer" | "ee";
+  shopSlug: "zoommer" | "ee" | "pcshop";
   shopName: string;
-  categorySlug: "mobiles" | "laptops";
+  categorySlug: "mobiles" | "laptops" | "gaming";
   workflowFile: string;
 };
 
@@ -15,6 +15,10 @@ export const SYNC_MODULES: SyncModule[] = [
   { key: "zoommer-laptops", label: "Zoommer ლეპტოპები", shopSlug: "zoommer", shopName: "Zoommer", categorySlug: "laptops", workflowFile: "zoommer-laptops-sync.yml" },
   { key: "ee-phones", label: "EE ტელეფონები", shopSlug: "ee", shopName: "ელიტ ელექტრონიქსი", categorySlug: "mobiles", workflowFile: "ee-phones-sync.yml" },
   { key: "ee-laptops", label: "EE ლეპტოპები", shopSlug: "ee", shopName: "ელიტ ელექტრონიქსი", categorySlug: "laptops", workflowFile: "ee-laptops-sync.yml" },
+  // One workflow covers all three PCShop categories (phones, laptops, consoles).
+  { key: "pcshop-phones", label: "PCShop ტელეფონები", shopSlug: "pcshop", shopName: "PCShop", categorySlug: "mobiles", workflowFile: "pcshop-sync.yml" },
+  { key: "pcshop-laptops", label: "PCShop ლეპტოპები", shopSlug: "pcshop", shopName: "PCShop", categorySlug: "laptops", workflowFile: "pcshop-sync.yml" },
+  { key: "pcshop-consoles", label: "PCShop კონსოლები", shopSlug: "pcshop", shopName: "PCShop", categorySlug: "gaming", workflowFile: "pcshop-sync.yml" },
 ];
 
 export const MATCHER_WORKFLOW_FILE = "match-products.yml";
