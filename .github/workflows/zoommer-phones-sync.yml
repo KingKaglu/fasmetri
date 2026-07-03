@@ -67,6 +67,16 @@ jobs:
         continue-on-error: true
         run: npm run alerts:evaluate
 
+      # The sync writes to the DB directly, so the deployed site's cached
+      # counts/summary must be busted explicitly or they go stale.
+      - name: Revalidate public catalog cache
+        if: ${{ steps.price_sync.outcome == 'success' || steps.full_sync.outcome == 'success' }}
+        continue-on-error: true
+        run: >-
+          curl -fsS --retry 3
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          https://fasmetri.vercel.app/api/revalidate
+
       - name: Log sync result
         if: ${{ always() && (steps.price_sync.outcome != 'skipped' || steps.full_sync.outcome != 'skipped') }}
         run: >-

@@ -39,3 +39,11 @@ jobs:
       - name: Match laptops
         if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'laptops') }}
         run: npm run match:laptops -- --limit=5000
+
+      # Matching changes public visibility, so bust the deployed cache too.
+      - name: Revalidate public catalog cache
+        continue-on-error: true
+        run: >-
+          curl -fsS --retry 3
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          https://fasmetri.vercel.app/api/revalidate

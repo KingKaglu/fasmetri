@@ -516,7 +516,7 @@ function productIdentifiers(identifier: string) {
 // Cross-request cache: category list + per-category counts change only when the
 // catalog is re-scraped. Uncached, loadCategories runs an unbounded
 // "all discounted products" scan on every category/deals render.
-const cachedCategories = unstable_cache(loadCategories, ["categories-v7"], {
+const cachedCategories = unstable_cache(loadCategories, ["categories-v8"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -582,7 +582,7 @@ export async function listPublicCategories(): Promise<CategoryView[]> {
 // for public pages those counts are discarded and replaced by the cached
 // summary anyway. Caching keeps that scan off the per-request path of every
 // category/product/deals render.
-const cachedShops = unstable_cache(loadShops, ["shops-v4"], {
+const cachedShops = unstable_cache(loadShops, ["shops-v5"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -730,7 +730,7 @@ async function loadRecentPriceChanges(): Promise<RecentPriceChange[]> {
   }
 }
 
-const cachedRecentPriceChanges = unstable_cache(loadRecentPriceChanges, ["recent-price-changes-v1"], {
+const cachedRecentPriceChanges = unstable_cache(loadRecentPriceChanges, ["recent-price-changes-v2"], {
   revalidate: 300,
   tags: ["catalog"],
 });
@@ -856,7 +856,7 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 // out into a single scan per revalidation window.
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
-  ["public-catalog-summary-v8"],
+  ["public-catalog-summary-v9"],
   { revalidate: 600, tags: ["catalog"] },
 );
 
