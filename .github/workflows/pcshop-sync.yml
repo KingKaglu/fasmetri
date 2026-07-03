@@ -1,0 +1,118 @@
+name: PCShop sync
+
+# One workflow covers all three PCShop categories (phones, laptops, consoles):
+# the WooCommerce Store API syncs finish in seconds each, so separate
+# workflows would only multiply npm ci time.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Sync mode"
+        required: true
+        default: "prices"
+        type: choice
+        options:
+          - prices
+          - full
+  schedule:
+    - cron: "50 */3 * * *"
+    - cron: "30 3 * * *"
+
+jobs:
+  sync:
+    runs-on: self-hosted
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+      SCRAPER_USER_AGENT: "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+      RUN_FULL: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'full') || (github.event_name == 'schedule' && github.event.schedule == '30 3 * * *') }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - run: npm ci
+
+      - name: Ensure sync columns exist
+        run: npx prisma db execute --file prisma/migrations/20260605000000_zoommer_phone_sync_state/migration.sql
+
+      - name: Ensure SyncLog table exists
+        run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
+
+      - name: Ensure AlertEvent table exists
+        run: npx prisma db execute --file prisma/migrations/20260611100000_add_alert_event/migration.sql
+
+      - name: Ensure PriceAnomaly table exists
+        run: npx prisma db execute --file prisma/migrations/20260611120000_add_price_anomaly/migration.sql
+
+      - name: Phones sync
+        id: phones
+        continue-on-error: true
+        run: npm run ${{ env.RUN_FULL == 'true' && 'scrape:pcshop:phones:full' || 'sync:pcshop:phones' }}
+
+      - name: Laptops sync
+        id: laptops
+        continue-on-error: true
+        run: npm run ${{ env.RUN_FULL == 'true' && 'scrape:pcshop:laptops:full' || 'sync:pcshop:laptops' }}
+
+      - name: Consoles sync
+        id: consoles
+        continue-on-error: true
+        run: npm run ${{ env.RUN_FULL == 'true' && 'scrape:pcshop:consoles:full' || 'sync:pcshop:consoles' }}
+
+      - name: Match new offers across stores
+        if: ${{ steps.phones.outcome == 'success' || steps.laptops.outcome == 'success' || steps.consoles.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          npx tsx scripts/match-products.ts --shop=pcshop --limit=1000
+          npx tsx scripts/match-products.ts --shop=pcshop --category=gaming --limit=500
+
+      - name: Evaluate price alerts
+        if: ${{ steps.phones.outcome == 'success' || steps.laptops.outcome == 'success' || steps.consoles.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run alerts:evaluate
+
+      # The sync writes to the DB directly, so the deployed site's cached
+      # counts/summary must be busted explicitly or they go stale.
+      - name: Revalidate public catalog cache
+        if: ${{ steps.phones.outcome == 'success' || steps.laptops.outcome == 'success' || steps.consoles.outcome == 'success' }}
+        continue-on-error: true
+        run: >-
+          curl -fsS --retry 3
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          https://fasmetri.vercel.app/api/revalidate
+
+      - name: Log phones sync result
+        if: ${{ always() && steps.phones.outcome != 'skipped' }}
+        continue-on-error: true
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=pcshop --category=phones
+          --run-type=${{ env.RUN_FULL == 'true' && 'full' || 'prices' }}
+          --status=${{ steps.phones.outcome == 'success' && 'success' || 'failure' }}
+
+      - name: Log laptops sync result
+        if: ${{ always() && steps.laptops.outcome != 'skipped' }}
+        continue-on-error: true
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=pcshop --category=laptops
+          --run-type=${{ env.RUN_FULL == 'true' && 'full' || 'prices' }}
+          --status=${{ steps.laptops.outcome == 'success' && 'success' || 'failure' }}
+
+      - name: Log consoles sync result
+        if: ${{ always() && steps.consoles.outcome != 'skipped' }}
+        continue-on-error: true
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=pcshop --category=consoles
+          --run-type=${{ env.RUN_FULL == 'true' && 'full' || 'prices' }}
+          --status=${{ steps.consoles.outcome == 'success' && 'success' || 'failure' }}
+
+      - name: Fail the run if any category sync failed
+        if: ${{ steps.phones.outcome == 'failure' || steps.laptops.outcome == 'failure' || steps.consoles.outcome == 'failure' }}
+        run: exit 1
