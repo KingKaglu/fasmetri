@@ -391,7 +391,10 @@ function isPublicOffer(offer: OfferView) {
     !isOutletOfferUrl(offer.url) &&
     isPublicMatchStatus(offer.matchStatus) &&
     offer.verificationStatus === "CONFIRMED" &&
-    (offer.matchConfidence == null || offer.matchConfidence >= 90);
+    // 85 is the safe matcher's AUTO band floor (safeProductMatcher finalize
+    // thresholds): SAFE_AUTO offers land at exactly 85 and are auto-approved
+    // by design, so a higher gate here silently hides them from the catalog.
+    (offer.matchConfidence == null || offer.matchConfidence >= 85);
 }
 
 function comparableTitle(value: string) {
