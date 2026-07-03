@@ -35,13 +35,13 @@ export function MobileFilterDrawer({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen(true)}
-        className="flex h-11 w-full items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 shadow-sm hover:border-gray-300 hover:bg-gray-50"
+        className="flex h-11 w-full items-center justify-between gap-3 border border-zinc-950 bg-white px-3 text-sm font-bold text-zinc-950 hover:bg-zinc-50"
       >
-        <span className="inline-flex items-center gap-2">
-          <SlidersHorizontal className="size-4 text-gray-400" />
+        <span className="inline-flex items-center gap-2 uppercase tracking-[0.06em] text-[12px]">
+          <SlidersHorizontal className="size-4" />
           ფილტრები
         </span>
-        <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+        <span className="bg-zinc-950 px-2 py-0.5 text-[11px] font-bold text-white">
           {badge ?? "გახსნა"}
         </span>
       </button>
@@ -58,9 +58,9 @@ export function MobileFilterDrawer({
             id={panelId}
             className="absolute inset-x-0 bottom-0 top-12 grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-t-xl bg-white shadow-lg"
           >
-            <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
-              <h2 className="flex items-center gap-2 text-base font-bold text-gray-900">
-                <SlidersHorizontal className="size-4 text-gray-400" />
+            <div className="flex items-center justify-between gap-3 border-b-2 border-zinc-950 px-4 py-3">
+              <h2 className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.1em] text-gray-900">
+                <SlidersHorizontal className="size-4" />
                 ფილტრები
               </h2>
               <button

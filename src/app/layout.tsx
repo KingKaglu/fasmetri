@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { CompareProvider } from "@/lib/use-compare";
+import { FavoritesProvider } from "@/lib/use-favorites";
 import { CompareTray } from "@/components/compare-tray";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { siteUrl } from "@/config/site";
@@ -95,11 +96,13 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <JsonLd data={siteJsonLd} />
         <CompareProvider>
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
-          <MobileBottomNav />
-          <CompareTray />
+          <FavoritesProvider>
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+            <MobileBottomNav />
+            <CompareTray />
+          </FavoritesProvider>
         </CompareProvider>
         <AnalyticsScripts />
         <ServiceWorkerRegister />

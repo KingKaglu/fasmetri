@@ -132,23 +132,23 @@ export function CatalogFilters({
       className={
         inDrawer
           ? "flex h-full min-h-0 flex-col bg-white text-gray-900"
-          : "overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm text-gray-900"
+          : "border border-[var(--line-strong)] border-t-[3px] border-t-zinc-950 bg-white text-gray-900"
       }
     >
       {/* Header */}
       {!inDrawer && (
-        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="size-4 text-gray-500" />
-            <span className="text-sm font-semibold text-gray-900">ფილტრები</span>
+            <SlidersHorizontal className="size-3.5 text-zinc-950" />
+            <span className="text-[12px] font-bold uppercase tracking-[0.1em] text-zinc-950">ფილტრები</span>
             {activeCount > 0 && (
-              <span className="rounded-full bg-[var(--accent)] px-2 py-0.5 text-[10px] font-semibold text-white">
+              <span className="bg-zinc-950 px-1.5 py-0.5 text-[10px] font-bold tabular-nums leading-none text-white">
                 {activeCount}
               </span>
             )}
           </div>
           {activeCount > 0 && (
-            <Link href={resetHref} className="flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-gray-600">
+            <Link href={resetHref} className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.06em] text-gray-400 hover:text-zinc-950">
               <RotateCcw className="size-3" />
               გასუფთავება
             </Link>
@@ -485,7 +485,7 @@ function Select({
         aria-label={`${label}: ${selected?.label ?? ""}`}
         onClick={() => (open ? closeMenu(false) : openMenu(selectedIndex >= 0 ? selectedIndex : 0))}
         onKeyDown={onTriggerKeyDown}
-        className="flex w-full min-h-10 items-center justify-between gap-2 rounded-md border border-gray-200 bg-white px-3 text-left text-sm font-medium text-gray-900 hover:border-gray-300 focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]/10 outline-none"
+        className="flex w-full min-h-10 items-center justify-between gap-2 border border-[var(--line-strong)] bg-white px-3 text-left text-sm font-medium text-gray-900 hover:border-zinc-950 focus-visible:border-zinc-950 focus-visible:ring-2 focus-visible:ring-zinc-950/10 outline-none"
       >
         <span className="min-w-0 truncate">{selected?.label}</span>
         <ChevronDown className={`size-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -493,7 +493,7 @@ function Select({
       {open && (
         <div
           ref={listRef}
-          className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-lg)] outline-none"
+          className="absolute left-0 right-0 z-20 mt-1 overflow-hidden border border-zinc-950 bg-white shadow-[6px_6px_0_rgba(10,10,10,0.9)] outline-none"
           role="listbox"
           tabIndex={-1}
           aria-label={label}
@@ -514,12 +514,12 @@ function Select({
                   onMouseMove={() => setActiveIndex(index)}
                   className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors ${
                     active
-                      ? "bg-[var(--accent-soft)] font-semibold text-[var(--accent)]"
+                      ? "bg-zinc-950 font-semibold text-white"
                       : "text-gray-700"
-                  } ${highlighted ? "bg-[var(--accent-soft)] ring-1 ring-inset ring-[var(--accent)]" : "hover:bg-gray-50"}`}
+                  } ${highlighted && !active ? "bg-gray-100" : ""} ${!active && !highlighted ? "hover:bg-gray-50" : ""}`}
                 >
                   <span className="min-w-0 truncate">{option.label}</span>
-                  {active && <Check className="size-3.5 shrink-0 text-[var(--accent)]" />}
+                  {active && <Check className="size-3.5 shrink-0 text-white" />}
                 </div>
               );
             })}
@@ -532,7 +532,7 @@ function Select({
 
 function SwitchRow({ label, checked, onChange }: { label: string; checked?: boolean; onChange: (checked: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2.5 hover:bg-gray-50">
+    <label className="flex cursor-pointer items-center justify-between gap-3 border border-[var(--line-strong)] px-3 py-2.5 hover:border-zinc-950">
       <span className="text-sm font-medium text-gray-700">{label}</span>
       <div className="relative shrink-0">
         <input
@@ -541,7 +541,7 @@ function SwitchRow({ label, checked, onChange }: { label: string; checked?: bool
           onChange={(e) => onChange(e.target.checked)}
           className="peer sr-only"
         />
-        <div className="h-5 w-9 rounded-full border border-gray-300 bg-gray-200 transition peer-checked:border-[var(--accent)] peer-checked:bg-[var(--accent)]" />
+        <div className="h-5 w-9 rounded-full border border-gray-300 bg-gray-200 transition peer-checked:border-zinc-950 peer-checked:bg-zinc-950" />
         <div className="absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-4" />
       </div>
     </label>
@@ -557,7 +557,7 @@ function TogglePill({ label, checked, onChange }: { label: string; checked?: boo
         onChange={(e) => onChange(e.target.checked)}
         className="peer sr-only"
       />
-      <span className="flex min-h-9 items-center justify-center rounded-md border border-gray-200 px-2 text-center text-xs font-medium text-gray-700 transition peer-checked:border-[var(--accent)] peer-checked:bg-[var(--accent-soft)] peer-checked:text-[var(--accent)] hover:border-gray-300 hover:bg-gray-50">
+      <span className="flex min-h-9 items-center justify-center border border-[var(--line-strong)] px-2 text-center text-xs font-semibold text-gray-700 transition peer-checked:border-zinc-950 peer-checked:bg-zinc-950 peer-checked:text-white hover:border-zinc-950">
         <span className="truncate">{label}</span>
       </span>
     </label>

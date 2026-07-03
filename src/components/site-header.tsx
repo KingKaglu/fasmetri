@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { BadgePercent, Flame, Gamepad2, Grid3X3, Laptop, Menu, Search, Smartphone, Store, X } from "lucide-react";
+import { BadgePercent, Flame, Gamepad2, Grid3X3, Heart, Laptop, Menu, Search, Smartphone, Store, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { SearchBar } from "@/components/search-bar";
+import { useFavorites } from "@/lib/use-favorites";
 
 const navLinks = [
   { href: "/categories", label: "კატეგორიები" },
@@ -68,6 +69,7 @@ export function SiteHeader() {
 
         {/* CTA buttons */}
         <div className="hidden items-center gap-2 md:flex lg:ml-2">
+          <FavoritesLink />
           <Link
             href="/search"
             className="hidden h-9 items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 text-[12px] font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 xl:inline-flex"
@@ -150,6 +152,27 @@ export function SiteHeader() {
         </nav>
       )}
     </header>
+  );
+}
+
+// Favorites entry with a live count badge (client-only count, hydration-safe:
+// badge renders only after the provider has mounted).
+function FavoritesLink() {
+  const { mounted, count } = useFavorites();
+  return (
+    <Link
+      href="/favorites"
+      aria-label="ფავორიტები"
+      title="ფავორიტები"
+      className="relative grid size-9 place-items-center border border-gray-200 bg-white text-gray-600 hover:border-zinc-950 hover:text-zinc-950"
+    >
+      <Heart className="size-4" />
+      {mounted && count > 0 && (
+        <span className="absolute -right-1.5 -top-1.5 grid min-w-[1.1rem] place-items-center bg-zinc-950 px-1 py-0.5 text-[9px] font-bold leading-none tabular-nums text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Link>
   );
 }
 

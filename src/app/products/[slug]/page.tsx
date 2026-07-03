@@ -7,6 +7,9 @@ import { HistoryPoint, isPublicMatchStatus, ProductView } from "@/lib/catalog-ty
 import { PriceChart } from "@/components/price-chart";
 import { Sparkline } from "@/components/sparkline";
 import { AlertForm } from "@/components/alert-form";
+import { FavoriteToggle } from "@/components/favorite-toggle";
+import { ShareButton } from "@/components/share-button";
+import { RecentlyViewedStrip, RecordRecentView } from "@/components/recently-viewed";
 import { ProductGrid } from "@/components/product-grid";
 import { ShopClickLink } from "@/components/shop-click-link";
 import { TrackView } from "@/components/track-view";
@@ -119,6 +122,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <section className="shell py-5 sm:py-8">
       <JsonLd data={productJsonLd ? [productJsonLd, breadcrumbJsonLd] : [breadcrumbJsonLd]} />
+      <RecordRecentView
+        snapshot={{
+          slug: product.slug,
+          name: product.name,
+          price: cheapest.currentPrice,
+          oldPrice: cheapest.oldPrice,
+          imageUrl: product.imageUrl ?? cheapest.imageUrl,
+          shopName: cheapest.shop.name,
+          shopCount: priceSummary.shopCount,
+          categorySlug: product.category?.slug,
+        }}
+      />
       <TrackView
         event="product_view"
         signature={`product_view:${product.id}`}
@@ -207,20 +222,36 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 </div>
               </div>
 
-              <ShopClickLink
-                offerId={cheapest.id}
-                productId={product.id}
-                productName={product.name}
-                category={product.category?.slug}
-                shopName={cheapest.shop.name}
-                price={cheapest.currentPrice}
-                sourceUrl={cheapest.url}
-                ariaLabel={`${cheapest.shop.name} შეთავაზება`}
-                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] sm:w-fit"
-              >
-                მაღაზიაში გადასვლა
-                <ArrowUpRight className="size-4" />
-              </ShopClickLink>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <ShopClickLink
+                  offerId={cheapest.id}
+                  productId={product.id}
+                  productName={product.name}
+                  category={product.category?.slug}
+                  shopName={cheapest.shop.name}
+                  price={cheapest.currentPrice}
+                  sourceUrl={cheapest.url}
+                  ariaLabel={`${cheapest.shop.name} შეთავაზება`}
+                  className="flex h-11 w-full items-center justify-center gap-2 bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] sm:w-fit"
+                >
+                  მაღაზიაში გადასვლა
+                  <ArrowUpRight className="size-4" />
+                </ShopClickLink>
+                <FavoriteToggle
+                  variant="inline"
+                  snapshot={{
+                    slug: product.slug,
+                    name: product.name,
+                    price: cheapest.currentPrice,
+                    oldPrice: cheapest.oldPrice,
+                    imageUrl: product.imageUrl ?? cheapest.imageUrl,
+                    shopName: cheapest.shop.name,
+                    shopCount: priceSummary.shopCount,
+                    categorySlug: product.category?.slug,
+                  }}
+                />
+                <ShareButton title={product.name} />
+              </div>
             </div>
           </article>
 
@@ -347,6 +378,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               />
             </div>
           )}
+
+          {/* Recently viewed — client-side recents rail */}
+          <RecentlyViewedStrip inline excludeSlug={product.slug} />
         </div>
 
         <aside className="grid h-fit gap-3 lg:sticky lg:top-[4.5rem]">

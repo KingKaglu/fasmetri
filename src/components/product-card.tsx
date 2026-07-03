@@ -5,6 +5,7 @@ import { formatGel } from "@/lib/format";
 import { extractProductAttributes } from "@/lib/productNormalization";
 import { ShopClickLink } from "@/components/shop-click-link";
 import { CompareToggle } from "@/components/compare-toggle";
+import { FavoriteToggle } from "@/components/favorite-toggle";
 import {
   AvailabilityBadge,
   DiscountBadge,
@@ -38,8 +39,20 @@ export function ProductCard({
       data-kind={deal ? "deal" : "product"}
       className="card-hover group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-card)]"
     >
-      {/* Compare toggle — additive, sits above the image link, never navigates */}
+      {/* Compare + favorite toggles — additive, sit above the image link, never navigate */}
       <CompareToggle slug={product.slug} name={product.name} />
+      <FavoriteToggle
+        snapshot={{
+          slug: product.slug,
+          name: product.name,
+          price: offer.currentPrice,
+          oldPrice: offer.oldPrice,
+          imageUrl: image,
+          shopName: offer.shop.name,
+          shopCount,
+          categorySlug: product.category?.slug,
+        }}
+      />
 
       {/* Image */}
       <Link href={`/products/${product.slug}`} className="relative block overflow-hidden bg-gray-50">

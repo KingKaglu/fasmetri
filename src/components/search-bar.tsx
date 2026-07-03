@@ -2,9 +2,39 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Search, X } from "lucide-react";
+import { ArrowRight, Clock3, Search, X } from "lucide-react";
 import { formatGel } from "@/lib/format";
 import { CategoryMenu } from "@/components/category-menu";
+
+// Recent searches (idealo-style): last submitted queries, shown when the
+// input is focused while empty. Stored per browser, capped, best-effort.
+const RECENT_SEARCHES_KEY = "fasmetri:recent-searches";
+const RECENT_SEARCHES_MAX = 6;
+
+function readRecentSearches(): string[] {
+  try {
+    const raw = window.localStorage.getItem(RECENT_SEARCHES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string" && !!item.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(query: string) {
+  const value = query.trim();
+  if (value.length < 2) return;
+  try {
+    const next = [value, ...readRecentSearches().filter((item) => item.toLowerCase() !== value.toLowerCase())].slice(
+      0,
+      RECENT_SEARCHES_MAX,
+    );
+    window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+  } catch {
+    // Best-effort only.
+  }
+}
 
 type Suggestion = {
   slug: string;
@@ -42,6 +72,8 @@ export function SearchBar({
   const [brands, setBrands] = useState<BrandSuggestion[]>([]);
   const [categories, setCategories] = useState<CategorySuggestion[]>([]);
   const [open, setOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [recentsOpen, setRecentsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +116,7 @@ export function SearchBar({
 
   const onChange = (value: string) => {
     setQuery(value);
+    setRecentsOpen(false);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = value.trim();
     if (trimmed.length < MIN_QUERY_LENGTH) {
@@ -110,6 +143,8 @@ export function SearchBar({
   const goToSearch = useCallback(
     (value: string) => {
       setOpen(false);
+      setRecentsOpen(false);
+      saveRecentSearch(value);
       router.push(`/search?q=${encodeURIComponent(value)}`);
     },
     [router],
@@ -145,7 +180,10 @@ export function SearchBar({
 
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setRecentsOpen(false);
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => {
@@ -182,7 +220,19 @@ export function SearchBar({
             value={query}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
-            onFocus={() => suggestions.length > 0 && query.trim().length >= MIN_QUERY_LENGTH && setOpen(true)}
+            onFocus={() => {
+              if (suggestions.length > 0 && query.trim().length >= MIN_QUERY_LENGTH) {
+                setOpen(true);
+                return;
+              }
+              if (!query.trim()) {
+                const recents = readRecentSearches();
+                if (recents.length) {
+                  setRecentSearches(recents);
+                  setRecentsOpen(true);
+                }
+              }
+            }}
             maxLength={140}
             autoComplete="off"
             role="combobox"
@@ -228,6 +278,46 @@ export function SearchBar({
           )}
         </button>
       </div>
+
+      {/* Recent searches dropdown — focused with empty input */}
+      {recentsOpen && !open && recentSearches.length > 0 && (
+        <ul className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden border border-zinc-950 bg-white shadow-[var(--shadow-lg)]">
+          <li className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">ბოლო ძიებები</li>
+          {recentSearches.map((term) => (
+            <li key={term}>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery(term);
+                  goToSearch(term);
+                }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium text-gray-800 hover:bg-gray-50"
+              >
+                <Clock3 className="size-3.5 shrink-0 text-gray-400" />
+                <span className="min-w-0 flex-1 truncate">{term}</span>
+                <ArrowRight className="size-3 shrink-0 text-gray-300" />
+              </button>
+            </li>
+          ))}
+          <li className="border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  window.localStorage.removeItem(RECENT_SEARCHES_KEY);
+                } catch {
+                  // ignore
+                }
+                setRecentSearches([]);
+                setRecentsOpen(false);
+              }}
+              className="w-full px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.06em] text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+            >
+              ისტორიის გასუფთავება
+            </button>
+          </li>
+        </ul>
+      )}
 
       {/* Suggestions dropdown */}
       {open && (suggestions.length > 0 || brands.length > 0 || categories.length > 0) && (

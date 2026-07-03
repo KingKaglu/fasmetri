@@ -16,6 +16,7 @@ import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicSh
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel, formatRelativeTime } from "@/lib/format";
 import { CategoryCard } from "@/components/category-card";
+import { RecentlyViewedStrip } from "@/components/recently-viewed";
 import { ProductCard } from "@/components/product-card";
 import { ProductGrid } from "@/components/product-grid";
 import { SearchBar } from "@/components/search-bar";
@@ -193,6 +194,9 @@ export default async function Home() {
           <TrustItem icon={TrendingDown} title="საუკეთესო ფასი ბარათზე" description="ყველაზე დაბალი ფასი და ფასდაკლება ერთი მზერით ჩანს." />
         </div>
       </section>
+
+      {/* Recently viewed — renders only when the visitor has history */}
+      <RecentlyViewedStrip />
 
       {/* Categories */}
       {categories.length > 0 && (
