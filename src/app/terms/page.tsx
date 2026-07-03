@@ -11,7 +11,7 @@ export default function TermsPage() {
     <section className="shell py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">პირობები</p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">გამოყენების პირობები</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">გამოყენების პირობები</h1>
 
         <div className="mt-6 grid gap-6 text-sm leading-7 text-gray-600">
           <div>

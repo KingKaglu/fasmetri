@@ -163,7 +163,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 {cheapestDiscount > 0 && <DiscountBadge percent={cheapestDiscount} />}
               </div>
 
-              <h1 className="break-words text-xl font-bold leading-tight text-gray-900 [overflow-wrap:anywhere] sm:text-2xl">
+              <h1 className="font-display break-words text-xl font-bold leading-tight text-gray-900 [overflow-wrap:anywhere] sm:text-[1.6rem]">
                 {product.name}
               </h1>
               <p className="mt-1.5 text-xs leading-5 text-gray-500">{comparisonMessage} {comparisonFreshnessText(product)}</p>
@@ -232,19 +232,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               description="დალაგებულია ფასით — საუკეთესო პირველია."
             />
             <PriceDisclaimer compact />
-            <div className="mt-3 grid gap-2">
+            <div className="wire-table mt-3 overflow-hidden">
               {offerDetails.map(({ offer, attributes, match }, index) => {
                 const offerDiscount = realDiscountPercent(offer);
                 const outOfStock = offer.availability === "OUT_OF_STOCK";
                 return (
                   <article
                     key={offer.id}
-                    className={`grid min-w-0 gap-3 rounded-lg border p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
+                    className={`wire-row grid min-w-0 gap-3 border-l-4 p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
                       index === 0
-                        ? "border-zinc-900 bg-white ring-1 ring-zinc-900"
+                        ? "border-l-zinc-950 bg-white"
                         : outOfStock
-                          ? "border-gray-200 bg-gray-50 opacity-70"
-                          : "border-gray-200 bg-white"
+                          ? "border-l-transparent bg-gray-50 opacity-70"
+                          : "border-l-transparent bg-white"
                     }`}
                   >
                     <div className="flex min-w-0 gap-3">

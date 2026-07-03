@@ -165,13 +165,13 @@ export function SearchBar({
       className="relative flex min-w-0 w-full overflow-visible"
     >
       <div
-        className={`flex min-w-0 flex-1 items-center overflow-hidden border bg-white ${
+        className={`flex min-w-0 flex-1 items-center border bg-white ${
           isHeader
-            ? "h-11 rounded-[12px] border-2 border-[var(--accent)] shadow-sm"
+            ? "h-11 border-2 border-zinc-950"
             : large
-              ? "h-14 rounded-lg border-gray-300 shadow-md"
-              : "h-12 rounded-lg border-gray-300 shadow-md"
-        } ${open && suggestions.length > 0 ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/10" : "hover:border-gray-300 focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/10"}`}
+              ? "h-14 border-2 border-zinc-950"
+              : "h-12 border-2 border-zinc-950"
+        } ${open && suggestions.length > 0 ? "border-zinc-950 ring-2 ring-zinc-950/10" : "focus-within:ring-2 focus-within:ring-zinc-950/10"}`}
       >
         {isHeader && <CategoryMenu />}
         <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
@@ -234,7 +234,7 @@ export function SearchBar({
         <ul
           id="search-suggestions"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-lg)]"
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden border border-zinc-950 bg-white shadow-[var(--shadow-lg)]"
         >
           {suggestions.length > 0 && (
             <li className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">პროდუქტები</li>

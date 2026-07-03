@@ -23,7 +23,7 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
         : { label: "მარაგი მოწმდება", className: "border-zinc-300 bg-white text-zinc-600", dot: "bg-zinc-400" };
 
   return (
-    <span className={`inline-flex h-5 items-center gap-1 rounded-full border px-1.5 text-[10px] font-medium ${meta.className}`}>
+    <span className={`inline-flex h-5 items-center gap-1 border px-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] ${meta.className}`}>
       <span className={`size-1.5 rounded-full ${meta.dot}`} />
       {meta.label}
     </span>
@@ -97,7 +97,7 @@ export function ShopStatusBadge({ shop }: { shop: ShopView }) {
         : { label: "მალე", className: "border-zinc-200 bg-zinc-50 text-zinc-400" };
 
   return (
-    <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${meta.className}`}>
+    <span className={`inline-flex shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] ${meta.className}`}>
       {meta.label}
     </span>
   );
@@ -117,18 +117,20 @@ export function SectionHeader({
   action?: string;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-gray-100 pb-3">
-      <div className="max-w-2xl">
-        {eyebrow ? <p className="eyebrow mb-0.5">{eyebrow}</p> : null}
-        <h2 className="text-lg font-bold text-gray-900 sm:text-xl">{title}</h2>
-        {description ? <p className="mt-1 text-sm leading-6 text-gray-500">{description}</p> : null}
+    <div className="masthead mb-5">
+      <div className="masthead-row flex-wrap">
+        <div className="max-w-2xl min-w-0">
+          {eyebrow ? <p className="masthead-kicker mb-0.5">{eyebrow}</p> : null}
+          <h2 className="masthead-title">{title}</h2>
+          {description ? <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p> : null}
+        </div>
+        {href ? (
+          <Link href={href} className="masthead-link inline-flex items-center gap-1">
+            {action}
+            <ArrowRight className="size-3" />
+          </Link>
+        ) : null}
       </div>
-      {href ? (
-        <Link href={href} className="inline-flex h-8 items-center gap-1 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50">
-          {action}
-          <ArrowRight className="size-3.5" />
-        </Link>
-      ) : null}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
         <ShopMark shop={shop} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{shop.name}</h1>
+            <h1 className="font-display text-2xl font-bold text-gray-900 sm:text-3xl">{shop.name}</h1>
             <ShopStatusBadge shop={shop} />
           </div>
           <p className="mt-1 text-sm text-gray-500">

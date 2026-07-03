@@ -19,7 +19,7 @@ export default async function CategoriesPage() {
     <section className="shell py-7 sm:py-10">
       <div className="mb-6 border-b border-gray-200 pb-4">
         <p className="eyebrow inline-flex items-center gap-1.5"><Boxes className="size-3.5" /> კატალოგი</p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">კატეგორიები</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">კატეგორიები</h1>
         <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500">ამ ეტაპზე ფასმეტრი აჩვენებს მხოლოდ ტელეფონებისა და ლეპტოპების დამოწმებულ შეთავაზებებს.</p>
       </div>
       {publicCategories.length ? (

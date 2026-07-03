@@ -11,7 +11,7 @@ export function ShopCard({ shop }: { shop: ShopView }) {
         <div className="flex items-center gap-3 min-w-0">
           <ShopMark shop={shop} />
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-gray-900">{shop.name}</h2>
+            <h2 className="font-display truncate text-[15px] font-bold text-gray-900">{shop.name}</h2>
             <p className="truncate text-xs text-gray-400">{shop.baseUrl.replace(/^https?:\/\//, "")}</p>
           </div>
         </div>

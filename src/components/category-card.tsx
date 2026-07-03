@@ -68,7 +68,7 @@ export function CategoryCard({
 
         {/* Center: title + description + meta */}
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold text-gray-900 group-hover:text-[var(--accent)] sm:text-lg">
+          <h2 className="font-display text-base font-bold text-gray-900 group-hover:text-[var(--accent)] sm:text-lg">
             {category.nameKa}
           </h2>
           <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-gray-500 sm:text-[13px]">
@@ -122,7 +122,7 @@ export function CategoryCard({
       </div>
 
       <div className="flex-1">
-        <h2 className="font-semibold text-gray-900 group-hover:text-[var(--accent)]">
+        <h2 className="font-display font-bold text-gray-900 group-hover:text-[var(--accent)]">
           {category.nameKa}
         </h2>
         <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-gray-500">

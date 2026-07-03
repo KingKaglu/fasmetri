@@ -63,7 +63,7 @@ export function ProductCard({
           <ShopMark shop={offer.shop} size="sm" />
           <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-gray-500">{offer.shop.name}</span>
           {shopCount > 1 && (
-            <span className="shrink-0 rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
+            <span className="shrink-0 border border-zinc-900 bg-white px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-zinc-900">
               +{shopCount - 1}
             </span>
           )}
@@ -77,15 +77,11 @@ export function ProductCard({
           {product.name}
         </Link>
 
-        {/* Normalized specs */}
+        {/* Normalized specs — classified-ad spec line, not chips */}
         {specChips.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {specChips.map((chip) => (
-              <span key={chip} className="rounded border border-gray-100 bg-gray-50 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
-                {chip}
-              </span>
-            ))}
-          </div>
+          <p className="mb-2 truncate text-[10.5px] font-medium uppercase tracking-[0.05em] text-gray-500">
+            {specChips.join(" · ")}
+          </p>
         )}
 
         {/* Price */}
@@ -106,7 +102,7 @@ export function ProductCard({
 
         {/* Shop comparison info: store count + freshness, always visible */}
         <div className="mb-3 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
-          <span className={`text-[10px] font-medium ${shopCount > 1 ? "text-[var(--accent)]" : "text-gray-400"}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-[0.05em] ${shopCount > 1 ? "text-zinc-950" : "text-gray-400"}`}>
             {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
           </span>
           <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />

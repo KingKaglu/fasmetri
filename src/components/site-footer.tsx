@@ -38,15 +38,15 @@ export async function SiteFooter() {
     .catch(() => null);
 
   return (
-    <footer className="mt-16 border-t border-white/10 bg-[var(--ink-surface)]">
+    <footer className="mt-16 border-t-4 border-zinc-950 bg-[var(--ink-surface)]">
       <div className="shell grid gap-10 py-12 md:grid-cols-[2fr_1fr_1fr_1fr]">
-        {/* Brand column */}
+        {/* Brand column — colophon */}
         <div>
           <BrandLogo compact tone="light" />
-          <p className="mt-4 text-sm leading-6 text-zinc-300 max-w-xs">
+          <p className="font-display mt-4 max-w-xs text-[15px] leading-7 text-zinc-200">
             ფასმეტრი — ქართული ონლაინ მაღაზიების დამოუკიდებელი ფასების შედარების პლატფორმა.
           </p>
-          <p className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3 text-[11px] leading-5 text-zinc-400">
+          <p className="mt-4 border-l-2 border-white/25 pl-3 text-[11px] leading-5 text-zinc-400">
             ფასმეტრი არ არის ჩამოთვლილი მაღაზიების ოფიციალური პარტნიორი. ყიდვამდე საბოლოო ფასი მაღაზიის გვერდზე გადაამოწმე.
           </p>
         </div>
@@ -54,7 +54,7 @@ export async function SiteFooter() {
         {/* Link columns */}
         {columns.map(([title, items]) => (
           <div key={title}>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{title}</p>
+            <p className="mb-3 border-b border-white/15 pb-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-zinc-400">{title}</p>
             <ul className="grid gap-2">
               {items.map(([href, label]) => (
                 <li key={href}>

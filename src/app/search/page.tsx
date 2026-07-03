@@ -63,7 +63,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="eyebrow mb-1">ძებნა</p>
-                <h1 className="break-words text-xl font-bold text-gray-900 sm:text-2xl">{headline}</h1>
+                <h1 className="font-display break-words text-xl font-bold text-gray-900 sm:text-2xl">{headline}</h1>
               </div>
               <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-md bg-zinc-950 border border-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black">
                 <BadgePercent className="size-3.5" />

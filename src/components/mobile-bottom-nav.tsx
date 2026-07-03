@@ -18,8 +18,8 @@ export function MobileBottomNav() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 md:hidden">
       {/* Quick search bar */}
-      <div className="border-t border-gray-100 bg-white px-3 py-2">
-        <form action="/search" className="flex h-10 items-center overflow-hidden rounded-md border border-gray-300 bg-white">
+      <div className="border-t-2 border-zinc-950 bg-white px-3 py-2">
+        <form action="/search" className="flex h-10 items-center overflow-hidden border border-zinc-950 bg-white">
           <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
             <Search className="size-3.5 shrink-0 text-gray-400" />
             <input
@@ -48,8 +48,8 @@ export function MobileBottomNav() {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 py-1.5 px-1 text-[10px] font-medium transition-colors ${
-                  active ? "text-[var(--accent)]" : "text-gray-400 hover:text-gray-600"
+                className={`flex flex-col items-center gap-0.5 border-t-2 py-1.5 px-1 text-[10px] font-semibold uppercase tracking-[0.02em] transition-colors ${
+                  active ? "border-zinc-950 text-zinc-950" : "border-transparent text-gray-400 hover:text-gray-600"
                 }`}
               >
                 <Icon

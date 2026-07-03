@@ -11,7 +11,7 @@ export default function LegalPage() {
     <section className="shell py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">სამართლებრივი</p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">დისკლეიმერი</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">დისკლეიმერი</h1>
 
         <div className="mt-6 grid gap-5 text-sm leading-7 text-gray-600">
           <p>

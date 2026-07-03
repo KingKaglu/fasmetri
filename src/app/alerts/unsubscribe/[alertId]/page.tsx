@@ -12,7 +12,7 @@ export default async function AlertUnsubscribePage({ params }: { params: Promise
     <section className="shell py-10 sm:py-14">
       <div className="mx-auto max-w-2xl text-center">
         <p className="eyebrow">ფასის შეტყობინება</p>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">შეტყობინების გაუქმება</h1>
+        <h1 className="font-display mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">შეტყობინების გაუქმება</h1>
         <p className="mt-3 text-sm leading-6 text-gray-500">
           უსაფრთხოებისთვის შეიყვანე იგივე ელფოსტა, რომლითაც ფასის შეტყობინება დააყენე.
         </p>

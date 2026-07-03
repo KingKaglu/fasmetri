@@ -64,7 +64,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
             <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/80">
               <Flame className="size-3.5" /> დღის საუკეთესო ფასდაკლებები
             </p>
-            <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">აქციები</h1>
+            <h1 className="font-display mt-2 text-3xl font-bold text-white sm:text-4xl">აქციები</h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-white/70">
               აქ ჩანს შეთავაზებები, სადაც ფასის შედარებას რეალური აზრი აქვს: ტელეფონები, ლეპტოპები და მოთხოვნადი ტექნიკა.
             </p>

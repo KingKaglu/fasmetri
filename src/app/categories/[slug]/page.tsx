@@ -117,7 +117,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       {/* Page header */}
       <div className="mb-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
         <p className="eyebrow mb-1">კატეგორია</p>
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{category.nameKa}</h1>
+        <h1 className="font-display text-2xl font-bold text-gray-900 sm:text-3xl">{category.nameKa}</h1>
         <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
           <span><span className="font-semibold text-gray-900">{totalProductCount.toLocaleString()}</span> {hasExtraFilters ? "პროდუქტი ფილტრებით" : "პროდუქტი"}</span>
           <span className="text-gray-300">·</span>

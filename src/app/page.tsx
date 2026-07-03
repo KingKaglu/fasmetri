@@ -90,45 +90,38 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero */}
-      <section className="shell pt-5 pb-6 sm:pt-7 sm:pb-8">
-        <div className="hero-frame overflow-hidden">
-          <div className="relative z-10 grid gap-6 p-5 sm:p-8 lg:grid-cols-[1fr_auto] lg:gap-12 lg:p-10">
+      {/* Hero — broadsheet front page: full-bleed ink band */}
+      <section className="hero-frame overflow-hidden !rounded-none">
+        <div className="shell relative z-10">
+          <div className="grid gap-6 py-8 sm:py-10 lg:grid-cols-[1fr_auto] lg:gap-12 lg:py-12">
             {/* Left: copy + search */}
-            <div className="flex min-w-0 flex-col justify-center py-2">
-              {/* Brand badge */}
-              <div className="mb-5">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3.5 backdrop-blur-sm">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#ffffff]">
-                    <svg viewBox="0 0 32 28" className="size-4" fill="none" aria-hidden="true">
-                      <path d="M8.63 22.17 A9 9 0 1 1 23.37 22.17" stroke="#0a0a0a" strokeWidth="2.7" strokeLinecap="round" />
-                      <path d="M16 17 L10.9 21.3" stroke="#0a0a0a" strokeWidth="2.7" strokeLinecap="round" opacity="0.45" />
-                      <circle cx="16" cy="17" r="2.4" fill="#0a0a0a" />
-                    </svg>
-                  </span>
-                  <span className="text-[13px] font-bold text-white">ფასმეტრი</span>
-                  <span className="hidden text-white/40 sm:inline">·</span>
-                  <span className="hidden text-[13px] font-medium text-white/70 sm:inline">ფასების შედარების პლატფორმა</span>
-                </span>
+            <div className="flex min-w-0 flex-col justify-center">
+              {/* Kicker — dateline */}
+              <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-white/20 pb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white/60">
+                <span className="text-white">ფასმეტრი</span>
+                <span aria-hidden className="text-white/30">/</span>
+                <span>ფასების ინდექსი ქართულ მაღაზიებში</span>
+                <span aria-hidden className="hidden text-white/30 sm:inline">/</span>
+                <span className="hidden sm:inline" suppressHydrationWarning>{georgianDateline()}</span>
               </div>
 
-              <h1 className="text-3xl font-bold leading-[1.12] text-white sm:text-4xl lg:text-5xl">
+              <h1 className="font-display text-4xl font-bold leading-[1.08] text-white sm:text-5xl lg:text-6xl">
                 შეადარე <span className="hero-highlight">ფასები</span> ქართულ მაღაზიებში
               </h1>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-white/65 sm:text-base">
+              <p className="mt-4 max-w-lg text-sm leading-6 text-white/65 sm:text-base">
                 ფასმეტრი აერთიანებს ქართულ ონლაინ მაღაზიებს ერთ კატალოგში — სწრაფად ნახე სად არის საუკეთესო ფასი.
               </p>
 
-              {/* Category filter tabs */}
-              <div className="mt-5 flex min-w-0 flex-wrap gap-2">
+              {/* Category index — underlined newspaper tabs */}
+              <div className="mt-6 flex min-w-0 flex-wrap gap-x-5 gap-y-2">
                 {heroTabs.map(({ href, label, active }) => (
                   <Link
                     key={href}
                     href={href}
                     className={
                       active
-                        ? "inline-flex shrink-0 items-center rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-[var(--brand)] shadow-sm"
-                        : "inline-flex shrink-0 items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[13px] font-medium text-white/85 hover:bg-white/20 hover:text-white"
+                        ? "shrink-0 border-b-2 border-white pb-1 text-[13px] font-bold uppercase tracking-[0.08em] text-white"
+                        : "shrink-0 border-b-2 border-transparent pb-1 text-[13px] font-medium uppercase tracking-[0.08em] text-white/60 hover:border-white/40 hover:text-white"
                     }
                   >
                     {label}
@@ -136,17 +129,15 @@ export default async function Home() {
                 ))}
               </div>
 
-              <div className="mt-5 max-w-xl">
+              <div className="mt-6 max-w-xl">
                 <SearchBar large />
               </div>
 
-              {/* Stats panel */}
-              <div className="mt-6 max-w-xl">
-                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/15 bg-white/10 p-2 backdrop-blur-sm sm:gap-3 sm:p-3">
-                  <HeroStat label="მაღაზია" value={stats.shops} />
-                  <HeroStat label="პროდუქტი" value={stats.products} />
-                  <HeroStat label="აქტიური აქცია" value={stats.deals} />
-                </div>
+              {/* Stats — ruled columns, financial-paper style */}
+              <div className="mt-8 flex max-w-xl gap-6 sm:gap-10">
+                <HeroStat label="მაღაზია" value={stats.shops} />
+                <HeroStat label="პროდუქტი" value={stats.products} />
+                <HeroStat label="აქტიური აქცია" value={stats.deals} />
               </div>
 
               {/* Mobile-only top-deals strip — instant tappable discovery without search */}
@@ -264,8 +255,8 @@ export default async function Home() {
       {priceChanges.length > 0 && (
         <section className="shell pt-8 pb-4">
           <SectionBar eyebrow="ფასების მონიტორინგი" title="ახლახანს განახლებული ფასები" href="/deals" action="ყველა აქცია" />
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-            <ul className="divide-y divide-gray-100">
+          <div className="wire-table overflow-hidden">
+            <ul>
               {priceChanges.map((change) => (
                 <PriceChangeRow key={change.offerId} change={change} />
               ))}
@@ -291,7 +282,7 @@ export default async function Home() {
             <Link
               key={brand}
               href={`/search?q=${encodeURIComponent(brand)}`}
-              className="flex h-16 items-center justify-center rounded-2xl border border-[var(--line-strong)] bg-white text-sm font-extrabold tracking-tight text-[var(--brand)] shadow-[var(--shadow-card)] transition-colors hover:border-zinc-900 hover:bg-zinc-950 hover:text-white"
+              className="flex h-16 items-center justify-center border border-[var(--line-strong)] bg-white text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand)] transition-colors hover:border-zinc-900 hover:bg-zinc-950 hover:text-white"
             >
               {brand}
             </Link>
@@ -466,20 +457,23 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
     <li>
       <Link
         href={`/products/${change.productSlug}`}
-        className="flex min-w-0 items-center gap-3 px-3 py-2.5 hover:bg-gray-50 sm:px-4"
+        className="wire-row flex min-w-0 items-center gap-3 px-3 py-2.5 hover:bg-gray-50 sm:px-4"
       >
-        <span className="grid size-8 shrink-0 place-items-center rounded-md border border-gray-200 bg-white text-[10px] font-semibold text-gray-500">
-          {change.shopName.slice(0, 1)}
+        <span
+          className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-zinc-950" : "text-gray-400"}`}
+          aria-hidden
+        >
+          {dropped ? "▼" : "▲"}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-gray-900">{change.productName}</span>
-          <span className="block truncate text-[11px] text-gray-400">
+          <span className="block truncate text-[11px] uppercase tracking-[0.06em] text-gray-400">
             {change.shopName} · {formatRelativeTime(change.changedAt)}
           </span>
         </span>
         {delta > 0 && (
           <span
-            className={`hidden shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold sm:inline-flex ${
+            className={`hidden shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-bold tabular-nums sm:inline-flex ${
               dropped ? "bg-zinc-950 text-white" : "border border-zinc-200 bg-white text-zinc-500"
             }`}
           >
@@ -489,9 +483,9 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
         )}
         <span className="shrink-0 text-right">
           {change.previousPrice != null && (
-            <span className="block text-[11px] text-gray-400 line-through">{formatGel(change.previousPrice)}</span>
+            <span className="block text-[11px] tabular-nums text-gray-400 line-through">{formatGel(change.previousPrice)}</span>
           )}
-          <span className="block text-sm font-bold text-gray-900">
+          <span className="block text-sm font-bold tabular-nums text-gray-900">
             {formatGel(change.currentPrice)}
           </span>
         </span>
@@ -502,11 +496,19 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
 
 function HeroStat({ label, value }: { label: string; value: number | null | undefined }) {
   return (
-    <div className="rounded-xl bg-white/5 px-2 py-2 text-center sm:py-2.5">
-      <div className="text-xl font-black tabular-nums text-white sm:text-2xl">{(value ?? 0).toLocaleString()}</div>
-      <div className="mt-0.5 text-[11px] font-medium text-white/55">{label}</div>
+    <div className="stat-rule min-w-0">
+      <div className="font-display text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
+        {(value ?? 0).toLocaleString()}
+      </div>
+      <div className="mt-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-white/50">{label}</div>
     </div>
   );
+}
+
+// Server-rendered dateline for the hero kicker (ka-GE long date). The page
+// revalidates every 10 minutes, so the date is always current enough.
+function georgianDateline() {
+  return new Intl.DateTimeFormat("ka-GE", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
 }
 
 function SectionBar({
@@ -523,23 +525,20 @@ function SectionBar({
   dealCount?: number | null;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-3 border-b border-[var(--line)] pb-2.5">
-      <div className="flex min-w-0 items-center gap-2.5">
-        <span className="hidden h-7 w-1 shrink-0 rounded-full bg-[var(--brand)] sm:block" />
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">{eyebrow}</p>
-          <h2 className="mt-0.5 truncate text-lg font-extrabold tracking-tight text-[var(--brand)] sm:text-xl">{title}</h2>
+    <div className="masthead mb-5">
+      <div className="masthead-row">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+          <p className="masthead-kicker">{eyebrow}</p>
+          <h2 className="masthead-title min-w-0 truncate">{title}</h2>
+          {dealCount != null && (
+            <span className="hidden text-xs font-semibold tabular-nums text-[var(--muted)] sm:inline">
+              · {dealCount.toLocaleString()} აქცია
+            </span>
+          )}
         </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {dealCount != null && (
-          <span className="hidden rounded-full border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs font-medium text-[var(--muted)] sm:inline">
-            {dealCount.toLocaleString()} აქცია
-          </span>
-        )}
-        <Link href={href} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--brand)] underline-offset-4 hover:underline">
+        <Link href={href} className="masthead-link inline-flex items-center gap-1">
           {action}
-          <ArrowRight className="size-3.5" />
+          <ArrowRight className="size-3" />
         </Link>
       </div>
     </div>
@@ -557,11 +556,9 @@ function TrustItem({
 }) {
   return (
     <div className="flex items-start gap-3 px-4 py-4 sm:px-5">
-      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-zinc-950 text-white">
-        <Icon className="size-4" />
-      </span>
+      <Icon className="mt-0.5 size-4 shrink-0 text-zinc-950" strokeWidth={2.25} />
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        <p className="text-[12.5px] font-bold uppercase tracking-[0.05em] text-gray-900">{title}</p>
         <p className="mt-0.5 text-xs leading-5 text-gray-500">{description}</p>
       </div>
     </div>
@@ -578,7 +575,7 @@ function HeroMobileDealCard({ product }: { product: ProductView }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="w-[150px] shrink-0 snap-start overflow-hidden rounded-xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+      className="w-[150px] shrink-0 snap-start overflow-hidden border border-white/90 bg-white"
     >
       <div className="relative border-b border-gray-100 bg-gray-50">
         <ProductImage src={image} alt={product.name} categorySlug={product.category?.slug} shopName={offer.shop.name} />
@@ -622,17 +619,15 @@ function HeroPromo({
   return (
     <Link
       href={href}
-      className="card-hover group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[var(--shadow-card)]"
+      className="card-hover group relative flex items-center gap-4 border border-white/90 bg-white p-4"
     >
-      {/* soft corner glow for depth */}
-      <span className="pointer-events-none absolute -right-8 -top-10 size-24 rounded-full bg-[var(--surface-soft)] opacity-80 blur-2xl" />
-      {/* dark icon tile — premium ink treatment */}
-      <span className="relative grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#27272a] to-[#0a0a0a] text-white shadow-[0_8px_20px_rgba(10,10,10,0.25)] ring-1 ring-black/5">
+      {/* icon block — framed print vignette */}
+      <span className="grid size-14 shrink-0 place-items-center border border-zinc-900 bg-zinc-950 text-white">
         {icon}
       </span>
-      <div className="relative min-w-0 flex-1">
+      <div className="min-w-0 flex-1">
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+          className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
             badgeTone === "save"
               ? "border border-zinc-900 bg-white text-zinc-900"
               : "bg-zinc-950 text-white"
@@ -640,13 +635,10 @@ function HeroPromo({
         >
           {badge}
         </span>
-        <p className="mt-1.5 truncate text-[15px] font-extrabold text-[var(--brand)]">{title}</p>
+        <p className="font-display mt-1.5 truncate text-[16px] font-bold text-[var(--brand)]">{title}</p>
         <p className="truncate text-xs font-medium text-[var(--muted)]">{subtitle}</p>
       </div>
-      {/* arrow cue — fills ink on hover */}
-      <span className="relative grid size-7 shrink-0 place-items-center rounded-full bg-[var(--surface-soft)] text-[var(--muted-strong)] transition-colors duration-200 ease-in-out group-hover:bg-[var(--brand)] group-hover:text-white">
-        <ArrowUpRight className="size-4 transition-transform duration-200 ease-in-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-      </span>
+      <ArrowUpRight className="size-4 shrink-0 text-[var(--muted)] transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-zinc-950" />
     </Link>
   );
 }

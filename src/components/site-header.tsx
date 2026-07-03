@@ -28,18 +28,19 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 site-header">
-      {/* Announcement bar — dark ink top strip */}
+      {/* Announcement bar — dark ink top strip (newspaper folio line) */}
       <div className="hidden bg-[var(--ink-surface)] md:block">
         <div className="shell flex h-[2.375rem] items-center justify-between">
-          <span className="text-[12.5px] font-medium text-white/[0.78]">
+          <span className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-white/[0.72]">
             ფასმეტრი აერთიანებს ქართულ მაღაზიებს — ყიდვამდე საბოლოო ფასი მაღაზიაში გადაამოწმე
           </span>
-          <div className="flex items-center gap-4 text-[12.5px]">
-            <Link href="/deals" className="inline-flex items-center gap-1 font-bold text-white hover:text-white/70">
+          <div className="flex shrink-0 items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.1em]">
+            <Link href="/deals" className="inline-flex items-center gap-1 text-white hover:text-white/70">
               <BadgePercent className="size-3" />
               დღის ფასდაკლებები
             </Link>
-            <Link href="/contact" className="font-medium text-white/[0.78] hover:text-white">
+            <span aria-hidden className="h-3 w-px bg-white/25" />
+            <Link href="/contact" className="text-white/[0.72] hover:text-white">
               კონტაქტი
             </Link>
           </div>
@@ -94,32 +95,34 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {/* Category nav row (retail) — public categories + deals shortcut */}
+      {/* Category nav row — newspaper section index with rule dividers */}
       <div className="hidden border-t border-[var(--line)] bg-white md:block">
-        <div className="shell flex h-14 items-center gap-1">
-          {categoryNav.map(({ href, label, icon: Icon }) => {
+        <div className="shell flex h-12 items-stretch">
+          {categoryNav.map(({ href, label, icon: Icon }, index) => {
             const active = pathname.startsWith(href);
             return (
               <Link
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex items-center gap-2 rounded-[10px] px-3.5 py-2 text-[13.5px] font-bold ${
+                className={`inline-flex items-center gap-2 border-b-2 px-4 text-[12px] font-bold uppercase tracking-[0.08em] transition-colors ${
+                  index > 0 ? "border-l border-l-[var(--line)]" : ""
+                } ${
                   active
-                    ? "bg-[var(--accent-soft)] text-[var(--accent-strong)]"
-                    : "text-[var(--brand)] hover:bg-[var(--surface-soft)]"
+                    ? "border-b-zinc-950 text-zinc-950"
+                    : "border-b-transparent text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
                 }`}
               >
-                <Icon className="size-4" />
+                <Icon className="size-3.5" />
                 {label}
               </Link>
             );
           })}
           <Link
             href="/deals"
-            className="ml-auto inline-flex items-center gap-1.5 rounded-[10px] px-3 py-2 text-[13.5px] font-bold text-[var(--brand)] hover:bg-[var(--surface-soft)]"
+            className="ml-auto inline-flex items-center gap-1.5 border-b-2 border-b-transparent border-l border-l-[var(--line)] px-4 text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
           >
-            <Flame className="size-4" />
+            <Flame className="size-3.5" />
             აქციები
           </Link>
         </div>

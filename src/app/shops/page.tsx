@@ -19,7 +19,7 @@ export default async function ShopsPage() {
     <section className="shell py-7 sm:py-10">
       <div className="mb-6 border-b border-gray-100 pb-4">
         <p className="eyebrow inline-flex items-center gap-1.5"><Store className="size-3.5" /> ქართული მაღაზიები</p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">მაღაზიები</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">მაღაზიები</h1>
         <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500">
           ამჟამად ფასმეტრი ადარებს {activeShops.length.toLocaleString()} აქტიურ მაღაზიას ({stats.products.toLocaleString()} პროდუქტი). ახალი მაღაზიები ეტაპობრივად ემატება.
         </p>

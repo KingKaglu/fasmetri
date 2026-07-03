@@ -61,15 +61,21 @@
   /* hero is now ink black with subtle grain (white text on top) */
   --hero-bg: radial-gradient(120% 140% at 80% 0%, #1c1c1f 0%, #0a0a0a 60%, #000000 100%);
 
-  --radius-card: 1rem;       /* 16px — cards, banners */
-  --radius-control: 0.75rem; /* 12px — buttons, inputs */
-  --radius-chip: 999px;
+  /* Broadsheet geometry — print blocks, not app pills */
+  --radius-card: 2px;
+  --radius-control: 2px;
+  --radius-chip: 2px;
 
-  --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.05), 0 6px 18px rgba(10, 10, 10, 0.06);
-  --shadow-card-hover: 0 20px 50px rgba(10, 10, 10, 0.14);
-  --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.06);
-  --shadow-md: 0 6px 18px rgba(10, 10, 10, 0.08);
-  --shadow-lg: 0 20px 50px rgba(10, 10, 10, 0.14);
+  /* Print shadows: resting cards sit flat on hairlines; hover lifts the
+     "sheet" with a solid offset like stacked paper. */
+  --shadow-card: none;
+  --shadow-card-hover: 6px 6px 0 rgba(10, 10, 10, 0.9);
+  --shadow-sm: none;
+  --shadow-md: 0 1px 0 rgba(10, 10, 10, 0.08);
+  --shadow-lg: 8px 8px 0 rgba(10, 10, 10, 0.9);
+
+  /* Display face — Georgian serif for mastheads and headlines */
+  --font-display: "Noto Serif Georgian", "Noto Sans Georgian", Georgia, serif;
 }
 
 @theme inline {
@@ -119,6 +125,28 @@ textarea {
 :is(a, button, input, select, textarea):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* ─── Broadsheet compat layer ─────────────────────────────
+   Components written against Tailwind's literal radius/shadow
+   utilities get flattened to the print geometry in one place,
+   so every page — including ones not hand-edited — drops the
+   generic rounded-card look. Circles (.rounded-full) survive:
+   avatar dots, shop marks, toggles stay round. */
+
+.rounded, .rounded-sm, .rounded-md, .rounded-lg,
+.rounded-xl, .rounded-2xl, .rounded-3xl {
+  border-radius: 2px !important;
+}
+.rounded-t-2xl { border-radius: 2px 2px 0 0 !important; }
+.rounded-b-2xl { border-radius: 0 0 2px 2px !important; }
+.rounded-\[10px\] { border-radius: 2px !important; }
+.shadow-sm { box-shadow: none !important; }
+
+/* Display serif for headlines / mastheads */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 /* ─── Layout ─────────────────────────────────────────── */
@@ -206,11 +234,11 @@ textarea {
 /* ─── Card hover (one shared motion language) ────────── */
 
 .card-hover {
-  transition: transform 240ms ease-in-out, box-shadow 240ms ease-in-out, border-color 240ms ease-in-out;
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out, border-color 160ms ease-out;
 }
 .card-hover:hover {
-  transform: translateY(-3px);
-  border-color: var(--line-strong);
+  transform: translate(-2px, -2px);
+  border-color: var(--c-950);
   box-shadow: var(--shadow-card-hover);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -259,7 +287,6 @@ textarea {
 }
 .btn-accent:hover {
   background: var(--accent-strong);
-  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.25);
 }
 
 /* ─── Chips / Badges ─────────────────────────────────── */
@@ -366,9 +393,9 @@ textarea {
   position: relative;
   color: var(--c-950);
   background: #ffffff;
-  border-radius: 7px;
-  padding: 0.02em 0.2em;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  border-radius: 2px;
+  padding: 0.02em 0.18em;
+  box-shadow: 5px 5px 0 rgba(255, 255, 255, 0.22);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -528,4 +555,92 @@ textarea {
 .section-header-link:hover {
   color: var(--accent-strong);
   text-decoration: underline;
+}
+
+/* ─── Masthead (newspaper section header) ─────────────────
+   Thick ink rule + thin hairline under it, serif title.
+   Works on light bands and inside .section-ink (rules follow
+   currentColor via --masthead-rule). */
+
+.masthead {
+  --masthead-rule: var(--c-950);
+  border-top: 3px solid var(--masthead-rule);
+  padding-top: 0.15rem;
+  position: relative;
+}
+.masthead::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: var(--masthead-rule);
+  margin-top: 0.15rem;
+  margin-bottom: 0.9rem;
+  opacity: 0.35;
+}
+.section-ink .masthead {
+  --masthead-rule: #ffffff;
+}
+
+.masthead-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.55rem;
+}
+
+.masthead-title {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--brand);
+}
+@media (min-width: 640px) {
+  .masthead-title {
+    font-size: 1.625rem;
+  }
+}
+
+.masthead-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.masthead-link {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brand);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line-strong);
+  padding-bottom: 0.1rem;
+}
+.masthead-link:hover {
+  border-bottom-color: var(--c-950);
+}
+
+/* ─── Ticker table (price wire) ───────────────────────── */
+
+.wire-table {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.wire-row {
+  font-variant-numeric: tabular-nums;
+}
+.wire-row + .wire-row {
+  border-top: 1px solid var(--line);
+}
+
+/* Stat column with a left rule — hero "financial paper" stats */
+.stat-rule {
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  padding-left: 0.9rem;
 }

@@ -13,7 +13,7 @@ export default function AboutPage() {
     <section className="shell py-8 sm:py-12">
       <div className="max-w-3xl border-b border-gray-100 pb-6">
         <p className="eyebrow">ფასმეტრი</p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">ჩვენ შესახებ</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">ჩვენ შესახებ</h1>
         <p className="mt-3 text-base leading-7 text-gray-600">
           ფასმეტრი გეხმარება ქართულ ონლაინ მაღაზიებში ფასების, აქციებისა და შეთავაზებების შედარებაში.
           მიზანი — პროდუქტის ძებნა უფრო სწრაფი, მარტივი და გამჭვირვალე.

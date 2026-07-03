@@ -14,7 +14,7 @@ export default function ContactPage() {
       <div className="grid gap-7 lg:grid-cols-[minmax(0,.82fr)_minmax(24rem,1fr)]">
         <div className="max-w-xl">
           <p className="eyebrow">კავშირი</p>
-          <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">კონტაქტი</h1>
+          <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">კონტაქტი</h1>
           <p className="mt-3 text-base leading-7 text-gray-600">
             მოგვწერე მაღაზიის დამატების, ფასის შესწორების ან თანამშრომლობის საკითხზე.
             შეტყობინებას მიუთითე პროდუქტის ან მაღაზიის ბმულიც, თუ გაქვს.
