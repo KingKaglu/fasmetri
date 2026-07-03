@@ -219,8 +219,8 @@ export default async function Home() {
             <div className="lg:col-span-4">
               <FeaturedDeal product={discounts[0]} />
             </div>
-            <div className="lg:col-span-8">
-              <div className="product-grid-dense grid">
+            <div className="min-w-0 lg:col-span-8">
+              <div className="product-grid-dense product-rail-mobile grid min-w-0">
                 {discounts.slice(1, 6).map((product, index) => (
                   <ProductCard key={product.id} product={product} deal imagePriority={index < 2} />
                 ))}
@@ -246,6 +246,7 @@ export default async function Home() {
           <ProductGrid
             products={gamingProducts}
             density="compact"
+            mobileRail
             resetHref="/categories/gaming"
             priorityImages={0}
             emptyTitle="კონსოლები მალე დაემატება"
@@ -273,7 +274,7 @@ export default async function Home() {
       <section className="section-mist mt-8 border-y border-[var(--line)]">
         <div className="shell pt-8 pb-8">
         <SectionBar eyebrow="ხშირად შედარებული" title="პოპულარული პროდუქტები" href="/search?sort=priority" action="ყველა" />
-        <ProductGrid products={trending} density="compact" resetHref="/search" priorityImages={0} emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
+        <ProductGrid products={trending} density="compact" mobileRail resetHref="/search" priorityImages={0} emptyTitle="პოპულარული პროდუქტები მალე დაემატება" emptyDescription="ახალი შეთავაზებები განახლებისთანავე გამოჩნდება." />
         </div>
       </section>
 
