@@ -47,13 +47,22 @@ const nextConfig: NextConfig = {
     qualities: [68, 75],
     minimumCacheTTL: 86400,
     remotePatterns: [
-      { protocol: "https", hostname: "s3.zoommer.ge" },
+      // Active stores: allow the apex plus any image-CDN subdomain (EE serves
+      // from static.ee.ge, Zoommer from s3.zoommer.ge). Without the subdomain
+      // wildcard next/image rejects the host with a 400 and the image breaks.
       { protocol: "https", hostname: "zoommer.ge" },
-      { protocol: "https", hostname: "alta.ge" },
+      { protocol: "https", hostname: "**.zoommer.ge" },
       { protocol: "https", hostname: "ee.ge" },
-      { protocol: "https", hostname: "veli.store" },
+      { protocol: "https", hostname: "**.ee.ge" },
       { protocol: "https", hostname: "pcshop.ge" },
+      { protocol: "https", hostname: "**.pcshop.ge" },
+      // Retained for future stores / legacy offers.
+      { protocol: "https", hostname: "alta.ge" },
+      { protocol: "https", hostname: "**.alta.ge" },
+      { protocol: "https", hostname: "veli.store" },
+      { protocol: "https", hostname: "**.veli.store" },
       { protocol: "https", hostname: "extra.ge" },
+      { protocol: "https", hostname: "**.extra.ge" },
     ],
   },
 };
