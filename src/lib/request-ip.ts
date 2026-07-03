@@ -4,14 +4,29 @@ export function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+// Resolve the caller's IP, preferring headers the hosting platform sets itself
+// over the client-supplied `x-forwarded-for`. A client can send an arbitrary
+// `x-forwarded-for` (e.g. to rotate through fake IPs and defeat a per-IP rate
+// limit), but `x-vercel-forwarded-for` / `x-real-ip` are written by the Vercel
+// edge from the real TCP peer and cannot be forged by the request body/headers.
+// Falls back to the first `x-forwarded-for` hop only when no trusted header is
+// present (local dev / non-Vercel hosts), preserving prior behaviour there.
 export function clientIp(request: Request) {
+  const vercelForwarded = request.headers.get("x-vercel-forwarded-for");
+  if (vercelForwarded) {
+    const first = vercelForwarded.split(",")[0]?.trim();
+    if (first) return stripIpPort(first);
+  }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp?.trim()) return stripIpPort(realIp.trim());
+
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
     if (first) return stripIpPort(first);
   }
-  const realIp = request.headers.get("x-real-ip");
-  return realIp ? stripIpPort(realIp.trim()) : null;
+  return null;
 }
 
 export function stripIpPort(value: string) {
