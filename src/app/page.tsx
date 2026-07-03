@@ -13,6 +13,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { getCatalogStats, listPublicCategories, listPublicProducts, listPublicShops, listRecentPriceChanges, RecentPriceChange } from "@/lib/catalog";
+import { getPriceIndex, PriceIndex } from "@/lib/priceIndex";
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel, formatRelativeTime } from "@/lib/format";
 import { CategoryCard } from "@/components/category-card";
@@ -58,7 +59,7 @@ type HomeProduct = Awaited<ReturnType<typeof listPublicProducts>>[number];
 export default async function Home() {
   // One pool per public category so the front page always mixes phones and
   // laptops instead of whatever a single global sort happens to surface.
-  const [categoryDeals, categoryPopular, shops, stats, categories, priceChanges, gamingPool] = await Promise.all([
+  const [categoryDeals, categoryPopular, shops, stats, categories, priceChanges, gamingPool, priceIndex] = await Promise.all([
     Promise.all(
       PRIORITY_CATEGORIES.map((category) =>
         listPublicProducts({ category, dealsOnly: true, sort: "discount", pageSize: 60 }),
@@ -72,6 +73,7 @@ export default async function Home() {
     listPublicCategories(),
     listRecentPriceChanges(),
     listPublicProducts({ category: "gaming", sort: "priority", pageSize: 12 }),
+    getPriceIndex(),
   ]);
   // Lead the PS5/console row with the products compared across the most shops
   // (the PlayStation 5 console itself), so the comparison is the first thing seen.
@@ -256,10 +258,11 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Recently updated prices */}
+      {/* Recently updated prices + market index ticker */}
       {priceChanges.length > 0 && (
         <section className="shell pt-8 pb-4">
-          <SectionBar eyebrow="ფასების მონიტორინგი" title="ახლახანს განახლებული ფასები" href="/deals" action="ყველა აქცია" />
+          <SectionBar eyebrow="ფასების მონიტორინგი" title="ახლახანს განახლებული ფასები" href="/price-index" action="ფასების ინდექსი" />
+          <IndexTicker index={priceIndex} />
           <div className="wire-table overflow-hidden">
             <ul>
               {priceChanges.map((change) => (
@@ -452,6 +455,43 @@ function normalizeHomeKey(value: unknown) {
     .replace(/[^a-z0-9\u10a0-\u10ff\u1c90-\u1cbf]+/gi, " ")
     .trim()
     .replace(/\s+/g, " ");
+}
+
+// Market ticker — compact financial-page strip fed by the Price Index. Hidden
+// until enough price history has accrued for the averages to mean anything.
+function IndexTicker({ index }: { index: PriceIndex }) {
+  if (index.overall.sampleSize < 10) return null;
+  const cells = [{ label: "ბაზარი", changePct: index.overall.changePct }, ...index.categories.map((category) => ({ label: category.nameKa, changePct: category.changePct }))];
+
+  return (
+    <Link
+      href="/price-index"
+      className="mb-3 flex items-stretch divide-x divide-[var(--line)] overflow-x-auto border border-[var(--line-strong)] bg-white [-ms-overflow-style:none] [scrollbar-width:none] hover:border-zinc-900"
+    >
+      {cells.map((cell) => {
+        const dropped = cell.changePct < 0;
+        return (
+          <span key={cell.label} className="flex shrink-0 items-baseline gap-2 px-3.5 py-2.5 sm:px-4">
+            <span className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-gray-400">{cell.label}</span>
+            <span className={`text-[13px] font-black tabular-nums ${dropped ? "text-zinc-950" : "text-gray-500"}`}>
+              {cell.changePct < 0 ? "▼" : cell.changePct > 0 ? "▲" : "•"} {formatTickerPct(cell.changePct)}
+            </span>
+          </span>
+        );
+      })}
+      <span className="ml-auto hidden shrink-0 items-center gap-1 px-4 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--brand)] sm:flex">
+        7 დღე
+        <ArrowRight className="size-3" />
+      </span>
+    </Link>
+  );
+}
+
+function formatTickerPct(value: number) {
+  const abs = Math.abs(value).toFixed(1);
+  if (value > 0) return `+${abs}%`;
+  if (value < 0) return `-${abs}%`;
+  return "0%";
 }
 
 function PriceChangeRow({ change }: { change: RecentPriceChange }) {

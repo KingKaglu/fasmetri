@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BadgePercent, Flame, Gamepad2, Grid3X3, Heart, Laptop, Menu, Search, Smartphone, Store, X } from "lucide-react";
+import { BadgePercent, Flame, Gamepad2, Grid3X3, Heart, Laptop, LineChart, Menu, Search, Smartphone, Store, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -121,8 +121,20 @@ export function SiteHeader() {
             );
           })}
           <Link
+            href="/price-index"
+            aria-current={pathname.startsWith("/price-index") ? "page" : undefined}
+            className={`ml-auto inline-flex items-center gap-1.5 border-b-2 border-l border-l-[var(--line)] px-4 text-[12px] font-bold uppercase tracking-[0.08em] transition-colors ${
+              pathname.startsWith("/price-index")
+                ? "border-b-zinc-950 text-zinc-950"
+                : "border-b-transparent text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
+            }`}
+          >
+            <LineChart className="size-3.5" />
+            ფასების ინდექსი
+          </Link>
+          <Link
             href="/deals"
-            className="ml-auto inline-flex items-center gap-1.5 border-b-2 border-b-transparent border-l border-l-[var(--line)] px-4 text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
+            className="inline-flex items-center gap-1.5 border-b-2 border-b-transparent border-l border-l-[var(--line)] px-4 text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
           >
             <Flame className="size-3.5" />
             აქციები
@@ -141,6 +153,7 @@ export function SiteHeader() {
           {navLinks.map((link) => (
             <NavLink key={link.href} href={link.href} label={link.label} pathname={pathname} mobile onClick={() => setMobileOpen(false)} />
           ))}
+          <NavLink href="/price-index" label="ფასების ინდექსი" pathname={pathname} mobile onClick={() => setMobileOpen(false)} />
           <div className="mt-2 grid grid-cols-2 gap-2 border-t border-gray-100 pt-2">
             <Link href="/search" onClick={() => setMobileOpen(false)} className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-700">
               <Search className="size-3.5" /> კატალოგი
