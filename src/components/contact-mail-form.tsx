@@ -52,7 +52,7 @@ export function ContactMailForm() {
     ]
       .filter((line): line is string => line !== null)
       .join("\n");
-    window.location.href = `mailto:hello@fasmetri.ge?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:Fasmetri@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setSubmitted(true);
   }
 
@@ -100,7 +100,7 @@ export function ContactMailForm() {
       {submitted ? (
         <p className="mt-3 flex items-start gap-1.5 rounded-md border border-zinc-900 bg-zinc-950 px-3 py-2 text-xs font-medium leading-5 text-white">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
-          წერილი მომზადდა შენს ელფოსტის აპში — გადახედე და გააგზავნე. თუ აპი არ გაიხსნა, მოგვწერე პირდაპირ: hello@fasmetri.ge
+          წერილი მომზადდა შენს ელფოსტის აპში — გადახედე და გააგზავნე. თუ აპი არ გაიხსნა, მოგვწერე პირდაპირ: Fasmetri@gmail.com
         </p>
       ) : null}
       {!submitted && Object.keys(errors).length > 0 ? (

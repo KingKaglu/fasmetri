@@ -59,7 +59,7 @@ type JsonLdListItem = {
   };
 };
 
-const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
+const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+Fasmetri@gmail.com)";
 const CATEGORY_API_IDS: Partial<Record<FasmetriCategorySlug, number>> = {
   mobiles: 855,
   laptops: 531,

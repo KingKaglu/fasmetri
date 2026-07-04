@@ -38,7 +38,7 @@ type EliteLdProduct = {
   };
 };
 
-const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)";
+const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+Fasmetri@gmail.com)";
 const SITEMAP_BASE = "https://ee.ge/sitemap/products/";
 const LIVE_CATEGORY_URLS: Partial<Record<FasmetriCategorySlug, string>> = {
   mobiles: "https://ee.ge/en/mobile-phone-c377t",

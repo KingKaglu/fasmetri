@@ -24,14 +24,12 @@ export default function ContactPage() {
             მაღაზიის მონაცემების შესწორება ან საჯარო კატალოგიდან ამოღება (takedown), მოგვწერე — დროულად
             დავამუშავებთ მოთხოვნას.
           </p>
-          {/* TODO: point this at a real, monitored Fasmetri inbox once the
-              fasmetri.ge (or chosen domain) mailbox is provisioned. */}
           <a
-            href="mailto:hello@fasmetri.ge"
+            href="mailto:Fasmetri@gmail.com"
             className="mt-5 inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:border-gray-300 hover:bg-gray-50"
           >
             <Mail className="size-4 text-gray-400" />
-            hello@fasmetri.ge
+            Fasmetri@gmail.com
           </a>
           <p className="mt-3 text-xs leading-5 text-gray-500">
             ფორმა წერილს შენს ელფოსტის აპში ამზადებს. გაგზავნამდე ტექსტის გადახედვა შეგიძლია.
