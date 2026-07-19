@@ -48,7 +48,7 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
           <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-400">
             ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
           </p>
-          {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} className="mt-1 text-xs" /> : null}
+          {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} warnStale className="mt-1 text-xs" /> : null}
         </div>
         <p className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
           საბოლოო ფასი მაღაზიაში გადაამოწმე

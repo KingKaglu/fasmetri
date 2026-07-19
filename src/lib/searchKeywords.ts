@@ -9,7 +9,13 @@ import { ProductView } from "@/lib/catalog-types";
 
 type SearchPlan = {
   normalizedQuery: string;
+  // One entry per query token: the primary (Latin-leaning) form, used for
+  // phrase/title bonuses against the mostly-Latin catalog text.
   tokens: string[];
+  // All spellings of each token (primary + alias + transliteration + the
+  // original). A token matches when ANY variant matches; groups combine with
+  // AND like tokens always did.
+  groups: string[][];
 };
 
 export function normalizeSearchText(input?: string | null) {
@@ -44,9 +50,55 @@ function tokenize(value: string) {
 export function buildSearchPlan(query?: string | null): SearchPlan | null {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return null;
-  const tokens = [...new Set(tokenize(normalizedQuery).map(stemQueryToken).map(applyQueryTokenAlias))];
-  if (!tokens.length) return null;
-  return { normalizedQuery: tokens.join(" "), tokens };
+
+  const groups: string[][] = [];
+  const seen = new Set<string>();
+  for (const raw of tokenize(normalizedQuery)) {
+    const variants = expandQueryToken(stemQueryToken(raw));
+    const key = variants.join("|");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    groups.push(variants);
+  }
+  if (!groups.length) return null;
+
+  const tokens = groups.map((variants) => variants[0]);
+  return { normalizedQuery: tokens.join(" "), tokens, groups };
+}
+
+// A Georgian query token is searched under every plausible Latin spelling:
+// the curated alias (English orthography: "ვოჩ" → "watch"), the mechanical
+// transliteration ("ულტრა" → "ultra"), and the original itself (still needed
+// for Georgian category names). Latin tokens pass through unchanged.
+function expandQueryToken(token: string): string[] {
+  const variants: string[] = [];
+  const alias =
+    QUERY_TOKEN_ALIASES[token] ??
+    (token.endsWith("ებ") ? QUERY_TOKEN_ALIASES[token.slice(0, -2)] : undefined);
+  const latin = transliterateGeorgian(token);
+  if (alias) variants.push(alias);
+  if (latin && latin !== alias) variants.push(latin);
+  if (!variants.includes(token)) variants.push(token);
+  return variants;
+}
+
+// Mkhedruli → Latin, loanword-oriented (ფ → f, ქ → k), not the national
+// standard: catalog text is English product titles, so "ინფინიქს" should head
+// toward "infiniks"/"infinix", not "inpiniksi". Returns null for tokens
+// without Georgian letters.
+const GEORGIAN_LATIN: Record<string, string> = {
+  ა: "a", ბ: "b", გ: "g", დ: "d", ე: "e", ვ: "v", ზ: "z", თ: "t",
+  ი: "i", კ: "k", ლ: "l", მ: "m", ნ: "n", ო: "o", პ: "p", ჟ: "zh",
+  რ: "r", ს: "s", ტ: "t", უ: "u", ფ: "f", ქ: "k", ღ: "gh", ყ: "q",
+  შ: "sh", ჩ: "ch", ც: "ts", ძ: "dz", წ: "ts", ჭ: "ch", ხ: "kh",
+  ჯ: "j", ჰ: "h",
+};
+
+function transliterateGeorgian(token: string): string | null {
+  if (!/[Ⴀ-ჿ]/.test(token)) return null;
+  let out = "";
+  for (const ch of token) out += GEORGIAN_LATIN[ch] ?? ch;
+  return out === token ? null : out;
 }
 
 // Georgian phonetic spellings of common brands/product lines. Product titles
@@ -78,17 +130,38 @@ const QUERY_TOKEN_ALIASES: Record<string, string> = {
   "ვანფლას": "oneplus",
   "თინქფად": "thinkpad",
   "აიდიაფად": "ideapad",
+  // Consoles / gaming
+  "პლეისტეიშენ": "playstation",
+  "ფლეისტეიშენ": "playstation",
+  "პლეისთეიშენ": "playstation",
+  "ექსბოქს": "xbox",
+  "იქსბოქს": "xbox",
+  "სვიჩ": "switch",
+  "დუალსენს": "dualsense",
+  "კონტროლერ": "controller",
+  // Apple line
+  "აიპად": "ipad",
+  "აიპოდ": "ipod",
+  "ეარპოდს": "airpods",
+  "ეირპოდს": "airpods",
+  "ვოჩ": "watch",
+  "უოჩ": "watch",
+  "ეარ": "air",
+  "მაქს": "max",
+  // Phone brands the transliteration misses
+  "ოპო": "oppo",
+  "ტექნო": "tecno",
+  "ინფინიქს": "infinix",
+  "ბლექვიუ": "blackview",
+  // Laptop brands / lines
+  "ეიჩპ": "hp",
+  "ჰპ": "hp",
+  "გიგაბაიტ": "gigabyte",
+  "ზენბუქ": "zenbook",
+  "ვივობუქ": "vivobook",
+  "ასპაირ": "aspire",
+  "სერფეის": "surface",
 };
-
-function applyQueryTokenAlias(token: string) {
-  // Tokens arrive already stemmed of the nominative "-ი"; also try a stripped
-  // plural "-ებ" so "აიფონები" → "აიფონებ" → "აიფონ" resolves.
-  return (
-    QUERY_TOKEN_ALIASES[token] ??
-    (token.endsWith("ებ") ? QUERY_TOKEN_ALIASES[token.slice(0, -2)] : undefined) ??
-    token
-  );
-}
 
 // Georgian nouns carry a nominative "-ი" ending that product/category text may
 // inflect away ("ლეპტოპი" vs "ლეპტოპები"). Matching is prefix-based, so
@@ -98,10 +171,10 @@ function stemQueryToken(token: string) {
   return token;
 }
 
-// Terms handed to the SQL candidate query (catalog.searchWhere combines them
-// with AND, one `contains` per term).
-export function productSearchWhereTerms(query?: string | null) {
-  return buildSearchPlan(query)?.tokens ?? [];
+// Term groups handed to the SQL candidate query (catalog.searchWhere ANDs the
+// groups; within a group any spelling variant may `contains`-match).
+export function productSearchWhereTerms(query?: string | null): string[][] {
+  return buildSearchPlan(query)?.groups ?? [];
 }
 
 export function rankSearchResults(products: ProductView[], query?: string | null, sort?: string) {
@@ -137,12 +210,13 @@ export function scoreProductSearch(product: ProductView, queryOrPlan?: string | 
   );
   const restTokenSet = new Set(tokenize(restText));
 
-  // AND semantics: every query token must match somewhere on the product.
+  // AND semantics: every query token must match somewhere on the product
+  // (under any of its spelling variants).
   let titleMatches = 0;
-  for (const token of plan.tokens) {
-    const inTitle = tokenMatches(token, titleTokenSet, titleText);
+  for (const variants of plan.groups) {
+    const inTitle = groupMatches(variants, titleTokenSet, titleText);
     if (inTitle) titleMatches += 1;
-    else if (!tokenMatches(token, restTokenSet, restText)) return 0;
+    else if (!groupMatches(variants, restTokenSet, restText)) return 0;
   }
 
   let score = 100;
@@ -150,15 +224,19 @@ export function scoreProductSearch(product: ProductView, queryOrPlan?: string | 
   if (titleText === plan.normalizedQuery) score += 100;
   else if (phraseInText(titleText, plan.normalizedQuery)) score += 60;
   // All tokens in the title (any order) still beats matches via offer titles.
-  if (titleMatches === plan.tokens.length) score += 30;
+  if (titleMatches === plan.groups.length) score += 30;
   // Earlier first-token position in the title reads as more relevant.
-  const firstIndex = titleTokens.findIndex((token) => tokenMatches(plan.tokens[0], new Set([token]), token));
+  const firstIndex = titleTokens.findIndex((token) => groupMatches(plan.groups[0], new Set([token]), token));
   if (firstIndex >= 0) score += Math.max(0, 10 - firstIndex * 2);
   // Fewer leftover title tokens → more specific result ("iPhone 15" before
   // "iPhone 15 Pro Max Case ...").
-  score += Math.max(0, 12 - Math.max(0, titleTokens.length - plan.tokens.length) * 2);
+  score += Math.max(0, 12 - Math.max(0, titleTokens.length - plan.groups.length) * 2);
   score += Math.min(product.popularityScore / 10, 10);
   return Math.round(score);
+}
+
+function groupMatches(variants: string[], tokens: Set<string>, text: string) {
+  return variants.some((variant) => tokenMatches(variant, tokens, text));
 }
 
 function tokenMatches(token: string, tokens: Set<string>, text: string) {

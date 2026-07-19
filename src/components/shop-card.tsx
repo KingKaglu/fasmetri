@@ -33,7 +33,7 @@ export function ShopCard({ shop }: { shop: ShopView }) {
       {/* Footer */}
       <div className="mt-auto border-t border-gray-100 pt-3">
         {shop.lastScrapedAt ? (
-          <LastUpdatedText value={shop.lastScrapedAt} className="mb-2.5 text-xs text-gray-400" />
+          <LastUpdatedText value={shop.lastScrapedAt} warnStale className="mb-2.5 text-xs" />
         ) : (
           <p className="mb-2.5 text-xs text-gray-400">მონაცემები მოწმდება</p>
         )}

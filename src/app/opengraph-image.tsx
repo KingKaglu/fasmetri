@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { loadGeorgianFont } from "@/lib/og-fonts";
 
 // Site-wide social preview (Open Graph / Twitter) image.
 // Inherited by every route that does not define its own opengraph-image.
@@ -7,33 +8,13 @@ export const alt = "ფასმეტრი — ფასების შედ
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Georgian glyphs (ფასმეტრი) do NOT render with ImageResponse's default font —
-// they come out as tofu boxes. We embed Noto Sans Georgian, fetched from Google
-// Fonts. The CSS2 endpoint serves a parseable .ttf when no browser UA is sent
-// (a browser UA would yield woff2, which satori cannot read). We fetch the whole
-// font (not a text subset) so every Georgian glyph is covered.
-async function loadGeorgianFont(weight: 400 | 700): Promise<ArrayBuffer | null> {
-  try {
-    const cssRes = await fetch(
-      `https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@${weight}`,
-      { cache: "force-cache" },
-    );
-    if (!cssRes.ok) return null;
-    const css = await cssRes.text();
-    const url = css.match(/src:\s*url\((https:\/\/[^)]+\.ttf)\)/)?.[1];
-    if (!url) return null;
-    const fontRes = await fetch(url, { cache: "force-cache" });
-    if (!fontRes.ok) return null;
-    return await fontRes.arrayBuffer();
-  } catch {
-    return null;
-  }
-}
-
 type OgFont = NonNullable<ConstructorParameters<typeof ImageResponse>[1]>["fonts"];
 
 export default async function OpengraphImage() {
-  const [regular, bold] = await Promise.all([loadGeorgianFont(400), loadGeorgianFont(700)]);
+  const [regular, bold] = await Promise.all([
+    loadGeorgianFont("Noto Sans Georgian", 400),
+    loadGeorgianFont("Noto Sans Georgian", 700),
+  ]);
 
   const fonts: NonNullable<OgFont> = [];
   if (regular) fonts.push({ name: "Noto Sans Georgian", data: regular, weight: 400, style: "normal" });

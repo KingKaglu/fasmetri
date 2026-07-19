@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, ArrowRight, Clock3, Info, PackageSearch, ShieldCheck, Store } from "lucide-react";
+import { AlertCircle, AlertTriangle, ArrowRight, Clock3, Info, PackageSearch, ShieldCheck, Store } from "lucide-react";
 import { Availability, OfferView, ShopView } from "@/lib/catalog-types";
 import { formatGel, formatRelativeUpdated, formatUpdated } from "@/lib/format";
 export { ProductImage } from "@/components/product-image";
@@ -66,12 +66,42 @@ export function PriceDisplay({
   );
 }
 
-export function LastUpdatedText({ value, exact = false, className = "" }: { value: string | Date; exact?: boolean; className?: string }) {
+// Shops sync daily, so ~24h-old prices are routine. Warn only once a sync has
+// clearly been missed (36h), escalate wording after three days.
+const STALE_WARN_HOURS = 36;
+const STALE_STRONG_HOURS = 72;
+
+export function staleHours(value: string | Date, now = new Date()) {
+  const seenAt = new Date(value).getTime();
+  if (Number.isNaN(seenAt)) return 0;
+  return Math.max(0, (now.getTime() - seenAt) / 3_600_000);
+}
+
+export function LastUpdatedText({
+  value,
+  exact = false,
+  warnStale = false,
+  className = "",
+}: {
+  value: string | Date;
+  exact?: boolean;
+  warnStale?: boolean;
+  className?: string;
+}) {
+  // Freshness IS the trust signal on a price comparison site: past a day the
+  // timestamp stops being metadata and becomes a warning, so it changes voice
+  // (ink weight + triangle) instead of staying decorative gray.
+  const hours = warnStale ? staleHours(value) : 0;
+  const stale = hours >= STALE_WARN_HOURS;
+  const Icon = stale ? AlertTriangle : Clock3;
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1 text-gray-400 ${className}`}>
-      <Clock3 className="size-3 shrink-0" />
+    <span className={`inline-flex min-w-0 items-center gap-1 ${stale ? "font-semibold text-zinc-800" : "text-gray-400"} ${className}`}>
+      <Icon className="size-3 shrink-0" />
       <span className="min-w-0">
-        <span className="block">{formatRelativeUpdated(value)}</span>
+        <span className="block">
+          {formatRelativeUpdated(value)}
+          {stale ? ` — ${hours >= STALE_STRONG_HOURS ? "მოძველებული ფასი, გადაამოწმე" : "გადაამოწმე მაღაზიაში"}` : ""}
+        </span>
         {exact ? <span className="block text-[11px] font-medium text-gray-500">{formatUpdated(value)}</span> : null}
       </span>
     </span>

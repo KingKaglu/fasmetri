@@ -360,9 +360,11 @@ function slimPublicView(view: ProductView): ProductView {
   };
 }
 
-function searchWhere(terms: string[], offerScope?: Prisma.ProductOfferWhereInput): Prisma.ProductWhereInput {
-  const termFilters = terms.map((term): Prisma.ProductWhereInput => ({
-    OR: [
+function searchWhere(termGroups: string[][], offerScope?: Prisma.ProductOfferWhereInput): Prisma.ProductWhereInput {
+  // Each group is one query token under all its spelling variants (alias,
+  // transliteration, original Georgian) — any variant may match any field.
+  const termFilters = termGroups.map((variants): Prisma.ProductWhereInput => ({
+    OR: variants.flatMap((term): Prisma.ProductWhereInput[] => [
       { name: { contains: term, mode: "insensitive" } },
       { normalizedName: { contains: term, mode: "insensitive" } },
       { brand: { contains: term, mode: "insensitive" } },
@@ -374,7 +376,7 @@ function searchWhere(terms: string[], offerScope?: Prisma.ProductOfferWhereInput
       { category: { is: { nameEn: { contains: term, mode: "insensitive" } } } },
       { offers: { some: offerSearchWhere({ title: { contains: term, mode: "insensitive" } }, offerScope) } },
       { offers: { some: offerSearchWhere({ canonicalKey: { contains: term, mode: "insensitive" } }, offerScope) } },
-    ],
+    ]),
   }));
 
   // Every term must match somewhere on the product (AND), otherwise a query

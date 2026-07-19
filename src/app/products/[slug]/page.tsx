@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, BadgeCheck, ChevronRight } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, ChevronRight, TrendingDown, TrendingUp } from "lucide-react";
 import { getPublicProduct, listPublicProductMatches } from "@/lib/catalog";
 import { HistoryPoint, isPublicMatchStatus, ProductView } from "@/lib/catalog-types";
 import { PriceChart } from "@/components/price-chart";
@@ -56,7 +56,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const cheapest = product.offers[0];
-  const ogImage = product.imageUrl ?? cheapest?.imageUrl ?? "/brand/fasmetri-logo.png";
   const description = cheapest
     ? `${product.name} — საუკეთესო ფასი ${formatGel(cheapest.currentPrice)}. შეადარე ფასები ქართულ ონლაინ მაღაზიებში.`
     : `${product.name} ფასები და შეთავაზებები ქართულ ონლაინ მაღაზიებში.`;
@@ -65,10 +64,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${product.name} ფასების შედარება`,
     description,
     alternates: { canonical: `/products/${product.slug}` },
+    // og:image comes from the co-located opengraph-image.tsx (branded price card).
     openGraph: {
       title: `${product.name} ფასების შედარება — ფასმეტრი`,
       description,
-      images: [{ url: ogImage, alt: product.name }],
     },
     other: cheapest
       ? {
@@ -186,7 +185,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {/* Price */}
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">საუკეთესო ფასი</p>
-                <PriceDisplay price={cheapest.currentPrice} oldPrice={cheapest.oldPrice} strong deal={cheapestDiscount > 0} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <PriceDisplay price={cheapest.currentPrice} oldPrice={cheapest.oldPrice} strong deal={cheapestDiscount > 0} />
+                  <PriceDirectionBadge currentPrice={cheapest.currentPrice} history={history} />
+                </div>
                 <PriceHistoryLowBadge currentPrice={cheapest.currentPrice} history={history} />
               </div>
 
@@ -203,7 +205,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {/* Availability + update time */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <AvailabilityBadge availability={cheapest.availability} />
-                <LastUpdatedText value={cheapest.lastSeenAt} className="text-xs text-gray-400" />
+                <LastUpdatedText value={cheapest.lastSeenAt} warnStale className="text-xs" />
               </div>
 
               {/* Trust metrics */}
@@ -293,7 +295,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           <AvailabilityBadge availability={offer.availability} />
-                          <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
+                          <LastUpdatedText value={offer.lastSeenAt} warnStale className="text-[10px]" />
                           <MatchConfidenceBadge
                             confidence={offer.matchConfidence ?? match.confidence}
                             status={offer.matchStatus ?? match.status}
@@ -399,6 +401,36 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 // price chart (no extra query) and compares the current cheapest offer to the
 // lowest tracked price in the observed window. Renders nothing when there is
 // too little history (<2 distinct day points) so we never fabricate a "low".
+// Day-over-day movement of the best price: compares today's cheapest offer to
+// the most recent PREVIOUS day's daily low from the tracked history. A drop is
+// good news (solid ink chip, like DiscountBadge); a rise is a caution
+// (outlined). Sub-₾0.5 wiggle is noise and renders nothing.
+function PriceDirectionBadge({ currentPrice, history }: { currentPrice: number; history: HistoryPoint[] }) {
+  if (!Number.isFinite(currentPrice) || currentPrice <= 0) return null;
+
+  const todayKey = historyDayKey(new Date());
+  const previousDays = history.filter((point) => Number.isFinite(point.price) && point.price > 0 && historyDayKey(new Date(point.capturedAt)) !== todayKey);
+  const previousLow = previousDays.at(-1)?.price;
+  if (!previousLow) return null;
+
+  const delta = currentPrice - previousLow;
+  if (Math.abs(delta) < 0.5) return null;
+
+  const dropped = delta < 0;
+  const Icon = dropped ? TrendingDown : TrendingUp;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold ${
+        dropped ? "bg-zinc-950 text-white" : "border border-zinc-300 bg-white text-zinc-600"
+      }`}
+    >
+      <Icon className="size-3" />
+      {dropped ? "−" : "+"}
+      {formatGel(Math.abs(delta))} გუშინდელთან
+    </span>
+  );
+}
+
 function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number; history: HistoryPoint[] }) {
   const prices = history.map((point) => point.price).filter((price) => Number.isFinite(price) && price > 0);
   if (prices.length < 2 || !Number.isFinite(currentPrice) || currentPrice <= 0) return null;
