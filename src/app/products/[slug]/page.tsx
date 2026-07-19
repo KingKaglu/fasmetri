@@ -162,10 +162,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div className="grid min-w-0 gap-8">
 
-          {/* Product hero */}
-          <article className="grid min-w-0 gap-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5 md:grid-cols-[minmax(14rem,20rem)_minmax(0,1fr)]">
-            <div className="overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-              <ProductImage src={product.imageUrl ?? cheapest.imageUrl} alt={product.name} priority categorySlug={product.category?.slug} shopName={cheapest.shop.name} />
+          {/* Product hero. Mobile: the image is a centered ~13rem block instead
+              of a full-width square — a 390px phone was spending its ENTIRE
+              first screen on the photo, pushing name+price below the fold
+              (2026-07-19 report: "product too big on mobile"). */}
+          <article className="grid min-w-0 gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5 md:grid-cols-[minmax(14rem,20rem)_minmax(0,1fr)] md:gap-5">
+            <div className="mx-auto w-full max-w-[13rem] overflow-hidden rounded-lg border border-gray-100 bg-gray-50 md:max-w-none">
+              <ProductImage src={product.imageUrl ?? cheapest.imageUrl} alt={product.name} priority hero categorySlug={product.category?.slug} shopName={cheapest.shop.name} />
             </div>
             <div className="flex min-w-0 flex-col">
               {/* Badges row */}

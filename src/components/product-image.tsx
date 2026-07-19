@@ -29,6 +29,7 @@ export function ProductImage({
   alt,
   priority = false,
   tall = false,
+  hero = false,
   categorySlug,
   shopName,
 }: {
@@ -36,6 +37,8 @@ export function ProductImage({
   alt: string;
   priority?: boolean;
   tall?: boolean;
+  /** Product-page hero: capped to ~13rem on phones, 20rem column on md+. */
+  hero?: boolean;
   categorySlug?: string | null;
   shopName?: string | null;
 }) {
@@ -63,13 +66,18 @@ export function ProductImage({
           alt={alt}
           fill
           sizes={
-            tall
-              ? // Hero image column is a single ~90vw block below md, then caps at the
-                // 20rem (320px) track from md upward — 520px was over-fetching ~1.6x on desktop.
-                "(max-width: 767px) 90vw, 320px"
-              : // Card width tracks the real responsive grid: 1 col (<380px), 2 (<540),
-                // 3 (<768), 4 (<1024), 5 (<1280), 6 above (container caps at 88rem ≈ 220px/col).
-                "(max-width: 379px) 92vw, (max-width: 539px) 46vw, (max-width: 767px) 31vw, (max-width: 1023px) 24vw, (max-width: 1279px) 19vw, 220px"
+            hero
+              ? // Product-page hero: mobile shows a centered ~13rem (208px) block
+                // (full-width square ate the whole first screen — his 2026-07-19
+                // report), md+ uses the 20rem (320px) grid column.
+                "(max-width: 767px) 208px, 320px"
+              : tall
+                ? // Hero image column is a single ~90vw block below md, then caps at the
+                  // 20rem (320px) track from md upward — 520px was over-fetching ~1.6x on desktop.
+                  "(max-width: 767px) 90vw, 320px"
+                : // Card width tracks the real responsive grid: 1 col (<380px), 2 (<540),
+                  // 3 (<768), 4 (<1024), 5 (<1280), 6 above (container caps at 88rem ≈ 220px/col).
+                  "(max-width: 379px) 92vw, (max-width: 539px) 46vw, (max-width: 767px) 31vw, (max-width: 1023px) 24vw, (max-width: 1279px) 19vw, 220px"
           }
           priority={priority}
           loading={priority ? undefined : "lazy"}
