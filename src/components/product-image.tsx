@@ -37,7 +37,7 @@ export function ProductImage({
   alt: string;
   priority?: boolean;
   tall?: boolean;
-  /** Product-page hero: capped to ~13rem on phones, 20rem column on md+. */
+  /** Product-page hero: fluid width on phones (min 14rem/56vw), ~18rem column from 560px. */
   hero?: boolean;
   categorySlug?: string | null;
   shopName?: string | null;
@@ -67,10 +67,10 @@ export function ProductImage({
           fill
           sizes={
             hero
-              ? // Product-page hero: mobile shows a centered ~13rem (208px) block
-                // (full-width square ate the whole first screen — his 2026-07-19
-                // report), md+ uses the 20rem (320px) grid column.
-                "(max-width: 767px) 208px, 320px"
+              ? // Product-page hero: phones (<560px) show a fluid centered block
+                // that tracks the viewport (max ~14rem/224px), 560px+ uses the
+                // ~18rem (288px) grid column.
+                "(max-width: 559px) 224px, 288px"
               : tall
                 ? // Hero image column is a single ~90vw block below md, then caps at the
                   // 20rem (320px) track from md upward — 520px was over-fetching ~1.6x on desktop.
