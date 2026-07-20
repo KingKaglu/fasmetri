@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [68, 75],
+    qualities: [68, 70, 76],
     minimumCacheTTL: 86400,
     remotePatterns: [
       // Active stores: allow the apex plus any image-CDN subdomain (EE serves

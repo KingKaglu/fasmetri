@@ -93,7 +93,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Noto+Serif+Georgian:wght@500;600;700;800&display=swap"
         />
       </head>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col pb-[8.5rem] md:pb-0">
         <JsonLd data={siteJsonLd} />
         <CompareProvider>
           <FavoritesProvider>
