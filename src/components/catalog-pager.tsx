@@ -20,7 +20,7 @@ export function CatalogPager({
   return (
     <nav
       aria-label="კატალოგის გვერდები"
-      className="mt-8 flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm"
+      className="mt-8 flex items-center justify-between gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-3 shadow-sm sm:gap-2 sm:px-4"
     >
       {/* Previous */}
       <div className="flex-1">
@@ -78,15 +78,18 @@ function PagerLink({
   return (
     <Link
       href={href}
-      className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold transition-colors ${
+      aria-label={label}
+      className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-sm font-semibold transition-colors sm:px-3 ${
         direction === "next"
           ? "border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
           : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
       }`}
     >
-      {direction === "prev" && <Icon className="size-4" />}
-      {label}
-      {direction === "next" && <Icon className="size-4" />}
+      {direction === "prev" && <Icon className="size-4 shrink-0" />}
+      {/* Text label hides on the narrowest phones so prev/next stay a single
+          non-wrapping row; icon alone is understood, aria-label keeps it named. */}
+      <span className="hidden min-[380px]:inline">{label}</span>
+      {direction === "next" && <Icon className="size-4 shrink-0" />}
     </Link>
   );
 }
@@ -94,10 +97,13 @@ function PagerLink({
 function PagerGhost({ label, direction }: { label: string; direction: "prev" | "next" }) {
   const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
   return (
-    <span className="inline-flex h-9 items-center gap-1.5 rounded-md border border-gray-100 bg-gray-50 px-3 text-sm font-semibold text-gray-300 cursor-not-allowed">
-      {direction === "prev" && <Icon className="size-4" />}
-      {label}
-      {direction === "next" && <Icon className="size-4" />}
+    <span
+      aria-label={label}
+      className="inline-flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md border border-gray-100 bg-gray-50 px-2.5 text-sm font-semibold text-gray-300 sm:px-3"
+    >
+      {direction === "prev" && <Icon className="size-4 shrink-0" />}
+      <span className="hidden min-[380px]:inline">{label}</span>
+      {direction === "next" && <Icon className="size-4 shrink-0" />}
     </span>
   );
 }
