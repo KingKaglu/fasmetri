@@ -66,7 +66,7 @@ export function RecentlyViewedStrip({ excludeSlug, inline = false }: { excludeSl
   const Wrapper = inline ? "div" : "section";
 
   return (
-    <Wrapper className={inline ? "" : "shell pt-8 pb-4"}>
+    <Wrapper className={inline ? "min-w-0" : "shell pt-8 pb-4"}>
       <div className="masthead mb-5">
         <div className="masthead-row">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
@@ -82,7 +82,7 @@ export function RecentlyViewedStrip({ excludeSlug, inline = false }: { excludeSl
           </Link>
         </div>
       </div>
-      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2 [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="-mx-1 flex min-w-0 snap-x gap-3 overflow-x-auto px-1 pb-2 [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map((item) => (
           <Link
             key={item.slug}

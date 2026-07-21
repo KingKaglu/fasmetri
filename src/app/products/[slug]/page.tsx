@@ -391,7 +391,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <RecentlyViewedStrip inline excludeSlug={product.slug} />
         </div>
 
-        <aside className="grid h-fit gap-3 lg:sticky lg:top-[4.5rem]">
+        <aside className="grid h-fit min-w-0 gap-3 lg:sticky lg:top-[4.5rem]">
           <AlertForm
             productId={product.id}
             vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? process.env.VAPID_PUBLIC_KEY ?? null}
