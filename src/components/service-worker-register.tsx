@@ -23,19 +23,40 @@ export function ServiceWorkerRegister() {
       return;
     }
 
+    // If an OLD service worker still controls this page, reload once the moment
+    // a new one takes over, so a client pinned to stale cached HTML/CSS recovers
+    // on its very next visit with no manual cache-clearing. Fresh visitors (no
+    // prior controller) are never reloaded, so there's no first-load flash.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let reloaded = false;
+    const onControllerChange = () => {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+
     const register = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        // Fail silently — the SW is a progressive enhancement.
-      });
+      navigator.serviceWorker
+        .register("/sw.js")
+        // Force an immediate update check so a superseded SW is picked up now
+        // instead of waiting for the browser's periodic check.
+        .then((reg) => reg.update().catch(() => {}))
+        .catch(() => {
+          // Fail silently — the SW is a progressive enhancement.
+        });
     };
 
     if (document.readyState === "complete") {
       register();
-      return;
+    } else {
+      window.addEventListener("load", register);
     }
 
-    window.addEventListener("load", register);
-    return () => window.removeEventListener("load", register);
+    return () => {
+      window.removeEventListener("load", register);
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+    };
   }, []);
 
   return null;
