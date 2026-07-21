@@ -1,187 +1,56 @@
 /*
- * Fasmetri service worker — conservative, dependency-free.
+ * Fasmetri service worker — v6, network passthrough.
  *
- * GOAL: installable PWA (offline app-shell) + faster repeat loads WITHOUT ever
- * serving stale prices. Price/alert/dynamic data is never cached: API, admin,
- * and the /out/ redirect always go straight to the network.
+ * WHY THIS EXISTS NOW: earlier versions cache-first'd /_next/static and
+ * network-first'd HTML. In practice that left some phones (seen on Galaxy S24)
+ * pinned to STALE HTML/CSS after a deploy — the page rendered an old product
+ * name and the pre-fix layout even after the user cleared the browser cache,
+ * because a service worker and its Cache Storage survive a cache clear.
  *
- * Caching strategy:
- *   - /_next/static/** and static images/fonts  -> cache-first (content-hashed / stable)
- *   - navigations (HTML pages)                   -> network-first (fresh prices, offline fallback)
- *   - everything else (/api/, /admin/, /out/, …) -> network only, never cached
+ * v6 removes ALL fetch interception: every request goes straight to the
+ * network, so a deploy is reflected immediately and the SW can never serve a
+ * stale asset. On activate it deletes every old cache and reloads open tabs so
+ * already-poisoned clients recover on the spot. Web Push (price alerts) is kept.
  *
- * Bump CACHE when this file changes so the old cache is purged on activate.
+ * Trade-off: no offline app-shell / precache. Freshness of prices + layout is
+ * the priority; the site is online-first anyway.
  */
 
-const CACHE = "fasmetri-v5";
+const CACHE = "fasmetri-v6";
 
-// Content-hashed static asset prefixes + stable static file extensions.
-const STATIC_PREFIXES = ["/_next/static/"];
-const STATIC_EXTENSIONS = [
-  ".svg",
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".webp",
-  ".woff2",
-  ".ico",
-];
-
-// Routes whose responses must NEVER be cached (dynamic / price / auth data).
-const NEVER_CACHE_PREFIXES = ["/api/", "/admin/", "/out/"];
-
-self.addEventListener("install", (event) => {
-  // Activate this SW as soon as it finishes installing.
+self.addEventListener("install", () => {
+  // Take over immediately instead of waiting for existing tabs to close.
   self.skipWaiting();
-  // Best-effort pre-cache of the app shell root. Wrapped so a failure here
-  // (offline install, fetch error) can never make install reject.
-  event.waitUntil(
-    (async () => {
-      try {
-        const cache = await caches.open(CACHE);
-        await cache.add("/");
-      } catch (err) {
-        // Ignore — install must always succeed.
-      }
-    })()
-  );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      // Purge every cache left by any previous SW version (v4/v5 app-shell,
+      // static assets, precached "/"). This is what drops the stale HTML/CSS.
       try {
         const keys = await caches.keys();
-        await Promise.all(
-          keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))
-        );
+        await Promise.all(keys.map((key) => caches.delete(key)));
       } catch (err) {
         // Ignore cleanup failures.
       }
       await self.clients.claim();
+      // Reload any open tab so it re-fetches fresh, un-intercepted content
+      // right away instead of waiting for the next manual navigation.
+      try {
+        const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+        for (const client of clients) {
+          if ("navigate" in client) client.navigate(client.url).catch(() => {});
+        }
+      } catch (err) {
+        // Ignore — reload is best-effort.
+      }
     })()
   );
 });
 
-function isStaticAsset(url) {
-  if (STATIC_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
-    return true;
-  }
-  return STATIC_EXTENSIONS.some((ext) => url.pathname.toLowerCase().endsWith(ext));
-}
-
-function isNeverCache(url) {
-  return NEVER_CACHE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
-}
-
-const OFFLINE_HTML = `<!DOCTYPE html>
-<html lang="ka">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ხაზგარეშე — ფასმეტრი</title>
-<style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;
-    min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:#15172b;color:#fff;text-align:center;padding:24px;}
-  .box{max-width:420px}
-  h1{font-size:20px;margin:0 0 8px}
-  p{opacity:.8;margin:0;line-height:1.5}
-</style>
-</head>
-<body>
-  <div class="box">
-    <h1>ხაზგარეშე ხართ</h1>
-    <p>ინტერნეტთან კავშირი არ არის. შეამოწმეთ კავშირი და სცადეთ თავიდან.</p>
-  </div>
-</body>
-</html>`;
-
-function offlineResponse() {
-  return new Response(OFFLINE_HTML, {
-    status: 503,
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
-}
-
-// Cache-first: serve from cache, fall back to network and populate cache.
-async function cacheFirst(request) {
-  try {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-  } catch (err) {
-    // Cache read failed — fall through to network.
-  }
-  const response = await fetch(request);
-  try {
-    if (response && response.ok) {
-      const cache = await caches.open(CACHE);
-      await cache.put(request, response.clone());
-    }
-  } catch (err) {
-    // Caching is best-effort; never let it break the response.
-  }
-  return response;
-}
-
-// Network-first: try network (and refresh cache), fall back to cache, then
-// to a minimal inline offline page. Used for HTML navigations only.
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    try {
-      if (response && response.ok) {
-        const cache = await caches.open(CACHE);
-        await cache.put(request, response.clone());
-      }
-    } catch (err) {
-      // Best-effort cache write.
-    }
-    return response;
-  } catch (err) {
-    try {
-      const cached = await caches.match(request);
-      if (cached) return cached;
-    } catch (innerErr) {
-      // Ignore cache read failure.
-    }
-    return offlineResponse();
-  }
-}
-
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-
-  // Only handle GET; let the browser deal with everything else.
-  if (request.method !== "GET") return;
-
-  let url;
-  try {
-    url = new URL(request.url);
-  } catch (err) {
-    return;
-  }
-
-  // Ignore cross-origin requests entirely.
-  if (url.origin !== self.location.origin) return;
-
-  // Never cache dynamic/price/auth routes — straight to the network.
-  if (isNeverCache(url)) return;
-
-  if (isStaticAsset(url)) {
-    event.respondWith(cacheFirst(request));
-    return;
-  }
-
-  if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request));
-    return;
-  }
-
-  // Default: network only, no caching. Fall back to plain fetch so any
-  // unexpected error path still yields a real network response.
-  // (No respondWith → browser performs its normal fetch.)
-});
+// NO fetch handler on purpose: the browser performs its normal network fetch
+// for every request, so nothing is ever served from a stale cache.
 
 // --- Web Push (price alerts) ---
 self.addEventListener("push", (event) => {
