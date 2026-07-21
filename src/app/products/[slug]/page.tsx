@@ -170,7 +170,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               stays capped. From 560px up it becomes a side-by-side image+info grid,
               killing the awkward stranded-image zone between phone and md. */}
           <article className="grid min-w-0 gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5 min-[560px]:grid-cols-[minmax(12rem,18rem)_minmax(0,1fr)] min-[560px]:gap-5">
-            <div className="mx-auto w-full max-w-[min(14rem,56vw)] overflow-hidden rounded-lg border border-gray-100 bg-gray-50 min-[560px]:max-w-none">
+            <div className="mx-auto w-full max-w-[min(14rem,56vw)] self-center overflow-hidden rounded-lg border border-gray-100 bg-gray-50 min-[560px]:max-w-none min-[560px]:self-start">
               <ProductImage src={product.imageUrl ?? cheapest.imageUrl} alt={product.name} priority hero categorySlug={product.category?.slug} shopName={cheapest.shop.name} />
             </div>
             <div className="flex min-w-0 flex-col">
