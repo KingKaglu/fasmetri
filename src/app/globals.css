@@ -86,6 +86,11 @@
 html {
   overflow-x: hidden;
   background: var(--background);
+  /* Stop Android Chrome / Samsung Internet from auto-inflating text
+     ("font boosting"), which can push non-wrapping pills/badges past the
+     viewport and clip the layout on phones with a large font/zoom setting. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
