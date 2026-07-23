@@ -5,8 +5,12 @@ name: Sync health monitor
 # and fails the job when a module has no success in the last 28 hours.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * *"
+  # Scheduled run is PAUSED alongside the store scrapers: this monitor fails
+  # (and emails) whenever a sync has no success in 28h, so while the scrapers
+  # are paused it would fail every day. Re-enable this cron at the same time as
+  # the scraper schedules, once the self-hosted runner is reliable again.
+  # schedule:
+  #   - cron: "0 6 * * *"
 
 jobs:
   health:
