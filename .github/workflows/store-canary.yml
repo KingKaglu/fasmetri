@@ -1,0 +1,41 @@
+name: Store reachability canary
+
+# Manual-only probe: checks whether each scraped store answers a GitHub-hosted
+# runner's IP, using the same endpoints and User-Agent the real scrapers use.
+# Always exits green (results go to the job summary), so it can never generate
+# failure emails. Used to decide which store syncs can run on ubuntu-latest
+# while the self-hosted (GE) runner is offline.
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe store endpoints
+        env:
+          UA: "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+        run: |
+          probe() {
+            local label="$1" url="$2"
+            local code
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" --max-time 25 -A "$UA" -H "Accept: */*" "$url" 2>/dev/null || echo "000")
+            local size
+            size=$(wc -c </tmp/body 2>/dev/null || echo 0)
+            echo "| $label | \`$code\` | ${size}B |" >> "$GITHUB_STEP_SUMMARY"
+            echo "PROBE $label $code ${size}B"
+          }
+          {
+            echo "## Store reachability from ubuntu-latest"
+            echo ""
+            echo "| Store endpoint | HTTP | Body |"
+            echo "| --- | --- | --- |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          probe "zoommer-home"   "https://zoommer.ge/"
+          probe "zoommer-api"    "https://zoommer.ge/api/proxy/v1/Products/v3?CategoryId=855&Page=1&Limit=1"
+          probe "ee-home"        "https://ee.ge/en/"
+          probe "ee-phones"      "https://ee.ge/en/mobile-phone-c377t"
+          probe "pcshop-home"    "https://pcshop.ge/"
+          probe "pcshop-api"     "https://pcshop.ge/wp-json/wc/store/v1/products?per_page=1"
+          echo "Done — canary always exits 0; read codes above."
