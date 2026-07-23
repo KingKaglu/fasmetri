@@ -11,9 +11,13 @@ on:
         options:
           - prices
           - full
-  schedule:
-    - cron: "0 */3 * * *"
-    - cron: "20 2 * * *"
+  # Scheduled runs are PAUSED: this scraper needs the self-hosted runner's
+  # accepted (GE) IP, and while that runner is offline every scheduled run just
+  # fails and emails. Re-enable by uncommenting once the runner is reliable
+  # again. Manual runs still work via the "Run workflow" button above.
+  # schedule:
+  #   - cron: "0 */3 * * *"
+  #   - cron: "20 2 * * *"
 
 jobs:
   sync:
