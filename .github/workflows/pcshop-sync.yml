@@ -19,9 +19,17 @@ on:
     - cron: "50 */3 * * *"
     - cron: "30 3 * * *"
 
+# Only one run of this sync at a time: if a long sync is still going when the
+# next scheduled run fires, the newer run waits instead of stacking a second
+# scrape against the same store/DB. Superseded pending runs are auto-cancelled
+# (not failed), which keeps failure-email noise down.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   sync:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
