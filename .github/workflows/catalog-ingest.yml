@@ -1,0 +1,94 @@
+name: Catalog ingest (expansion categories + new stores)
+
+# Generic ingestion pipeline for the catalog-expansion scope:
+#   - zoommer + ee × televisions / audio / wearables (adapters already map
+#     these categories' sitemaps)
+#   - extra + kontakt whole-catalog passes (their adapters self-categorize
+#     per product via JSON-LD breadcrumbs + the shared categorizer)
+# followed by normalize → match-offers-to-variants → recategorize, i.e. the
+# exact same pipeline the existing categories use (AGENTS.md "Catalog
+# pipeline"). Raw-offer ingestion is gated: bad parses never reach the public
+# catalog because offers only go public after the safe matcher confirms them.
+#
+# No schedule on purpose — the stores 403 cloud IPs, so this runs on the
+# self-hosted (GE) runner and is dispatched by sync-watchdog.yml only when
+# that runner is provably online (or manually via the button above).
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no DB writes) — use for first-run validation of new adapters"
+        required: false
+        default: false
+        type: boolean
+      limit:
+        description: "Max products per shop×category pass"
+        required: false
+        default: "150"
+        type: string
+
+concurrency:
+  group: catalog-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: self-hosted
+    timeout-minutes: 300
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+      SCRAPER_USER_AGENT: "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+      LIMIT: ${{ inputs.limit || '150' }}
+      DRY_RUN_FLAG: ${{ inputs.dry_run && '--dry-run' || '' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - run: npm ci
+
+      # New-category passes on the proven store adapters. Each pass is
+      # independent — a failure in one shop×category logs and moves on so a
+      # single store hiccup doesn't kill the whole ingest.
+      - name: Ingest expansion categories (zoommer, ee)
+        run: |
+          set +e
+          for shop in zoommer ee; do
+            for category in televisions audio wearables; do
+              echo "── import $shop/$category (limit $LIMIT) ──"
+              npm run import:store:full -- --shop=$shop --category=$category --limit=$LIMIT $DRY_RUN_FLAG
+            done
+          done
+          exit 0
+
+      # Whole-catalog passes for the two new stores. Kontakt's adapter is
+      # freshly written — its parses are JSON-LD-gated, and the matcher keeps
+      # unconfirmed offers out of the public catalog regardless.
+      - name: Ingest new stores (extra, kontakt)
+        run: |
+          set +e
+          for shop in extra kontakt; do
+            echo "── import $shop (whole catalog, limit $LIMIT) ──"
+            npm run import:store:full -- --shop=$shop --limit=$LIMIT $DRY_RUN_FLAG
+          done
+          exit 0
+
+      - name: Normalize raw offers
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set +e
+          for shop in zoommer ee extra kontakt; do
+            npm run normalize-raw-offers -- --shop=$shop --limit=600
+          done
+          exit 0
+
+      - name: Match offers to variants
+        if: ${{ !inputs.dry_run }}
+        run: npm run match-offers-to-variants -- --limit=600
+
+      - name: Recategorize products
+        if: ${{ !inputs.dry_run }}
+        run: npm run recategorize-products -- --limit=600

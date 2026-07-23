@@ -102,6 +102,7 @@ async function main() {
     ["ee", "Elite Electronics", "https://ee.ge", false],
     ["veli", "Veli", "https://veli.store", true],
     ["extra", "Extra", "https://extra.ge", false],
+    ["kontakt", "Kontakt", "https://kontakt.ge", false],
     ["pcshop", "PCShop", "https://pcshop.ge", false],
   ] as const) {
     await prisma.shop.upsert({ where: { slug }, update: { needsConfiguration }, create: { slug, name, baseUrl, enabled: !needsConfiguration, needsConfiguration } });

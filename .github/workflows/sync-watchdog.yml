@@ -87,5 +87,12 @@ jobs:
           for wf in zoommer-phones-sync.yml zoommer-laptops-sync.yml ee-phones-sync.yml ee-laptops-sync.yml pcshop-sync.yml; do
             gh workflow run "$wf" --ref main -f mode="$mode" && echo "dispatched $wf"
           done
+          # Daily (03:xx cycle): also ingest the expansion categories
+          # (televisions/audio/wearables) and the extra + kontakt stores via
+          # the generic pipeline. Its concurrency group queues it behind
+          # nothing — the runner works through jobs sequentially anyway.
+          if [ "$mode" = "full" ]; then
+            gh workflow run catalog-ingest.yml --ref main && echo "dispatched catalog-ingest.yml"
+          fi
           echo "## Watchdog: runner ONLINE — dispatched syncs (mode=$mode)" >> "$GITHUB_STEP_SUMMARY"
           exit 0

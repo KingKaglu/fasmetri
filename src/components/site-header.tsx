@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BadgePercent, Flame, Gamepad2, Grid3X3, Heart, Laptop, LineChart, Menu, Search, Smartphone, Store, X } from "lucide-react";
+import { BadgePercent, Flame, Gamepad2, Grid3X3, Headphones, Heart, Laptop, LineChart, Menu, Search, Smartphone, Store, Tv, Watch, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -15,12 +15,15 @@ const navLinks = [
   { href: "/about", label: "როგორ მუშაობს" },
 ];
 
-// Retail category nav (handoff CategoryNav) — the two public catalog
-// categories plus the consoles category, with a deals shortcut on the right.
+// Retail category nav (handoff CategoryNav) — the public catalog categories,
+// with a deals shortcut on the right. Mirrors PUBLIC_CATEGORY_SLUGS.
 const categoryNav = [
   { href: "/categories/mobiles", label: "სმარტფონები", icon: Smartphone },
   { href: "/categories/laptops", label: "ლეპტოპები", icon: Laptop },
   { href: "/categories/gaming", label: "კონსოლები", icon: Gamepad2 },
+  { href: "/categories/televisions", label: "ტელევიზორები", icon: Tv },
+  { href: "/categories/audio", label: "აუდიო", icon: Headphones },
+  { href: "/categories/wearables", label: "სმარტ საათები", icon: Watch },
 ];
 
 export function SiteHeader() {
