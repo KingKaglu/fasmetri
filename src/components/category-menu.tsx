@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Flame, Gamepad2, Laptop, LayoutGrid, Menu, Smartphone } from "lucide-react";
+import { ChevronDown, Flame, Gamepad2, Headphones, Laptop, LayoutGrid, Menu, Smartphone, Tv, Watch } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type CategoryItem = { href: string; label: string; icon: LucideIcon };
@@ -14,12 +14,18 @@ const CATEGORY_ITEMS: CategoryItem[] = [
   { href: "/categories/mobiles", label: "სმარტფონები", icon: Smartphone },
   { href: "/categories/laptops", label: "ლეპტოპები", icon: Laptop },
   { href: "/categories/gaming", label: "კონსოლები", icon: Gamepad2 },
+  { href: "/categories/televisions", label: "ტელევიზორები", icon: Tv },
+  { href: "/categories/audio", label: "აუდიო", icon: Headphones },
+  { href: "/categories/wearables", label: "სმარტ საათები", icon: Watch },
 ];
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   mobiles: Smartphone,
   laptops: Laptop,
   gaming: Gamepad2,
+  televisions: Tv,
+  audio: Headphones,
+  wearables: Watch,
 };
 
 // Module-level cache so the menu fetches the catalog once per page load,

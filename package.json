@@ -16,6 +16,7 @@
     "archive-current-products": "tsx scripts/archive-current-products.ts",
     "reset-product-catalog": "tsx scripts/reset-product-catalog.ts",
     "backfill-raw-offers": "tsx scripts/backfill-raw-offers.ts",
+    "import:store:full": "tsx scripts/import-store.ts",
     "normalize-raw-offers": "tsx scripts/normalize-raw-offers.ts",
     "build-parent-products": "tsx scripts/match-offers-to-variants.ts",
     "build-product-variants": "tsx scripts/match-offers-to-variants.ts",

@@ -48,10 +48,11 @@ export type CategoryRule = {
 export const FALLBACK_CATEGORY: FasmetriCategorySlug = "other";
 
 // ── Public scope ─────────────────────────────────────────────────────
-// The active public catalog is intentionally limited to phones and laptops.
-// Other classifier buckets stay internal and must not re-enter public routes,
-// sitemap output, seed data, or category re-creation scripts.
-export const PUBLIC_CATEGORY_SLUGS = ["mobiles", "laptops", "gaming"] as const;
+// The active public catalog is intentionally limited to a curated set of
+// high-traffic tech categories. Other classifier buckets stay internal and
+// must not re-enter public routes, sitemap output, seed data, or category
+// re-creation scripts.
+export const PUBLIC_CATEGORY_SLUGS = ["mobiles", "laptops", "gaming", "televisions", "audio", "wearables"] as const;
 export type PublicCategorySlug = (typeof PUBLIC_CATEGORY_SLUGS)[number];
 
 const PUBLIC_CATEGORY_SLUG_SET = new Set<string>(PUBLIC_CATEGORY_SLUGS);
@@ -65,7 +66,7 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   { nameKa: string; nameEn: string; public: boolean }
 > = {
   adult: { nameKa: "18+ პროდუქტები", nameEn: "Adult products", public: false },
-  audio: { nameKa: "აუდიო", nameEn: "Audio", public: false },
+  audio: { nameKa: "აუდიო", nameEn: "Audio", public: true },
   "auto-accessories": { nameKa: "ავტო აქსესუარები", nameEn: "Auto accessories", public: false },
   beauty: { nameKa: "სილამაზე და მოვლა", nameEn: "Beauty", public: false },
   "books-stationery": { nameKa: "წიგნები და საკანცელარიო", nameEn: "Books and stationery", public: false },
@@ -92,10 +93,10 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   tablets: { nameKa: "ტაბლეტები", nameEn: "Tablets", public: false },
   "tablet-accessories": { nameKa: "ტაბლეტის აქსესუარები", nameEn: "Tablet accessories", public: false },
   tech: { nameKa: "ტექნიკა", nameEn: "Electronics", public: false },
-  televisions: { nameKa: "ტელევიზორები", nameEn: "Televisions", public: false },
+  televisions: { nameKa: "ტელევიზორები", nameEn: "Televisions", public: true },
   tools: { nameKa: "ხელსაწყოები", nameEn: "Tools", public: false },
   "washing-machines": { nameKa: "სარეცხი მანქანები", nameEn: "Washing machines", public: false },
-  wearables: { nameKa: "სმარტ საათები", nameEn: "Wearables", public: false },
+  wearables: { nameKa: "სმარტ საათები", nameEn: "Wearables", public: true },
 };
 
 

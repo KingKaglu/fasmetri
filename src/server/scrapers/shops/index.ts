@@ -1,6 +1,7 @@
 import { altaAdapter } from "@/server/scrapers/shops/alta";
 import { eeAdapter } from "@/server/scrapers/shops/ee";
 import { extraAdapter } from "@/server/scrapers/shops/extra";
+import { kontaktAdapter } from "@/server/scrapers/shops/kontakt";
 import { pcshopAdapter } from "@/server/scrapers/shops/pcshop";
 import { placeholderAdapter } from "@/server/scrapers/shops/placeholder";
 import { veliAdapter } from "@/server/scrapers/shops/veli";
@@ -12,6 +13,7 @@ export const adapters = [
   eeAdapter,
   veliAdapter,
   extraAdapter,
+  kontaktAdapter,
   pcshopAdapter,
   placeholderAdapter("gorgia", "Gorgia", "https://gorgia.ge"),
   placeholderAdapter("domino", "Domino", "https://domino.com.ge"),

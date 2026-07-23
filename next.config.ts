@@ -56,6 +56,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.ee.ge" },
       { protocol: "https", hostname: "pcshop.ge" },
       { protocol: "https", hostname: "**.pcshop.ge" },
+      { protocol: "https", hostname: "kontakt.ge" },
+      { protocol: "https", hostname: "**.kontakt.ge" },
       // Retained for future stores / legacy offers.
       { protocol: "https", hostname: "alta.ge" },
       { protocol: "https", hostname: "**.alta.ge" },

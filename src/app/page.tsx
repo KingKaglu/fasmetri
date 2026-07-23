@@ -48,6 +48,9 @@ const heroTabs = [
   { href: "/categories/mobiles", label: "ტელეფონები", active: false },
   { href: "/categories/laptops", label: "ლეპტოპები", active: false },
   { href: "/categories/gaming", label: "კონსოლები", active: false },
+  { href: "/categories/televisions", label: "ტელევიზორები", active: false },
+  { href: "/categories/audio", label: "აუდიო", active: false },
+  { href: "/categories/wearables", label: "საათები", active: false },
   { href: "/deals", label: "აქციები", active: false },
 ];
 

@@ -26,7 +26,7 @@ export const STORE_CONFIGS: StoreConfig[] = [
   // Medium-priority stores — disabled until adapter is configured
   { key: "gorgia",       name: "Gorgia",         baseUrl: "https://gorgia.ge",        enabled: false, priority: "medium" },
   { key: "domino",       name: "Domino",         baseUrl: "https://domino.com.ge",    enabled: false, priority: "medium" },
-  { key: "kontakt",      name: "Kontakt",        baseUrl: "https://kontakt.ge",       enabled: false, priority: "medium" },
+  { key: "kontakt",      name: "Kontakt",        baseUrl: "https://kontakt.ge",       enabled: true,  priority: "medium", notes: "New JSON-LD/sitemap adapter — validate with import-store --dry-run on the GE runner before first promote." },
   { key: "primestore",   name: "PrimeStore",     baseUrl: "https://primestore.ge",    enabled: false, priority: "medium" },
   { key: "kalo",         name: "Kalo",           baseUrl: "https://kalo.ge",          enabled: false, priority: "medium" },
   // Low-priority stores — disabled until adapter is configured
