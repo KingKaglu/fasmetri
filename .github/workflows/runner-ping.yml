@@ -1,0 +1,15 @@
+name: Runner ping
+
+# Tiny liveness check for the self-hosted (GE) runner. Dispatched by the sync
+# watchdog every cycle; if no runner picks it up within a few minutes the
+# watchdog CANCELS it (cancelled runs send no failure emails). Success proves
+# the runner is online, which lets the watchdog resume the store syncs.
+on:
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - run: echo "self-hosted runner is alive"
