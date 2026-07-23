@@ -1,0 +1,91 @@
+name: Sync watchdog
+
+# Self-healing scheduler for the store price syncs.
+#
+# Background: the scraped stores (zoommer.ge, ee.ge, pcshop.ge) 403-block
+# data-center egress IPs — verified empirically from both GitHub-hosted
+# runners (store-canary.yml run) and Vercel serverless. Scraping therefore
+# only works from the self-hosted (GE) runner, whose cron schedules are
+# paused because scheduled runs fail+email whenever that runner is offline.
+#
+# This watchdog runs on GitHub-hosted infra every 3 hours and:
+#   1. dispatches the tiny runner-ping job (runs-on: self-hosted);
+#   2. if the ping isn't picked up within ~3 minutes, cancels it — cancelled
+#      runs produce NO failure emails — and stops;
+#   3. if the ping succeeds, the runner is provably online, so it dispatches
+#      all five store syncs (mode=full for the 03:xx UTC cycle, prices
+#      otherwise — mirroring the old cron cadence).
+#
+# Net effect: while the runner is offline nothing fails and nobody gets
+# emailed; the moment the runner comes back, price syncing resumes
+# automatically — no schedules to uncomment, nothing to remember.
+#
+# This job itself always exits 0 so the watchdog can never be an email source.
+
+on:
+  schedule:
+    - cron: "5 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+concurrency:
+  group: sync-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Ping runner; resume syncs when alive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set +e
+
+          dispatched_at=$(date -u +%s)
+          gh workflow run runner-ping.yml --ref main
+          sleep 20
+
+          # Newest runner-ping run is the one just dispatched (older cycles
+          # are already completed/cancelled). Guard against list hiccups.
+          run_id=$(gh run list --workflow=runner-ping.yml --limit 1 --json databaseId -q '.[0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "Could not locate the dispatched ping run; skipping this cycle."
+            exit 0
+          fi
+
+          status=""
+          for i in $(seq 1 9); do
+            status=$(gh run view "$run_id" --json status -q '.status')
+            [ "$status" = "completed" ] && break
+            sleep 20
+          done
+
+          if [ "$status" != "completed" ]; then
+            gh run cancel "$run_id"
+            echo "Self-hosted runner offline — ping cancelled (no email), syncs stay paused."
+            echo "## Watchdog: runner OFFLINE — syncs paused" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          conclusion=$(gh run view "$run_id" --json conclusion -q '.conclusion')
+          if [ "$conclusion" != "success" ]; then
+            echo "Ping finished with conclusion=$conclusion — not resuming syncs."
+            echo "## Watchdog: ping conclusion=$conclusion — syncs paused" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Runner is alive. 03:xx UTC cycle runs the deep daily sync (full);
+          # every other cycle refreshes prices only — same shape as the old crons.
+          mode="prices"
+          [ "$(date -u +%H)" = "03" ] && mode="full"
+          echo "Self-hosted runner ONLINE — dispatching store syncs (mode=$mode)."
+          for wf in zoommer-phones-sync.yml zoommer-laptops-sync.yml ee-phones-sync.yml ee-laptops-sync.yml pcshop-sync.yml; do
+            gh workflow run "$wf" --ref main -f mode="$mode" && echo "dispatched $wf"
+          done
+          echo "## Watchdog: runner ONLINE — dispatched syncs (mode=$mode)" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
