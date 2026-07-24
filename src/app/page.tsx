@@ -43,16 +43,19 @@ export const metadata: Metadata = {
 
 export const revalidate = 600;
 
-const heroTabs = [
-  { href: "/search", label: "ყველა", active: true },
-  { href: "/categories/mobiles", label: "ტელეფონები", active: false },
-  { href: "/categories/laptops", label: "ლეპტოპები", active: false },
-  { href: "/categories/gaming", label: "კონსოლები", active: false },
-  { href: "/categories/televisions", label: "ტელევიზორები", active: false },
-  { href: "/categories/audio", label: "აუდიო", active: false },
-  { href: "/categories/wearables", label: "საათები", active: false },
-  { href: "/deals", label: "აქციები", active: false },
-];
+// Built from the live catalog rather than hardcoded, so the hero never offers a
+// category chip that leads to an empty page. "All" and "Deals" always bookend.
+function buildHeroTabs(categories: Array<{ slug: string; nameKa: string }>) {
+  return [
+    { href: "/search", label: "ყველა", active: true },
+    ...categories.map((category) => ({
+      href: `/categories/${category.slug}`,
+      label: category.nameKa,
+      active: false,
+    })),
+    { href: "/deals", label: "აქციები", active: false },
+  ];
+}
 
 // Popular brands strip (retail handoff) — link to filtered search.
 const POPULAR_BRANDS = ["Apple", "Samsung", "Xiaomi", "HUAWEI", "ASUS", "Lenovo", "Sony", "HP"];
@@ -120,7 +123,7 @@ export default async function Home() {
 
               {/* Category chips — friendly rounded pills */}
               <div className="mt-6 flex min-w-0 flex-wrap gap-2">
-                {heroTabs.map(({ href, label, active }) => (
+                {buildHeroTabs(categories).map(({ href, label, active }) => (
                   <Link
                     key={href}
                     href={href}
