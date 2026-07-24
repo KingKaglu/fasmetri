@@ -638,7 +638,7 @@ function HeroMobileDealCard({ product }: { product: ProductView }) {
         )}
       </div>
       <div className="p-2.5">
-        <p className="line-clamp-2 min-h-[2.1rem] text-[11px] font-semibold leading-snug text-gray-900">{product.name}</p>
+        <p title={product.name} className="line-clamp-3 text-[11px] font-semibold leading-snug text-gray-900">{product.name}</p>
         <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5">
           <span className="text-sm font-bold text-[var(--accent)]">{formatGel(offer.currentPrice)}</span>
           {offer.oldPrice && offer.oldPrice > offer.currentPrice && (
@@ -733,7 +733,7 @@ function HeroProduct({ product }: { product: ProductView }) {
               <AvailabilityBadge availability={offer.availability} hideUnknown />
             )}
           </div>
-          <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-bold leading-snug text-gray-900 hover:text-[var(--accent)]">
+          <Link href={`/products/${product.slug}`} title={product.name} className="line-clamp-3 text-sm font-bold leading-snug text-gray-900 hover:text-[var(--accent)]">
             {product.name}
           </Link>
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -807,7 +807,7 @@ function FeaturedDeal({ product }: { product: ProductView }) {
           <AvailabilityBadge availability={offer.availability} />
         </div>
 
-        <Link href={`/products/${product.slug}`} className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 hover:text-[var(--accent)]">
+        <Link href={`/products/${product.slug}`} title={product.name} className="line-clamp-3 text-sm font-semibold leading-snug text-gray-900 hover:text-[var(--accent)]">
           {product.name}
         </Link>
 

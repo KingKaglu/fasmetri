@@ -72,18 +72,19 @@ export function FavoritesList() {
             <div className="flex flex-1 flex-col p-3">
               <Link
                 href={`/products/${item.slug}`}
-                className="mb-2 line-clamp-2 min-h-[2.5rem] text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)] sm:text-[13px]"
+                title={item.name}
+                className="mb-2 line-clamp-4 text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)] sm:line-clamp-3 sm:text-[13px]"
               >
                 {item.name}
               </Link>
-              <div className="mb-2 flex flex-wrap items-baseline gap-x-1.5">
+              <div className="mb-2 mt-auto flex flex-wrap items-baseline gap-x-1.5">
                 <strong className="price-now text-base font-bold leading-none sm:text-lg">{formatGel(item.price)}</strong>
                 {item.oldPrice && item.oldPrice > item.price ? (
                   <span className="price-old text-xs">{formatGel(item.oldPrice)}</span>
                 ) : null}
               </div>
-              <div className="mt-auto flex items-center justify-between gap-2 border-t border-gray-100 pt-2">
-                <span className="truncate text-[10px] font-bold uppercase tracking-[0.05em] text-gray-400">
+              <div className="flex items-center justify-between gap-2 border-t border-gray-100 pt-2">
+                <span className="truncate text-[10.5px] font-semibold text-gray-400">
                   {item.shopCount && item.shopCount > 1 ? `${item.shopCount} მაღაზია` : item.shopName ?? ""}
                 </span>
                 <Link
