@@ -82,10 +82,15 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Name */}
+        {/* Name — store titles carry the distinguishing bits (storage, RAM,
+            colour) at the END, so clamping at two lines hid exactly what tells
+            near-identical listings apart. Three lines fits essentially every
+            real title; the price block below is bottom-anchored so prices stay
+            aligned across a row no matter how tall the name runs. */}
         <Link
           href={`/products/${product.slug}`}
-          className="mb-2.5 line-clamp-2 min-h-[2.5rem] text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)] sm:text-[13px]"
+          title={product.name}
+          className="mb-2.5 line-clamp-4 text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)] sm:line-clamp-3 sm:text-[13px]"
         >
           {product.name}
         </Link>
@@ -98,7 +103,7 @@ export function ProductCard({
         )}
 
         {/* Price */}
-        <div className="mb-2">
+        <div className="mb-2 mt-auto">
           <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} deal={deal && discount > 0} />
         </div>
 
@@ -114,7 +119,7 @@ export function ProductCard({
         )}
 
         {/* Shop comparison info: store count + freshness, always visible */}
-        <div className="mb-3 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
           <span className={`text-[10.5px] font-semibold ${shopCount > 1 ? "text-emerald-700" : "text-gray-400"}`}>
             {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
           </span>

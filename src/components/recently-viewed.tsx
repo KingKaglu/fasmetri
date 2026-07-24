@@ -87,16 +87,16 @@ export function RecentlyViewedStrip({ excludeSlug, inline = false }: { excludeSl
           <Link
             key={item.slug}
             href={`/products/${item.slug}`}
-            className="card-hover w-[160px] shrink-0 snap-start overflow-hidden border border-gray-200 bg-white"
+            className="card-hover flex w-[160px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white"
           >
             <div className="border-b border-gray-100">
               <ProductImage src={item.imageUrl} alt={item.name} categorySlug={item.categorySlug} shopName={item.shopName} />
             </div>
-            <div className="p-2.5">
-              <p className="line-clamp-2 min-h-[2.1rem] text-[11px] font-semibold leading-snug text-gray-900">{item.name}</p>
-              <p className="mt-1 text-sm font-bold tabular-nums text-gray-900">{formatGel(item.price)}</p>
+            <div className="flex flex-1 flex-col p-2.5">
+              <p title={item.name} className="line-clamp-3 text-[11px] font-semibold leading-snug text-gray-900">{item.name}</p>
+              <p className="mt-auto pt-1 text-sm font-bold tabular-nums text-gray-900">{formatGel(item.price)}</p>
               {item.shopName ? (
-                <p className="mt-0.5 truncate text-[10px] uppercase tracking-[0.05em] text-gray-400">{item.shopName}</p>
+                <p className="mt-0.5 truncate text-[10px] text-gray-400">{item.shopName}</p>
               ) : null}
             </div>
           </Link>

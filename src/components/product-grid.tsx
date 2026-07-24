@@ -32,8 +32,12 @@ export function ProductGrid({
 }) {
   if (!products.length) return <EmptyState href={resetHref} title={emptyTitle} description={emptyDescription} action={emptyAction} />;
   const gridClassName = density === "compact" ? "product-grid-dense" : "product-grid-catalog";
+  // items-stretch (not items-start) so every card in a row shares the row's
+  // height — that is what lets each card bottom-anchor its price and action
+  // buttons, keeping them aligned across the row even when product titles wrap
+  // to different numbers of lines.
   return (
-    <div className={`${gridClassName} ${mobileRail ? "product-rail-mobile" : ""} grid min-w-0 items-start`}>
+    <div className={`${gridClassName} ${mobileRail ? "product-rail-mobile" : ""} grid min-w-0 items-stretch`}>
       {products.map((product, index) => (
         <ProductCard key={product.id} product={product} deal={deal} imagePriority={index < priorityImages} />
       ))}
