@@ -136,7 +136,7 @@ export function CategoryMenu() {
             setOpen(true);
           }
         }}
-        className={`flex h-full items-center gap-1.5 border-r border-gray-200 px-3.5 text-[12px] font-semibold transition-colors duration-200 ease-in-out ${
+        className={`flex h-full items-center gap-1.5 rounded-l-full border-r border-gray-200 pl-4 pr-3.5 text-[12px] font-semibold transition-colors duration-200 ease-in-out ${
           open ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "bg-gray-50 text-gray-700 hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
         }`}
       >
