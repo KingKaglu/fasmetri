@@ -132,7 +132,10 @@ export function CatalogFilters({
       className={
         inDrawer
           ? "flex h-full min-h-0 flex-col bg-white text-gray-900"
-          : "overflow-hidden rounded-2xl border border-[var(--line)] bg-white text-gray-900 shadow-sm"
+          // No overflow-hidden: the sort/category selects render absolutely
+          // positioned listboxes inside this card, and clipping them would hide
+          // the options. Nothing here paints into the rounded corners anyway.
+          : "rounded-2xl border border-[var(--line)] bg-white text-gray-900 shadow-sm"
       }
     >
       {/* Header */}

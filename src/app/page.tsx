@@ -97,7 +97,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero — broadsheet front page: full-bleed ink band */}
-      <section className="hero-frame overflow-hidden !rounded-none">
+      <section className="hero-frame !rounded-none">
         <div className="shell relative z-10">
           <div className="grid gap-6 py-8 sm:py-10 lg:grid-cols-[1fr_auto] lg:gap-12 lg:py-12">
             {/* Left: copy + search */}

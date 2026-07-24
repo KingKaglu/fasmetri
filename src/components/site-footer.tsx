@@ -58,7 +58,9 @@ export async function SiteFooter() {
             <ul className="grid gap-2">
               {items.map(([href, label]) => (
                 <li key={href}>
-                  <Link href={href} className="text-sm text-zinc-300 hover:text-white transition-colors">
+                  {/* inline-block + py-1 lifts the tap target from ~16px of
+                      text height to a comfortable 24px+ on phones. */}
+                  <Link href={href} className="inline-block py-1 text-sm text-slate-300 transition-colors hover:text-white">
                     {label}
                   </Link>
                 </li>

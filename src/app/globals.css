@@ -352,9 +352,13 @@ textarea {
 
 /* ─── Hero ───────────────────────────────────────────── */
 
+/* Deliberately NOT overflow:hidden — the search field sits inside the hero and
+   its suggestions dropdown has to escape the hero's bounds. Both decorative
+   glows are therefore drawn inside `inset: 0` (rather than bleeding past the
+   edges and relying on the parent to clip them), and inherit the border radius
+   so they stay inside rounded corners on their own. */
 .hero-frame {
   position: relative;
-  overflow: hidden;
   border-radius: var(--radius-card);
   background: var(--hero-bg);
   color: #fff;
@@ -364,19 +368,11 @@ textarea {
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   opacity: 0.4;
-  background-image: radial-gradient(ellipse 50% 70% at 15% 110%, rgba(96, 165, 250, 0.35) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.hero-frame::after {
-  content: "";
-  position: absolute;
-  top: -40%;
-  right: -10%;
-  width: 50%;
-  height: 140%;
-  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.14) 0%, transparent 70%);
+  background-image:
+    radial-gradient(ellipse 50% 70% at 15% 110%, rgba(96, 165, 250, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 85% at 88% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
   pointer-events: none;
 }
 

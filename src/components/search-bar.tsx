@@ -202,8 +202,12 @@ export function SearchBar({
       action="/search"
       className="relative flex min-w-0 w-full overflow-visible"
     >
+      {/* No overflow-hidden here: the category menu renders as an absolutely
+          positioned dropdown inside this container, and clipping it hid every
+          entry past the first. The pill shape comes from the container radius
+          plus matching rounded ends on the first/last children instead. */}
       <div
-        className={`flex min-w-0 flex-1 items-center overflow-hidden rounded-full border bg-white shadow-sm ${
+        className={`flex min-w-0 flex-1 items-center rounded-full border bg-white shadow-sm ${
           isHeader ? "h-11" : large ? "h-14" : "h-12"
         } ${
           open && suggestions.length > 0
@@ -250,17 +254,17 @@ export function SearchBar({
           <button
             type="button"
             onClick={clearQuery}
-            className="shrink-0 px-2 text-gray-400 hover:text-gray-600"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             aria-label="გასუფთავება"
           >
-            <X className="size-3.5" />
+            <X className="size-4" />
           </button>
         )}
 
         <button
           type="submit"
           aria-label="ძებნა"
-          className={`shrink-0 font-semibold text-white ${
+          className={`shrink-0 rounded-r-full font-semibold text-white ${
             isHeader
               ? "h-full bg-[var(--accent)] px-4 text-sm hover:bg-[var(--accent-strong)]"
               : large
