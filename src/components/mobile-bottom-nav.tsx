@@ -21,8 +21,8 @@ export function MobileBottomNav() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 md:hidden">
       {/* Quick search bar */}
-      <div className="border-t-2 border-zinc-950 bg-white px-3 py-2">
-        <form action="/search" className="flex h-10 items-center overflow-hidden border border-zinc-950 bg-white">
+      <div className="border-t border-gray-200 bg-white px-3 py-2 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]">
+        <form action="/search" className="flex h-11 items-center overflow-hidden rounded-full border border-gray-200 bg-gray-50 focus-within:border-[var(--accent)] focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
           <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
             <Search className="size-3.5 shrink-0 text-gray-400" />
             <input
@@ -32,7 +32,7 @@ export function MobileBottomNav() {
               className="min-w-0 flex-1 bg-transparent text-sm font-medium text-gray-900 outline-none placeholder:text-gray-400"
             />
           </label>
-          <button className="h-full shrink-0 bg-[var(--accent)] px-4 text-xs font-semibold text-white">
+          <button className="h-full shrink-0 bg-[var(--accent)] px-5 text-xs font-semibold text-white">
             ძებნა
           </button>
         </form>
@@ -52,8 +52,8 @@ export function MobileBottomNav() {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 border-t-2 py-1.5 px-1 text-[10px] font-semibold uppercase tracking-[0.02em] transition-colors ${
-                  active ? "border-zinc-950 text-zinc-950" : "border-transparent text-gray-400 hover:text-gray-600"
+                className={`flex flex-col items-center gap-0.5 rounded-xl py-1.5 px-1 text-[10px] font-semibold transition-colors ${
+                  active ? "text-[var(--accent)]" : "text-gray-400 hover:text-gray-600"
                 }`}
               >
                 <span className="relative">
@@ -62,7 +62,7 @@ export function MobileBottomNav() {
                     strokeWidth={active ? 2.5 : 2}
                   />
                   {showBadge && (
-                    <span className="absolute -right-2 -top-1 grid min-w-[0.95rem] place-items-center bg-zinc-950 px-0.5 py-px text-[8px] font-bold leading-none tabular-nums text-white">
+                    <span className="absolute -right-2 -top-1 grid min-w-[0.95rem] place-items-center rounded-full bg-red-500 px-0.5 py-px text-[8px] font-bold leading-none tabular-nums text-white">
                       {favoriteCount > 99 ? "99+" : favoriteCount}
                     </span>
                   )}

@@ -44,7 +44,7 @@ function InfoBlock({
 }) {
   return (
     <article className="rounded-lg border border-gray-200 bg-white p-5">
-      <span className="grid size-9 place-items-center rounded-md border border-gray-200 bg-gray-50 text-gray-500">
+      <span className="grid size-10 place-items-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
         <Icon className="size-4" />
       </span>
       <h2 className="mt-3 text-base font-semibold text-gray-900">{title}</h2>

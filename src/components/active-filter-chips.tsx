@@ -66,7 +66,7 @@ export function ActiveFilterChips({
           type="button"
           aria-label={`ფილტრის მოშორება: ${chip.label}`}
           onClick={() => navigate((p) => chip.keys.forEach((k) => p.delete(k)))}
-          className="inline-flex items-center gap-1 border border-zinc-950 bg-white py-1 pl-3 pr-2 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-950 hover:text-white"
+          className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-[var(--accent-soft)] py-1 pl-3 pr-2 text-xs font-semibold text-[var(--accent)] transition hover:border-transparent hover:bg-[var(--accent)] hover:text-white"
         >
           {chip.label}
           <X className="size-3.5 text-gray-400" aria-hidden="true" />

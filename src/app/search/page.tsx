@@ -65,7 +65,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
                 <p className="eyebrow mb-1">ძებნა</p>
                 <h1 className="font-display break-words text-xl font-bold text-gray-900 sm:text-2xl">{headline}</h1>
               </div>
-              <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-md bg-zinc-950 border border-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-black">
+              <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100">
                 <BadgePercent className="size-3.5" />
                 აქციები
               </Link>

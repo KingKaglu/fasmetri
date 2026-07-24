@@ -85,7 +85,7 @@ export default async function ComparePage({
               <div key={column.product.id} role="columnheader" className={`relative p-3 ${index > 0 ? "border-l border-gray-100" : ""}`}>
                 <CompareRemove slug={column.product.slug} name={column.product.name} />
                 <Link href={`/products/${column.product.slug}`} className="block">
-                  <div className="overflow-hidden rounded-md border border-gray-100 bg-gray-50">
+                  <div className="mx-auto w-full max-w-[11rem] overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
                     <ProductImage
                       src={column.image}
                       alt={column.product.name}
@@ -114,7 +114,7 @@ export default async function ComparePage({
                     {Number.isFinite(column.lowestPrice) ? formatGel(column.lowestPrice) : "—"}
                   </span>
                   {isCheapest && columns.length > 1 ? (
-                    <span className="w-fit rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="w-fit rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white">
                       საუკეთესო ფასი
                     </span>
                   ) : null}
@@ -160,7 +160,7 @@ export default async function ComparePage({
                 price={column.cheapestOffer.currentPrice}
                 sourceUrl={column.cheapestOffer.url}
                 ariaLabel={`${column.cheapestOffer.shop.name} შეთავაზება`}
-                className="flex h-10 w-full max-w-[11rem] items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 text-[11px] font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                className="flex h-10 w-full max-w-[11rem] items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-[11px] font-semibold text-gray-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
               >
                 ნახვა
                 <ArrowUpRight className="size-3.5" />

@@ -102,12 +102,12 @@ export default async function Home() {
           <div className="grid gap-6 py-8 sm:py-10 lg:grid-cols-[1fr_auto] lg:gap-12 lg:py-12">
             {/* Left: copy + search */}
             <div className="flex min-w-0 flex-col justify-center">
-              {/* Kicker — dateline */}
-              <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-white/20 pb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white/60">
+              {/* Kicker — friendly pill */}
+              <div className="mb-5 inline-flex w-fit flex-wrap items-center gap-x-2 gap-y-1 rounded-full bg-white/10 px-4 py-1.5 text-[12px] font-semibold text-white/85">
                 <span className="text-white">ფასმეტრი</span>
-                <span aria-hidden className="text-white/30">/</span>
-                <span>ფასების ინდექსი ქართულ მაღაზიებში</span>
-                <span aria-hidden className="hidden text-white/30 sm:inline">/</span>
+                <span aria-hidden className="text-white/40">·</span>
+                <span>ფასების შედარება ქართულ მაღაზიებში</span>
+                <span aria-hidden className="hidden text-white/40 sm:inline">·</span>
                 <span className="hidden sm:inline" suppressHydrationWarning>{georgianDateline()}</span>
               </div>
 
@@ -118,16 +118,16 @@ export default async function Home() {
                 ფასმეტრი აერთიანებს ქართულ ონლაინ მაღაზიებს ერთ კატალოგში — სწრაფად ნახე სად არის საუკეთესო ფასი.
               </p>
 
-              {/* Category index — underlined newspaper tabs */}
-              <div className="mt-6 flex min-w-0 flex-wrap gap-x-5 gap-y-2">
+              {/* Category chips — friendly rounded pills */}
+              <div className="mt-6 flex min-w-0 flex-wrap gap-2">
                 {heroTabs.map(({ href, label, active }) => (
                   <Link
                     key={href}
                     href={href}
                     className={
                       active
-                        ? "shrink-0 border-b-2 border-white pb-1 text-[13px] font-bold uppercase tracking-[0.08em] text-white"
-                        : "shrink-0 border-b-2 border-transparent pb-1 text-[13px] font-medium uppercase tracking-[0.08em] text-white/60 hover:border-white/40 hover:text-white"
+                        ? "shrink-0 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-bold text-[#1d4ed8]"
+                        : "shrink-0 rounded-full bg-white/10 px-3.5 py-1.5 text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/20 hover:text-white"
                     }
                   >
                     {label}
@@ -293,7 +293,7 @@ export default async function Home() {
             <Link
               key={brand}
               href={`/search?q=${encodeURIComponent(brand)}`}
-              className="flex h-16 items-center justify-center border border-[var(--line-strong)] bg-white text-[13px] font-extrabold uppercase tracking-[0.1em] text-[var(--brand)] transition-colors hover:border-zinc-900 hover:bg-zinc-950 hover:text-white"
+              className="flex h-16 items-center justify-center rounded-2xl border border-[var(--line)] bg-white text-[14px] font-bold text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-[var(--accent)] hover:shadow-md"
             >
               {brand}
             </Link>
@@ -469,20 +469,20 @@ function IndexTicker({ index }: { index: PriceIndex }) {
   return (
     <Link
       href="/price-index"
-      className="mb-3 flex items-stretch divide-x divide-[var(--line)] overflow-x-auto border border-[var(--line-strong)] bg-white [-ms-overflow-style:none] [scrollbar-width:none] hover:border-zinc-900"
+      className="mb-3 flex items-stretch divide-x divide-[var(--line)] overflow-x-auto rounded-2xl border border-[var(--line)] bg-white shadow-sm [-ms-overflow-style:none] [scrollbar-width:none] hover:border-[var(--accent)]"
     >
       {cells.map((cell) => {
         const dropped = cell.changePct < 0;
         return (
           <span key={cell.label} className="flex shrink-0 items-baseline gap-2 px-3.5 py-2.5 sm:px-4">
-            <span className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-gray-400">{cell.label}</span>
-            <span className={`text-[13px] font-black tabular-nums ${dropped ? "text-zinc-950" : "text-gray-500"}`}>
+            <span className="text-[10.5px] font-bold text-gray-400">{cell.label}</span>
+            <span className={`text-[13px] font-black tabular-nums ${dropped ? "text-emerald-600" : cell.changePct > 0 ? "text-red-500" : "text-gray-400"}`}>
               {cell.changePct < 0 ? "▼" : cell.changePct > 0 ? "▲" : "•"} {formatTickerPct(cell.changePct)}
             </span>
           </span>
         );
       })}
-      <span className="ml-auto hidden shrink-0 items-center gap-1 px-4 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--brand)] sm:flex">
+      <span className="ml-auto hidden shrink-0 items-center gap-1 px-4 text-[11px] font-bold text-[var(--accent)] sm:flex">
         7 დღე
         <ArrowRight className="size-3" />
       </span>
@@ -508,21 +508,21 @@ function PriceChangeRow({ change }: { change: RecentPriceChange }) {
         className="wire-row flex min-w-0 items-center gap-3 px-3 py-2.5 hover:bg-gray-50 sm:px-4"
       >
         <span
-          className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-zinc-950" : "text-gray-400"}`}
+          className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-emerald-600" : "text-red-400"}`}
           aria-hidden
         >
           {dropped ? "▼" : "▲"}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-gray-900">{change.productName}</span>
-          <span className="block truncate text-[11px] uppercase tracking-[0.06em] text-gray-400">
+          <span className="block truncate text-[11px] text-gray-400">
             {change.shopName} · {formatRelativeTime(change.changedAt)}
           </span>
         </span>
         {delta > 0 && (
           <span
-            className={`hidden shrink-0 items-center gap-1 px-2 py-0.5 text-[11px] font-bold tabular-nums sm:inline-flex ${
-              dropped ? "bg-zinc-950 text-white" : "border border-zinc-200 bg-white text-zinc-500"
+            className={`hidden shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold tabular-nums sm:inline-flex ${
+              dropped ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
             }`}
           >
             <TrendingDown className={`size-3 ${dropped ? "" : "rotate-180"}`} />
@@ -548,7 +548,7 @@ function HeroStat({ label, value }: { label: string; value: number | null | unde
       <div className="font-display text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
         {(value ?? 0).toLocaleString()}
       </div>
-      <div className="mt-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-white/50">{label}</div>
+      <div className="mt-1.5 text-[11px] font-medium text-white/60">{label}</div>
     </div>
   );
 }
@@ -575,18 +575,20 @@ function SectionBar({
   return (
     <div className="masthead mb-5">
       <div className="masthead-row">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
-          <p className="masthead-kicker">{eyebrow}</p>
-          <h2 className="masthead-title min-w-0 truncate">{title}</h2>
-          {dealCount != null && (
-            <span className="hidden text-xs font-semibold tabular-nums text-[var(--muted)] sm:inline">
-              · {dealCount.toLocaleString()} აქცია
-            </span>
-          )}
+        <div className="min-w-0">
+          <p className="masthead-kicker mb-1">{eyebrow}</p>
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5">
+            <h2 className="masthead-title min-w-0">{title}</h2>
+            {dealCount != null && (
+              <span className="hidden text-xs font-semibold tabular-nums text-[var(--muted)] sm:inline">
+                {dealCount.toLocaleString()} აქცია
+              </span>
+            )}
+          </div>
         </div>
-        <Link href={href} className="masthead-link inline-flex items-center gap-1">
+        <Link href={href} className="masthead-link shrink-0">
           {action}
-          <ArrowRight className="size-3" />
+          <ArrowRight className="size-3.5" />
         </Link>
       </div>
     </div>
@@ -604,9 +606,11 @@ function TrustItem({
 }) {
   return (
     <div className="flex items-start gap-3 px-4 py-4 sm:px-5">
-      <Icon className="mt-0.5 size-4 shrink-0 text-zinc-950" strokeWidth={2.25} />
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+        <Icon className="size-4" strokeWidth={2.25} />
+      </span>
       <div className="min-w-0">
-        <p className="text-[12.5px] font-bold uppercase tracking-[0.05em] text-gray-900">{title}</p>
+        <p className="text-[13px] font-bold text-gray-900">{title}</p>
         <p className="mt-0.5 text-xs leading-5 text-gray-500">{description}</p>
       </div>
     </div>
@@ -623,7 +627,7 @@ function HeroMobileDealCard({ product }: { product: ProductView }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="w-[150px] shrink-0 snap-start overflow-hidden border border-white/90 bg-white"
+      className="w-[150px] shrink-0 snap-start overflow-hidden rounded-2xl bg-white"
     >
       <div className="relative border-b border-gray-100 bg-gray-50">
         <ProductImage src={image} alt={product.name} categorySlug={product.category?.slug} shopName={offer.shop.name} />
@@ -667,26 +671,26 @@ function HeroPromo({
   return (
     <Link
       href={href}
-      className="card-hover group relative flex items-center gap-4 border border-white/90 bg-white p-4"
+      className="card-hover group relative flex items-center gap-4 rounded-2xl bg-white p-4"
     >
-      {/* icon block — framed print vignette */}
-      <span className="grid size-14 shrink-0 place-items-center border border-zinc-900 bg-zinc-950 text-white">
+      {/* icon block — soft gradient tile */}
+      <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
         <span
-          className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
             badgeTone === "save"
-              ? "border border-zinc-900 bg-white text-zinc-900"
-              : "bg-zinc-950 text-white"
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-[var(--accent-soft)] text-[var(--accent)]"
           }`}
         >
           {badge}
         </span>
-        <p className="font-display mt-1.5 truncate text-[16px] font-bold text-[var(--brand)]">{title}</p>
+        <p className="mt-1.5 truncate text-[16px] font-bold text-[var(--brand)]">{title}</p>
         <p className="truncate text-xs font-medium text-[var(--muted)]">{subtitle}</p>
       </div>
-      <ArrowUpRight className="size-4 shrink-0 text-[var(--muted)] transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-zinc-950" />
+      <ArrowUpRight className="size-4 shrink-0 text-[var(--muted)] transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--accent)]" />
     </Link>
   );
 }
@@ -781,10 +785,10 @@ function FeaturedDeal({ product }: { product: ProductView }) {
   const savings = offer.oldPrice && offer.oldPrice > offer.currentPrice ? offer.oldPrice - offer.currentPrice : 0;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-lg border-2 border-zinc-900 bg-white shadow-sm">
+    <article className="card-hover group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <Link href={`/products/${product.slug}`} className="relative block overflow-hidden border-b border-gray-100 bg-gray-50">
         <ProductImage src={image} alt={product.name} priority tall />
-        <span className="absolute left-3 top-3 rounded-md bg-zinc-950 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+        <span className="absolute left-3 top-3 rounded-full bg-[var(--accent)] px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
           დღის ლიდერი
         </span>
         {discount > 0 && (
@@ -810,7 +814,7 @@ function FeaturedDeal({ product }: { product: ProductView }) {
         <PriceDisplay price={offer.currentPrice} oldPrice={offer.oldPrice} strong deal={discount > 0} />
 
         {savings > 0 && (
-          <span className="inline-flex w-fit items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-semibold text-zinc-900">
+          <span className="inline-flex w-fit items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
             <TrendingDown className="size-3" /> -{formatGel(savings)}
           </span>
         )}

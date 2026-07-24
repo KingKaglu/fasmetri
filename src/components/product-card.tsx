@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, BadgeCheck, BarChart2 } from "lucide-react";
+import { ArrowUpRight, BadgeCheck } from "lucide-react";
 import { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
 import { extractProductAttributes } from "@/lib/productNormalization";
@@ -63,20 +63,20 @@ export function ProductCard({
           </span>
         )}
         {offer.availability !== "UNKNOWN" ? (
-          <span className="absolute right-2 top-11">
+          <span className="absolute bottom-2 left-2">
             <AvailabilityBadge availability={offer.availability} hideUnknown />
           </span>
         ) : null}
       </Link>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-3">
+      <div className="flex flex-1 flex-col p-3.5">
         {/* Shop row */}
         <div className="mb-2 flex min-w-0 items-center gap-1.5">
           <ShopMark shop={offer.shop} size="sm" />
           <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-gray-500">{offer.shop.name}</span>
           {shopCount > 1 && (
-            <span className="shrink-0 border border-zinc-900 bg-white px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-zinc-900">
+            <span className="shrink-0 rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[var(--accent)]">
               +{shopCount - 1}
             </span>
           )}
@@ -92,7 +92,7 @@ export function ProductCard({
 
         {/* Normalized specs — classified-ad spec line, not chips */}
         {specChips.length > 0 && (
-          <p className="mb-2 truncate text-[10.5px] font-medium uppercase tracking-[0.05em] text-gray-500">
+          <p className="mb-2 truncate text-[11px] font-medium text-gray-500">
             {specChips.join(" · ")}
           </p>
         )}
@@ -105,7 +105,7 @@ export function ProductCard({
         {/* Savings badge */}
         {deal && savings > 0 && (
           <span
-            className="mb-2 inline-flex w-fit items-center gap-1 rounded-full border border-zinc-300 bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-900"
+            className="mb-2 inline-flex w-fit items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
             title="რეალური ფასდაკლება — ძველი ფასი დადასტურებულია"
           >
             <BadgeCheck className="size-3" />
@@ -115,7 +115,7 @@ export function ProductCard({
 
         {/* Shop comparison info: store count + freshness, always visible */}
         <div className="mb-3 mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
-          <span className={`text-[10px] font-bold uppercase tracking-[0.05em] ${shopCount > 1 ? "text-zinc-950" : "text-gray-400"}`}>
+          <span className={`text-[10.5px] font-semibold ${shopCount > 1 ? "text-emerald-700" : "text-gray-400"}`}>
             {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
           </span>
           <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
@@ -125,10 +125,9 @@ export function ProductCard({
         <div className="grid grid-cols-2 gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="flex h-9 items-center justify-center gap-1 rounded-md border border-zinc-900 bg-zinc-950 px-2 text-[11px] font-semibold text-white hover:bg-black"
+            className="flex h-9 items-center justify-center rounded-md bg-[var(--accent)] px-2 text-[11px] font-semibold text-white hover:bg-[var(--accent-strong)]"
           >
-            <BarChart2 className="size-3 shrink-0" />
-            <span className="truncate">შედარება</span>
+            შედარება
           </Link>
           <ShopClickLink
             offerId={offer.id}
@@ -140,10 +139,10 @@ export function ProductCard({
             sourceUrl={offer.url}
             ariaLabel={`${offer.shop.name} შეთავაზება`}
             title="შეთავაზება"
-            className="flex h-9 items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+            className="flex h-9 items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-semibold text-gray-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
           >
+            ნახვა
             <ArrowUpRight className="size-3.5 shrink-0" />
-            <span className="truncate">ნახვა</span>
           </ShopClickLink>
         </div>
       </div>

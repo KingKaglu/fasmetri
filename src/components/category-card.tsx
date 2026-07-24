@@ -6,6 +6,8 @@ import {
   CarFront,
   Dumbbell,
   Footprints,
+  Gamepad2,
+  Headphones,
   House,
   Laptop,
   Leaf,
@@ -16,6 +18,7 @@ import {
   Sparkles,
   Sofa,
   Tv,
+  Watch,
   Wrench,
 } from "lucide-react";
 import { CategoryView } from "@/lib/catalog-types";
@@ -31,17 +34,17 @@ const descriptions: Record<string, string> = {
   monitors: "სამუშაო და gaming მონიტორები.",
 };
 
-// Monochrome variety: each category gets a distinct greyscale tile (black →
-// light grey) so the grid reads as varied without using any hue.
+// Friendly variety: each category gets a distinct soft-pastel tile so the
+// grid reads as colorful and approachable at a glance.
 const accentColors: Record<string, string> = {
-  mobiles: "bg-zinc-950 text-white",
-  laptops: "bg-zinc-800 text-white",
-  tablets: "bg-zinc-200 text-zinc-900",
-  audio: "bg-zinc-100 text-zinc-800",
-  wearables: "bg-zinc-300 text-zinc-900",
-  gaming: "bg-zinc-900 text-white",
-  televisions: "bg-zinc-700 text-white",
-  monitors: "bg-zinc-600 text-white",
+  mobiles: "bg-blue-100 text-blue-600",
+  laptops: "bg-violet-100 text-violet-600",
+  tablets: "bg-sky-100 text-sky-600",
+  audio: "bg-pink-100 text-pink-600",
+  wearables: "bg-amber-100 text-amber-600",
+  gaming: "bg-indigo-100 text-indigo-600",
+  televisions: "bg-emerald-100 text-emerald-600",
+  monitors: "bg-cyan-100 text-cyan-600",
 };
 
 export function CategoryCard({
@@ -80,7 +83,7 @@ export function CategoryCard({
               პროდუქტი
             </span>
             {!comingSoon && (category.dealCount ?? 0) > 0 && (
-              <span className="inline-flex items-center gap-1 text-zinc-900">
+              <span className="inline-flex items-center gap-1 text-emerald-700">
                 <span className="font-semibold">{(category.dealCount ?? 0).toLocaleString()}</span>
                 აქტიური აქცია
               </span>
@@ -142,9 +145,12 @@ export function CategoryCard({
 
 function categoryIcon(slug: string, size: "md" | "lg" = "md") {
   const cls = size === "lg" ? "size-7" : "size-5";
-  if (slug === "mobiles" || slug === "tablets" || slug === "tablet-accessories" || slug === "phone-accessories" || slug === "wearables") return <Smartphone className={cls} />;
+  if (slug === "wearables") return <Watch className={cls} />;
+  if (slug === "audio") return <Headphones className={cls} />;
+  if (slug === "gaming") return <Gamepad2 className={cls} />;
+  if (slug === "mobiles" || slug === "tablets" || slug === "tablet-accessories" || slug === "phone-accessories") return <Smartphone className={cls} />;
   if (slug === "computers" || slug === "computer-accessories" || slug === "cables-adapters" || slug === "laptops") return <Laptop className={cls} />;
-  if (slug === "televisions" || slug === "monitors" || slug === "audio" || slug === "gaming") return <Tv className={cls} />;
+  if (slug === "televisions" || slug === "monitors") return <Tv className={cls} />;
   if (slug === "clothing") return <Shirt className={cls} />;
   if (slug === "shoes") return <Footprints className={cls} />;
   if (slug === "beauty") return <Sparkles className={cls} />;

@@ -35,10 +35,10 @@ export function SiteHeader() {
       {/* Announcement bar — dark ink top strip (newspaper folio line) */}
       <div className="hidden bg-[var(--ink-surface)] md:block">
         <div className="shell flex h-[2.375rem] items-center justify-between">
-          <span className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-white/[0.72]">
+          <span className="truncate text-[11.5px] font-medium text-white/[0.75]">
             ფასმეტრი აერთიანებს ქართულ მაღაზიებს — ყიდვამდე საბოლოო ფასი მაღაზიაში გადაამოწმე
           </span>
-          <div className="flex shrink-0 items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.1em]">
+          <div className="flex shrink-0 items-center gap-4 text-[11.5px] font-semibold">
             <Link href="/deals" className="inline-flex items-center gap-1 text-white hover:text-white/70">
               <BadgePercent className="size-3" />
               დღის ფასდაკლებები
@@ -100,22 +100,20 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {/* Category nav row — newspaper section index with rule dividers */}
+      {/* Category nav row — friendly rounded pills */}
       <div className="hidden border-t border-[var(--line)] bg-white md:block">
-        <div className="shell flex h-12 items-stretch">
-          {categoryNav.map(({ href, label, icon: Icon }, index) => {
+        <div className="shell flex h-[3.25rem] items-center gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none]">
+          {categoryNav.map(({ href, label, icon: Icon }) => {
             const active = pathname.startsWith(href);
             return (
               <Link
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex items-center gap-2 border-b-2 px-4 text-[12px] font-bold uppercase tracking-[0.08em] transition-colors ${
-                  index > 0 ? "border-l border-l-[var(--line)]" : ""
-                } ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[12.5px] font-semibold transition-colors ${
                   active
-                    ? "border-b-zinc-950 text-zinc-950"
-                    : "border-b-transparent text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
+                    ? "bg-[var(--accent)] text-white"
+                    : "text-gray-600 hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                 }`}
               >
                 <Icon className="size-3.5" />
@@ -126,10 +124,10 @@ export function SiteHeader() {
           <Link
             href="/price-index"
             aria-current={pathname.startsWith("/price-index") ? "page" : undefined}
-            className={`ml-auto inline-flex items-center gap-1.5 border-b-2 border-l border-l-[var(--line)] px-4 text-[12px] font-bold uppercase tracking-[0.08em] transition-colors ${
+            className={`ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[12.5px] font-semibold transition-colors ${
               pathname.startsWith("/price-index")
-                ? "border-b-zinc-950 text-zinc-950"
-                : "border-b-transparent text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
+                ? "bg-[var(--accent)] text-white"
+                : "text-gray-600 hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
             }`}
           >
             <LineChart className="size-3.5" />
@@ -137,7 +135,7 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/deals"
-            className="inline-flex items-center gap-1.5 border-b-2 border-b-transparent border-l border-l-[var(--line)] px-4 text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--muted-strong)] hover:border-b-zinc-300 hover:text-zinc-950"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-50 px-3.5 py-2 text-[12.5px] font-semibold text-red-600 transition-colors hover:bg-red-100"
           >
             <Flame className="size-3.5" />
             აქციები
@@ -180,11 +178,11 @@ function FavoritesLink() {
       href="/favorites"
       aria-label="ფავორიტები"
       title="ფავორიტები"
-      className="relative grid size-9 place-items-center border border-gray-200 bg-white text-gray-600 hover:border-zinc-950 hover:text-zinc-950"
+      className="relative grid size-9 place-items-center rounded-full border border-gray-200 bg-white text-gray-600 hover:border-red-200 hover:bg-red-50 hover:text-red-500"
     >
       <Heart className="size-4" />
       {mounted && count > 0 && (
-        <span className="absolute -right-1.5 -top-1.5 grid min-w-[1.1rem] place-items-center bg-zinc-950 px-1 py-0.5 text-[9px] font-bold leading-none tabular-nums text-white">
+        <span className="absolute -right-1.5 -top-1.5 grid min-w-[1.1rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none tabular-nums text-white">
           {count > 99 ? "99+" : count}
         </span>
       )}

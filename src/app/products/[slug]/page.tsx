@@ -177,7 +177,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {/* Badges row */}
               <div className="mb-2 flex flex-wrap items-center gap-1.5">
                 <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
-                  <BadgeCheck className="mr-1 inline size-3 text-zinc-900" />
+                  <BadgeCheck className="mr-1 inline size-3 text-emerald-600" />
                   {product.offers.length > 1 ? `${product.offers.length} შეთავაზება` : "1 შეთავაზება"}
                 </span>
                 {cheapestDiscount > 0 && <DiscountBadge percent={cheapestDiscount} />}
@@ -280,7 +280,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     key={offer.id}
                     className={`wire-row grid min-w-0 gap-3 border-l-4 p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
                       index === 0
-                        ? "border-l-zinc-950 bg-white"
+                        ? "border-l-[var(--accent)] bg-white"
                         : outOfStock
                           ? "border-l-transparent bg-gray-50 opacity-70"
                           : "border-l-transparent bg-white"
@@ -292,7 +292,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="text-sm font-semibold text-gray-900">{offer.shop.name}</p>
                           {index === 0 && (
-                            <span className="rounded-full bg-zinc-950 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white">
                               საუკეთესო ფასი
                             </span>
                           )}
@@ -426,8 +426,8 @@ function PriceDirectionBadge({ currentPrice, history }: { currentPrice: number; 
   const Icon = dropped ? TrendingDown : TrendingUp;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold ${
-        dropped ? "bg-zinc-950 text-white" : "border border-zinc-300 bg-white text-zinc-600"
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+        dropped ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
       }`}
     >
       <Icon className="size-3" />
@@ -471,7 +471,7 @@ function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number;
 
 function StatCell({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <span className={`flex flex-col gap-0.5 rounded-md border p-2 ${accent ? "border-zinc-900 bg-zinc-950" : "border-gray-200 bg-gray-50"}`}>
+    <span className={`flex flex-col gap-0.5 rounded-md border p-2 ${accent ? "border-transparent bg-[var(--accent)]" : "border-gray-200 bg-gray-50"}`}>
       <strong className={`text-[10px] font-semibold uppercase tracking-wider ${accent ? "text-white/60" : "text-gray-400"}`}>
         {label}
       </strong>
@@ -509,7 +509,7 @@ function MatchConfidenceBadge({ confidence, status, singleStore = false }: { con
   const isPublic = isPublicMatchStatus(status);
   const tier =
     isPublic && confidence >= 95
-      ? { label: "ზუსტი დამთხვევა", styles: "border-zinc-900 bg-zinc-950 text-white" }
+      ? { label: "ზუსტი დამთხვევა", styles: "border-emerald-200 bg-emerald-50 text-emerald-700" }
       : isPublic && confidence >= 90
         ? { label: "ძლიერი დამთხვევა", styles: "border-zinc-400 bg-zinc-100 text-zinc-800" }
         : { label: "მსგავსი პროდუქტი", styles: "border-zinc-300 bg-white text-zinc-500" };

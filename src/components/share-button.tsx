@@ -33,7 +33,7 @@ export function ShareButton({ title }: { title: string }) {
       onClick={onShare}
       aria-label="გაზიარება"
       title="გაზიარება"
-      className="flex h-11 items-center justify-center gap-2 border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition-colors hover:border-zinc-950 hover:text-zinc-950"
+      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
     >
       {copied ? <Check className="size-4" /> : <Share2 className="size-4" />}
       {copied ? "დაკოპირდა" : "გაზიარება"}

@@ -17,13 +17,13 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
   if (hideUnknown && availability === "UNKNOWN") return null;
   const meta =
     availability === "IN_STOCK"
-      ? { label: "მარაგშია", className: "border-zinc-900 bg-zinc-900 text-white", dot: "bg-white" }
+      ? { label: "მარაგშია", className: "border-emerald-200 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" }
       : availability === "OUT_OF_STOCK"
-        ? { label: "არ არის მარაგში", className: "border-zinc-200 bg-zinc-50 text-zinc-400", dot: "bg-zinc-300" }
-        : { label: "მარაგი მოწმდება", className: "border-zinc-300 bg-white text-zinc-600", dot: "bg-zinc-400" };
+        ? { label: "არ არის მარაგში", className: "border-gray-200 bg-gray-50 text-gray-400", dot: "bg-gray-300" }
+        : { label: "მარაგი მოწმდება", className: "border-gray-200 bg-white text-gray-500", dot: "bg-gray-400" };
 
   return (
-    <span className={`inline-flex h-5 items-center gap-1 border px-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] ${meta.className}`}>
+    <span className={`inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[10px] font-semibold ${meta.className}`}>
       <span className={`size-1.5 rounded-full ${meta.dot}`} />
       {meta.label}
     </span>
@@ -33,7 +33,7 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
 export function DiscountBadge({ percent, label }: { percent: number; label?: string }) {
   if (!percent) return null;
   return (
-    <span className="inline-flex items-center rounded-md bg-zinc-950 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+    <span className="inline-flex items-center rounded-full bg-[var(--danger)] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-sm">
       {label ?? `-${percent}%`}
     </span>
   );
@@ -53,7 +53,7 @@ export function PriceDisplay({
   tone?: "dark" | "light";
 }) {
   const priceClass = tone === "light" ? "text-white" : "price-now";
-  const dealClass = deal ? "underline decoration-2 underline-offset-4 decoration-zinc-900/40" : "";
+  const dealClass = deal && tone !== "light" ? "price-now-deal" : "";
   const oldPriceClass = tone === "light" ? "text-white/50" : "price-old";
   const validOldPrice = oldPrice && oldPrice > price ? oldPrice : null;
   return (
@@ -95,7 +95,7 @@ export function LastUpdatedText({
   const stale = hours >= STALE_WARN_HOURS;
   const Icon = stale ? AlertTriangle : Clock3;
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1 ${stale ? "font-semibold text-zinc-800" : "text-gray-400"} ${className}`}>
+    <span className={`inline-flex min-w-0 items-center gap-1 ${stale ? "font-semibold text-amber-700" : "text-gray-400"} ${className}`}>
       <Icon className="size-3 shrink-0" />
       <span className="min-w-0">
         <span className="block">
@@ -121,13 +121,13 @@ export function ShopStatusBadge({ shop }: { shop: ShopView }) {
   const hasComparedProducts = shop.productCount == null ? Boolean(shop.lastScrapedAt) : shop.productCount > 0;
   const meta =
     hasComparedProducts && shop.lastScrapedAt
-      ? { label: "აქტიური", className: "border-zinc-900 bg-zinc-900 text-white" }
+      ? { label: "აქტიური", className: "border-emerald-200 bg-emerald-50 text-emerald-700" }
       : shop.enabled
-        ? { label: "მოწმდება", className: "border-zinc-300 bg-white text-zinc-600" }
-        : { label: "მალე", className: "border-zinc-200 bg-zinc-50 text-zinc-400" };
+        ? { label: "მოწმდება", className: "border-gray-200 bg-white text-gray-500" }
+        : { label: "მალე", className: "border-gray-200 bg-gray-50 text-gray-400" };
 
   return (
-    <span className={`inline-flex shrink-0 border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] ${meta.className}`}>
+    <span className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${meta.className}`}>
       {meta.label}
     </span>
   );
@@ -148,16 +148,16 @@ export function SectionHeader({
 }) {
   return (
     <div className="masthead mb-5">
-      <div className="masthead-row flex-wrap">
+      <div className="masthead-row flex-wrap items-start">
         <div className="max-w-2xl min-w-0">
-          {eyebrow ? <p className="masthead-kicker mb-0.5">{eyebrow}</p> : null}
+          {eyebrow ? <p className="masthead-kicker mb-1">{eyebrow}</p> : null}
           <h2 className="masthead-title">{title}</h2>
           {description ? <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p> : null}
         </div>
         {href ? (
-          <Link href={href} className="masthead-link inline-flex items-center gap-1">
+          <Link href={href} className="masthead-link shrink-0">
             {action}
-            <ArrowRight className="size-3" />
+            <ArrowRight className="size-3.5" />
           </Link>
         ) : null}
       </div>
@@ -188,7 +188,7 @@ export function EmptyState({
         <h2 className="mt-4 text-base font-semibold text-gray-900">{title}</h2>
         <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
         {href ? (
-          <Link href={href} className="mt-5 inline-flex h-9 items-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white hover:bg-black">
+          <Link href={href} className="mt-5 inline-flex h-10 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
             {action}
           </Link>
         ) : null}
@@ -209,7 +209,7 @@ export function ErrorState({
   return (
     <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-5 py-10 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-zinc-300 bg-zinc-950 text-white">
+        <span className="mx-auto grid size-12 place-items-center rounded-full bg-red-50 text-red-500">
           <AlertCircle className="size-5" />
         </span>
         <h1 className="mt-4 text-lg font-bold text-gray-900">{title}</h1>
@@ -224,7 +224,7 @@ export function TrustNote({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`rounded-lg border border-gray-200 bg-white ${compact ? "p-4" : "p-5"}`}>
       <p className="flex gap-2 text-sm font-semibold text-gray-900">
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-zinc-900" />
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
         ფასები და მარაგი რეგულარულად ახლდება.
       </p>
       <p className="mt-1.5 text-sm leading-5 text-gray-500">
