@@ -29,7 +29,7 @@ export default async function PriceIndexPage() {
       {/* Masthead band — the "markets page" front */}
       <section className="section-ink section-ink-grain">
         <div className="shell pt-9 pb-9 sm:pt-12 sm:pb-11">
-          <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-white/20 pb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white/60">
+          <div className="mb-5 inline-flex w-fit flex-wrap items-center gap-x-2 gap-y-1 rounded-full bg-white/10 px-4 py-1.5 text-[12px] font-semibold text-white/85">
             <span className="text-white">ფასმეტრი</span>
             <span aria-hidden className="text-white/30">/</span>
             <span>ბაზრის მონიტორინგი</span>
@@ -53,7 +53,7 @@ export default async function PriceIndexPage() {
                   <span aria-hidden className="text-2xl sm:text-3xl">{index.overall.changePct < 0 ? "▼" : index.overall.changePct > 0 ? "▲" : "•"}</span>
                   {formatPct(index.overall.changePct)}
                 </div>
-                <div className="mt-2 text-[10.5px] font-bold uppercase tracking-[0.14em] text-white/50">
+                <div className="mt-2 text-[11px] font-medium text-white/60">
                   ბაზარი ბოლო {index.windowDays} დღეში
                 </div>
               </div>
@@ -117,7 +117,7 @@ export default async function PriceIndexPage() {
         <div className="shell pt-8 pb-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="max-w-2xl">
-              <p className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--brand)]">
+              <p className="flex items-center gap-2 text-[13px] font-bold text-[var(--brand)]">
                 <LineChart className="size-4" />
                 როგორ ითვლება ინდექსი
               </p>
@@ -130,7 +130,7 @@ export default async function PriceIndexPage() {
             </div>
             <Link
               href="/deals"
-              className="inline-flex h-11 w-fit items-center gap-2 bg-zinc-950 px-5 text-[13px] font-bold uppercase tracking-[0.06em] text-white hover:bg-zinc-800"
+              className="inline-flex h-11 w-fit items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-[13px] font-bold text-white hover:bg-[var(--accent-strong)]"
             >
               ნახე დღევანდელი ფასდაკლებები
               <ArrowRight className="size-3.5" />
@@ -159,7 +159,7 @@ function IndexStat({ label, value }: { label: string; value: number }) {
       <div className="font-display text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
         {value.toLocaleString()}
       </div>
-      <div className="mt-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-white/50">{label}</div>
+      <div className="mt-1.5 text-[11px] font-medium text-white/60">{label}</div>
     </div>
   );
 }
@@ -185,27 +185,27 @@ function CategoryRow({ category, maxAbsPct }: { category: CategoryIndex; maxAbsP
   return (
     <li className="wire-row flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-4 sm:px-4">
       <span
-        className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-zinc-950" : "text-gray-400"}`}
+        className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-emerald-600" : "text-red-400"}`}
         aria-hidden
       >
         {flatMove ? "•" : dropped ? "▼" : "▲"}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-bold text-gray-900">{category.nameKa}</span>
-        <span className="block truncate text-[11px] uppercase tracking-[0.06em] text-gray-400">
+        <span className="block truncate text-[11px] text-gray-400">
           {category.sampleSize} შეთავაზება · {category.drops} გაიაფდა · {category.rises} გაძვირდა
         </span>
       </span>
       {/* Move bar — filled ink for drops (prices falling), outlined for rises */}
       <span className="hidden h-2 w-32 shrink-0 border border-zinc-300 bg-white sm:block md:w-44" aria-hidden>
         <span
-          className={`block h-full ${dropped ? "bg-zinc-950" : flatMove ? "bg-transparent" : "bg-zinc-400"}`}
+          className={`block h-full ${dropped ? "bg-emerald-500" : flatMove ? "bg-transparent" : "bg-red-300"}`}
           style={{ width: `${barWidth}%` }}
         />
       </span>
       <span
         className={`w-16 shrink-0 text-right text-sm font-black tabular-nums sm:w-20 ${
-          dropped ? "text-zinc-950" : "text-gray-500"
+          dropped ? "text-emerald-600" : "text-red-500"
         }`}
       >
         {formatPct(category.changePct)}
@@ -247,15 +247,15 @@ function MoverRow({ mover, rank, direction }: { mover: IndexMover; rank: number;
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[13px] font-semibold text-gray-900">{mover.productName}</span>
-          <span className="block truncate text-[11px] uppercase tracking-[0.06em] text-gray-400">{mover.shopName}</span>
+          <span className="block truncate text-[11px] text-gray-400">{mover.shopName}</span>
         </span>
         <span className="hidden shrink-0 text-right sm:block">
           <span className="block text-[11px] tabular-nums text-gray-400 line-through">{formatGel(mover.priceThen)}</span>
           <span className="block text-sm font-bold tabular-nums text-gray-900">{formatGel(mover.priceNow)}</span>
         </span>
         <span
-          className={`inline-flex shrink-0 items-center gap-1 px-2 py-1 text-[11px] font-bold tabular-nums ${
-            dropped ? "bg-zinc-950 text-white" : "border border-zinc-200 bg-white text-zinc-500"
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums ${
+            dropped ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
           }`}
         >
           {dropped ? <TrendingDown className="size-3" /> : <TrendingUp className="size-3" />}

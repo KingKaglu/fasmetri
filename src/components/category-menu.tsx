@@ -136,8 +136,8 @@ export function CategoryMenu() {
             setOpen(true);
           }
         }}
-        className={`flex h-full items-center gap-1.5 border-r border-zinc-900 px-3 text-[11.5px] font-bold uppercase tracking-[0.08em] transition-colors duration-200 ease-in-out ${
-          open ? "bg-zinc-950 text-white" : "bg-zinc-950 text-white hover:bg-zinc-800"
+        className={`flex h-full items-center gap-1.5 border-r border-gray-200 px-3.5 text-[12px] font-semibold transition-colors duration-200 ease-in-out ${
+          open ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "bg-gray-50 text-gray-700 hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
         }`}
       >
         <Menu className="size-3.5" />
@@ -150,10 +150,10 @@ export function CategoryMenu() {
           role="menu"
           aria-label="კატეგორიები"
           onKeyDown={onMenuKeyDown}
-          className="absolute left-0 top-full z-50 mt-1.5 w-64 overflow-hidden border border-zinc-950 bg-[var(--surface)] shadow-[6px_6px_0_rgba(10,10,10,0.9)]"
+          className="absolute left-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200 bg-[var(--surface)] shadow-[var(--shadow-lg)]"
         >
-          <p className="border-b border-[var(--line)] px-3 pb-1.5 pt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)]">
-            კატალოგის ინდექსი
+          <p className="border-b border-[var(--line)] px-3 pb-1.5 pt-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+            კატეგორიები
           </p>
           {entries.map((item, index) => {
             const Icon = item.icon;
@@ -197,7 +197,7 @@ export function CategoryMenu() {
               itemsRef.current[entries.length + 1] = el;
             }}
             onClick={() => close(false)}
-            className="flex items-center justify-between gap-2.5 bg-zinc-950 px-3 py-2.5 text-[11.5px] font-bold uppercase tracking-[0.08em] text-white outline-none transition-colors duration-200 ease-in-out hover:bg-zinc-800 focus-visible:bg-zinc-800"
+            className="flex items-center justify-between gap-2.5 bg-[var(--accent)] px-3 py-2.5 text-[12px] font-bold text-white outline-none transition-colors duration-200 ease-in-out hover:bg-[var(--accent-strong)] focus-visible:bg-[var(--accent-strong)]"
           >
             ყველა კატეგორია
             <LayoutGrid className="size-3.5" />

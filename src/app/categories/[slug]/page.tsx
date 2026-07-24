@@ -141,7 +141,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         </div>
         <div className="min-w-0">
           {/* Category search */}
-          <form action={`/categories/${category.slug}`} className="mb-4 flex h-10 min-w-0 items-center overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm">
+          <form action={`/categories/${category.slug}`} className="mb-4 flex h-11 min-w-0 items-center overflow-hidden rounded-full border border-gray-200 bg-white shadow-sm focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-blue-100">
             <SearchIcon className="ml-3 size-3.5 shrink-0 text-gray-400" />
             <input
               name="q"
@@ -156,7 +156,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
                 ✕
               </a>
             )}
-            <button className="h-full shrink-0 bg-[var(--accent)] px-4 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]">ძებნა</button>
+            <button className="h-full shrink-0 bg-[var(--accent)] px-5 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]">ძებნა</button>
           </form>
 
           <ActiveFilterChips basePath={`/categories/${category.slug}`} categories={categories} shops={shops} fixedCategory={category.slug} />

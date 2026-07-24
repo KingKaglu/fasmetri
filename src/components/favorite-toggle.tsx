@@ -29,10 +29,10 @@ export function FavoriteToggle({
         type="button"
         aria-pressed={selected}
         onClick={onClick}
-        className={`flex h-11 items-center justify-center gap-2 border px-4 text-sm font-semibold transition-colors ${
+        className={`flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors ${
           selected
-            ? "border-zinc-950 bg-zinc-950 text-white"
-            : "border-zinc-950 bg-white text-zinc-950 hover:bg-zinc-50"
+            ? "border-red-200 bg-red-50 text-red-600"
+            : "border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
         }`}
       >
         <Heart className={`size-4 ${selected ? "fill-current" : ""}`} />
@@ -50,7 +50,7 @@ export function FavoriteToggle({
       onClick={onClick}
       className={`absolute right-11 top-2 z-20 grid size-7 place-items-center rounded-full border shadow-sm transition-colors ${
         selected
-          ? "border-transparent bg-zinc-950 text-white"
+          ? "border-transparent bg-red-500 text-white"
           : "border-gray-200 bg-white/90 text-gray-500 backdrop-blur hover:border-gray-300 hover:text-gray-700"
       }`}
     >

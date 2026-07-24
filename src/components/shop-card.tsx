@@ -24,7 +24,13 @@ export function ShopCard({ shop }: { shop: ShopView }) {
           <PackageSearch className="size-3.5 shrink-0 text-gray-400" />
           <span className="truncate">{(shop.productCount ?? 0).toLocaleString()} პროდუქტი</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-md border border-zinc-900 bg-zinc-950 px-2.5 py-2 text-xs font-medium text-white">
+        <div
+          className={`flex items-center gap-1.5 rounded-md border px-2.5 py-2 text-xs font-semibold ${
+            (shop.dealCount ?? 0) > 0
+              ? "border-red-100 bg-red-50 text-red-600"
+              : "border-gray-100 bg-gray-50 text-gray-500"
+          }`}
+        >
           <BadgePercent className="size-3.5 shrink-0" />
           <span className="truncate">{(shop.dealCount ?? 0).toLocaleString()} აქცია</span>
         </div>

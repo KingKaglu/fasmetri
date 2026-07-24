@@ -29,7 +29,7 @@ export function FavoritesList() {
           </p>
           <Link
             href="/search"
-            className="mt-5 inline-flex h-9 items-center bg-zinc-950 px-4 text-sm font-semibold text-white hover:bg-black"
+            className="mt-5 inline-flex h-10 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]"
           >
             კატალოგის ნახვა
           </Link>
@@ -47,7 +47,7 @@ export function FavoritesList() {
         <button
           type="button"
           onClick={clear}
-          className="inline-flex items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-zinc-950 hover:text-zinc-950"
+          className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
         >
           <Trash2 className="size-3.5" />
           სიის გასუფთავება
@@ -62,7 +62,7 @@ export function FavoritesList() {
               aria-label={`${item.name} — ფავორიტებიდან წაშლა`}
               title="წაშლა"
               onClick={() => remove(item.slug)}
-              className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-gray-200 bg-white/90 text-gray-500 backdrop-blur transition-colors hover:border-zinc-950 hover:text-zinc-950"
+              className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-gray-200 bg-white/90 text-gray-500 backdrop-blur transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
             >
               <Trash2 className="size-3.5" />
             </button>
@@ -88,7 +88,7 @@ export function FavoritesList() {
                 </span>
                 <Link
                   href={`/products/${item.slug}`}
-                  className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold uppercase tracking-[0.05em] text-zinc-950 hover:underline"
+                  className="inline-flex shrink-0 items-center gap-1 text-[11.5px] font-bold text-[var(--accent)] hover:underline"
                 >
                   ნახვა
                   <ArrowUpRight className="size-3" />

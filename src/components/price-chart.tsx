@@ -47,7 +47,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
         <div className="relative grid min-h-24 place-items-center overflow-hidden rounded-md border border-dashed border-gray-200 bg-gray-50 px-5">
           <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-gray-300" />
           <div className="relative grid gap-1.5 text-center">
-            <span className="mx-auto size-3 rounded-full bg-zinc-950 ring-4 ring-zinc-200" />
+            <span className="mx-auto size-3 rounded-full bg-[var(--accent)] ring-4 ring-blue-100" />
             <strong className="text-xl font-bold text-gray-900">{formatGel(latestPoint.price)}</strong>
             <span className="text-xs text-gray-500">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
           </div>
@@ -70,7 +70,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             avoids the height="100%" → container-resize → re-measure loop. */}
         <ResponsiveContainer width="100%" height={CHART_HEIGHT} debounce={50}>
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 4 }}>
-            <CartesianGrid vertical={false} stroke="#e4e4e7" strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
               type="number"
@@ -92,7 +92,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               tick={{ fill: "#71717a", fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
-              cursor={{ stroke: "#16181d", strokeDasharray: "3 3" }}
+              cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }}
               formatter={(value) => [formatGel(Number(value)), "ფასი"]}
               labelFormatter={(_, payload) => {
                 const timestamp = Number(payload?.[0]?.payload?.timestamp);
@@ -109,10 +109,10 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             <Line
               type="monotone"
               dataKey="price"
-              stroke="#0a0a0a"
+              stroke="#2563eb"
               strokeWidth={2}
-              activeDot={{ r: 5, fill: "#0a0a0a", stroke: "#ffffff", strokeWidth: 2 }}
-              dot={data.length > 60 ? false : { r: 3, fill: "#0a0a0a", stroke: "#0a0a0a" }}
+              activeDot={{ r: 5, fill: "#2563eb", stroke: "#ffffff", strokeWidth: 2 }}
+              dot={data.length > 60 ? false : { r: 3, fill: "#2563eb", stroke: "#2563eb" }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -142,8 +142,8 @@ function HistorySummary({
         </p>
       </div>
       <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
-        <span className="rounded-md border border-zinc-900 bg-zinc-950 px-2 py-1 text-white">მინ. {formatGel(minPrice)}</span>
-        <span className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-zinc-700">მაქს. {formatGel(maxPrice)}</span>
+        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">მინ. {formatGel(minPrice)}</span>
+        <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 font-semibold text-gray-600">მაქს. {formatGel(maxPrice)}</span>
       </div>
     </div>
   );

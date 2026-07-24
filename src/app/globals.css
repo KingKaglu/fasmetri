@@ -1,81 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  /* ── Monochrome redesign tokens (black / white / blackish / whitish) ── */
-  /* Greyscale ramp: 0 white → 1000 black */
+  /* ── Friendly redesign tokens ─────────────────────────────
+     Soft, approachable retail look: cool-white canvas, blue
+     primary accent, green for savings/stock, red for deals. */
   --c-000: #ffffff;
-  --c-025: #fafafa;
-  --c-050: #f5f5f5;
-  --c-100: #ededee;
-  --c-150: #e4e4e7;
-  --c-200: #d4d4d8;
-  --c-300: #b8b8bd;
-  --c-400: #8f8f96;
-  --c-500: #71717a;
-  --c-600: #52525b;
-  --c-700: #3f3f46;
-  --c-800: #27272a;
-  --c-850: #1c1c1f;
-  --c-900: #141416;
-  --c-950: #0a0a0a;
-  --c-999: #000000;
+  --c-025: #f8fafc;
+  --c-050: #f1f5f9;
+  --c-100: #e8edf3;
+  --c-150: #e2e8f0;
+  --c-200: #d5dce6;
+  --c-300: #b6c0cd;
+  --c-400: #8b96a5;
+  --c-500: #64748b;
+  --c-600: #475569;
+  --c-700: #334155;
+  --c-800: #1e293b;
+  --c-850: #172033;
+  --c-900: #0f172a;
+  --c-950: #0b1120;
+  --c-999: #020617;
 
-  --background: var(--c-025);
-  /* Text ramp tuned to spec: primary #111, secondary #333, muted #666 */
-  --foreground: #111111;
+  --background: #f6f8fb;
+  --foreground: #0f172a;
   --surface: var(--c-000);
-  --surface-soft: var(--c-050);
+  --surface-soft: var(--c-025);
   --surface-mute: var(--c-050);
-  --surface-ink: var(--c-950);
-  /* Hairline borders use translucent black so they sit softly on any surface */
-  --line: rgba(0, 0, 0, 0.08);
-  --line-strong: rgba(0, 0, 0, 0.12);
-  --muted: #666666;
-  --muted-strong: #333333;
+  --surface-ink: var(--c-900);
+  /* Hairline borders — translucent slate so they sit softly on any surface */
+  --line: rgba(15, 23, 42, 0.08);
+  --line-strong: rgba(15, 23, 42, 0.14);
+  --muted: #64748b;
+  --muted-strong: #334155;
 
-  /* ink = primary text + dark sections / footer */
-  --brand: #111111;
-  --brand-soft: #333333;
+  --brand: #0f172a;
+  --brand-soft: #334155;
   --brand-ink: #ffffff;
-  /* always-dark surface (footer, header strip, logo tile) — does NOT flip in dark mode */
-  --ink-surface: var(--c-950);
-  /* accent is now monochrome ink (primary actions, links, active states) */
-  --accent: #111111;
-  --accent-strong: #000000;
-  --accent-soft: var(--c-050);
+  /* always-dark surface (footer, header strip) — deep navy, not pure black */
+  --ink-surface: #0f172a;
+  /* Primary accent — friendly blue (actions, links, active states) */
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #eff6ff;
   --accent-ink: #ffffff;
-  --aqua: var(--c-800);
-  --aqua-soft: var(--c-050);
+  /* aqua = "in stock" / positive live signal */
+  --aqua: #059669;
+  --aqua-soft: #ecfdf5;
 
-  --price: var(--c-950);
-  --price-deal: var(--c-950);
-  --savings: var(--c-900);
-  --savings-soft: var(--c-050);
+  --price: #0f172a;
+  --price-deal: #dc2626;
+  --savings: #059669;
+  --savings-soft: #ecfdf5;
   --save-ink: #ffffff;
-  --save-soft: var(--c-950);
-  --star: var(--c-950);
-  --danger: var(--c-950);
-  --warn: var(--c-700);
-  --warn-soft: var(--c-050);
+  --save-soft: #059669;
+  --star: #f59e0b;
+  --danger: #dc2626;
+  --warn: #b45309;
+  --warn-soft: #fffbeb;
 
-  /* hero is now ink black with subtle grain (white text on top) */
-  --hero-bg: radial-gradient(120% 140% at 80% 0%, #1c1c1f 0%, #0a0a0a 60%, #000000 100%);
+  /* hero — deep friendly blue with a soft glow */
+  --hero-bg: linear-gradient(130deg, #1e3a8a 0%, #1d4ed8 52%, #2563eb 100%);
 
-  /* Broadsheet geometry — print blocks, not app pills */
-  --radius-card: 2px;
-  --radius-control: 2px;
-  --radius-chip: 2px;
+  /* Comfortable, rounded geometry */
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+  --radius-chip: 999px;
 
-  /* Print shadows: resting cards sit flat on hairlines; hover lifts the
-     "sheet" with a solid offset like stacked paper. */
-  --shadow-card: none;
-  --shadow-card-hover: 6px 6px 0 rgba(10, 10, 10, 0.9);
-  --shadow-sm: none;
-  --shadow-md: 0 1px 0 rgba(10, 10, 10, 0.08);
-  --shadow-lg: 8px 8px 0 rgba(10, 10, 10, 0.9);
+  /* Soft layered shadows — gentle lift, no hard offsets */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.05);
+  --shadow-card-hover: 0 12px 28px -10px rgba(15, 23, 42, 0.18), 0 4px 10px -4px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px -4px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 20px 40px -16px rgba(15, 23, 42, 0.22), 0 6px 14px -6px rgba(15, 23, 42, 0.1);
 
-  /* Display face — Georgian serif for mastheads and headlines */
-  --font-display: "Noto Serif Georgian", "Noto Sans Georgian", Georgia, serif;
+  /* Display face — same friendly sans as body, just bolder in use */
+  --font-display: "Noto Sans Georgian", "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
 }
 
 @theme inline {
@@ -114,7 +113,7 @@ button,
 input,
 select,
 textarea {
-  transition: background-color 220ms ease-in-out, border-color 220ms ease-in-out, color 220ms ease-in-out, box-shadow 220ms ease-in-out, transform 220ms ease-in-out, opacity 220ms ease-in-out;
+  transition: background-color 180ms ease-in-out, border-color 180ms ease-in-out, color 180ms ease-in-out, box-shadow 180ms ease-in-out, transform 180ms ease-in-out, opacity 180ms ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -132,26 +131,28 @@ textarea {
   outline-offset: 2px;
 }
 
-/* ─── Broadsheet compat layer ─────────────────────────────
+/* ─── Friendly-radius compat layer ────────────────────────
    Components written against Tailwind's literal radius/shadow
-   utilities get flattened to the print geometry in one place,
-   so every page — including ones not hand-edited — drops the
-   generic rounded-card look. Circles (.rounded-full) survive:
-   avatar dots, shop marks, toggles stay round. */
+   utilities get bumped to the comfortable rounded scale in one
+   place, so every page — including ones not hand-edited —
+   picks up the softer look. Circles (.rounded-full) survive. */
 
-.rounded, .rounded-sm, .rounded-md, .rounded-lg,
-.rounded-xl, .rounded-2xl, .rounded-3xl {
-  border-radius: 2px !important;
-}
-.rounded-t-2xl { border-radius: 2px 2px 0 0 !important; }
-.rounded-b-2xl { border-radius: 0 0 2px 2px !important; }
-.rounded-\[10px\] { border-radius: 2px !important; }
-.shadow-sm { box-shadow: none !important; }
+.rounded { border-radius: 0.5rem !important; }
+.rounded-sm { border-radius: 0.5rem !important; }
+.rounded-md { border-radius: 0.625rem !important; }
+.rounded-lg { border-radius: 0.875rem !important; }
+.rounded-xl { border-radius: 1rem !important; }
+.rounded-2xl { border-radius: 1.25rem !important; }
+.rounded-3xl { border-radius: 1.5rem !important; }
+.rounded-t-2xl { border-radius: 1.25rem 1.25rem 0 0 !important; }
+.rounded-b-2xl { border-radius: 0 0 1.25rem 1.25rem !important; }
+.rounded-\[10px\] { border-radius: 0.625rem !important; }
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
 
-/* Display serif for headlines / mastheads */
+/* Display face for headlines / mastheads (now friendly sans) */
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* ─── Layout ─────────────────────────────────────────── */
@@ -163,47 +164,46 @@ textarea {
 
 @media (max-width: 640px) {
   .shell {
-    width: min(calc(100vw - 1rem), 88rem);
+    width: min(calc(100vw - 1.5rem), 88rem);
   }
 }
 
 @media (max-width: 340px) {
   .shell {
-    width: min(calc(100vw - 0.5rem), 88rem);
+    width: min(calc(100vw - 0.75rem), 88rem);
   }
 }
 
 /* ─── Section variety ────────────────────────────────────
-   So not every block looks the same: alternate paper / mist /
-   ink / framed treatments down a page. Each sets its own --line
-   and text color so nested cards adapt automatically. */
+   Alternate paper / mist / ink / tinted treatments down a page.
+   Each sets its own --line and text color so nested cards adapt. */
 
 .section-paper {
   background: var(--c-000);
-  color: var(--c-950);
+  color: var(--c-900);
 }
 
 .section-mist {
-  background: var(--c-050);
-  color: var(--c-950);
+  background: var(--c-025);
+  color: var(--c-900);
 }
 
 .section-frame {
   background: var(--c-000);
-  color: var(--c-950);
+  color: var(--c-900);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
 }
 
 .section-ink {
-  background: var(--c-950);
+  background: linear-gradient(135deg, #0f172a 0%, #16233f 60%, #1e3a8a 130%);
   color: #ffffff;
   --line: rgba(255, 255, 255, 0.12);
   --line-strong: rgba(255, 255, 255, 0.2);
-  --muted: rgba(255, 255, 255, 0.6);
-  --muted-strong: rgba(255, 255, 255, 0.82);
+  --muted: rgba(255, 255, 255, 0.62);
+  --muted-strong: rgba(255, 255, 255, 0.85);
   --brand: #ffffff;
-  --surface: rgba(255, 255, 255, 0.04);
+  --surface: rgba(255, 255, 255, 0.05);
 }
 
 .section-ink-grain {
@@ -215,25 +215,15 @@ textarea {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.5;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 34px 34px;
+  opacity: 0.35;
+  background-image: radial-gradient(ellipse 60% 80% at 85% 10%, rgba(96, 165, 250, 0.22) 0%, transparent 70%);
   pointer-events: none;
 }
 
-/* Hairline-striped panel — another distinct texture for variety */
+/* Softly tinted panel — a light accent wash for variety */
 .section-hatch {
-  background-color: var(--c-000);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--c-050) 0,
-    var(--c-050) 1px,
-    transparent 1px,
-    transparent 11px
-  );
-  color: var(--c-950);
+  background: linear-gradient(180deg, #eff6ff 0%, #f6f8fb 100%);
+  color: var(--c-900);
 }
 
 /* ─── Card hover (one shared motion language) ────────── */
@@ -242,8 +232,8 @@ textarea {
   transition: transform 160ms ease-out, box-shadow 160ms ease-out, border-color 160ms ease-out;
 }
 .card-hover:hover {
-  transform: translate(-2px, -2px);
-  border-color: var(--c-950);
+  transform: translateY(-3px);
+  border-color: rgba(37, 99, 235, 0.35);
   box-shadow: var(--shadow-card-hover);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -266,11 +256,11 @@ textarea {
   background: var(--surface-mute);
 }
 
-/* Inverted card — black tile for use on light sections */
+/* Inverted card — navy tile for use on light sections */
 .surface-ink {
-  border: 1px solid var(--c-850);
+  border: 1px solid var(--c-800);
   border-radius: var(--radius-card);
-  background: var(--c-950);
+  background: var(--c-900);
   color: #ffffff;
 }
 
@@ -278,8 +268,8 @@ textarea {
 
 .site-header {
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: saturate(140%) blur(12px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(160%) blur(14px);
 }
 
 /* ─── Buttons ────────────────────────────────────────── */
@@ -301,21 +291,21 @@ textarea {
   align-items: center;
   gap: 0.25rem;
   border-radius: var(--radius-chip);
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.6rem;
   font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .chip-deal {
-  background: var(--c-950);
+  background: var(--danger);
   color: #ffffff;
 }
 
 .chip-savings {
-  border: 1px solid var(--c-200);
-  background: var(--c-050);
-  color: var(--c-900);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  background: var(--savings-soft);
+  color: #047857;
 }
 
 .chip-muted {
@@ -327,12 +317,12 @@ textarea {
 
 .filter-control,
 .contact-control {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   width: 100%;
   border-radius: var(--radius-control);
   border: 1px solid var(--line-strong);
   background: var(--surface);
-  padding-inline: 0.75rem;
+  padding-inline: 0.85rem;
   font-weight: 500;
   font-size: 0.875rem;
   color: var(--brand);
@@ -341,7 +331,7 @@ textarea {
 .filter-control:focus,
 .contact-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.12);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
   outline: none;
 }
 
@@ -353,11 +343,11 @@ textarea {
 }
 
 .eyebrow {
-  color: var(--muted);
+  color: var(--accent);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
 }
 
 /* ─── Hero ───────────────────────────────────────────── */
@@ -374,11 +364,8 @@ textarea {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.5;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size: 34px 34px;
+  opacity: 0.4;
+  background-image: radial-gradient(ellipse 50% 70% at 15% 110%, rgba(96, 165, 250, 0.35) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -389,18 +376,17 @@ textarea {
   right: -10%;
   width: 50%;
   height: 140%;
-  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.14) 0%, transparent 70%);
   pointer-events: none;
 }
 
-/* Highlighter-pen emphasis for a single heading word on the hero */
+/* Marker-pen emphasis for a single heading word on the hero */
 .hero-highlight {
   position: relative;
-  color: var(--c-950);
-  background: #ffffff;
-  border-radius: 2px;
+  color: #1e3a8a;
+  background: #fde047;
+  border-radius: 0.375rem;
   padding: 0.02em 0.18em;
-  box-shadow: 5px 5px 0 rgba(255, 255, 255, 0.22);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -494,8 +480,8 @@ textarea {
 /* ─── Mobile product rail ────────────────────────────────
    Homepage sections: below md, override the stacked grid with a
    single swipeable snap row so the page stays short and each
-   masthead clearly labels the row it belongs to. Desktop keeps
-   the normal responsive grid. */
+   section header clearly labels the row it belongs to. Desktop
+   keeps the normal responsive grid. */
 
 @media (max-width: 767px) {
   .product-rail-mobile {
@@ -508,8 +494,8 @@ textarea {
     overscroll-behavior-inline: contain;
     gap: 0.75rem;
     padding-bottom: 0.5rem;
-    margin-inline: -0.5rem;
-    padding-inline: 0.5rem;
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
     scrollbar-width: none;
   }
   .product-rail-mobile::-webkit-scrollbar {
@@ -585,7 +571,7 @@ textarea {
 .section-header-link {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--brand);
+  color: var(--accent);
   white-space: nowrap;
 }
 .section-header-link:hover {
@@ -593,49 +579,39 @@ textarea {
   text-decoration: underline;
 }
 
-/* ─── Masthead (newspaper section header) ─────────────────
-   Thick ink rule + thin hairline under it, serif title.
-   Works on light bands and inside .section-ink (rules follow
-   currentColor via --masthead-rule). */
+/* ─── Masthead (friendly section header) ──────────────────
+   A small accent kicker above a bold sans title with a pill
+   "see all" action. Same class names as the old broadsheet
+   masthead so pages don't need re-editing. */
 
 .masthead {
-  --masthead-rule: var(--c-950);
-  border-top: 3px solid var(--masthead-rule);
-  padding-top: 0.15rem;
+  border-top: none;
+  padding-top: 0;
   position: relative;
 }
 .masthead::after {
-  content: "";
-  display: block;
-  height: 1px;
-  background: var(--masthead-rule);
-  margin-top: 0.15rem;
-  margin-bottom: 0.9rem;
-  opacity: 0.35;
-}
-.section-ink .masthead {
-  --masthead-rule: #ffffff;
+  content: none;
 }
 
 .masthead-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-top: 0.55rem;
+  padding-top: 0;
 }
 
 .masthead-title {
   font-family: var(--font-display);
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   color: var(--brand);
 }
 @media (min-width: 640px) {
   .masthead-title {
-    font-size: 1.625rem;
+    font-size: 1.5rem;
   }
 }
 
@@ -643,30 +619,48 @@ textarea {
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--muted);
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+.section-ink .masthead-kicker {
+  color: rgba(147, 197, 253, 0.9);
 }
 
 .masthead-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--brand);
   white-space: nowrap;
-  border-bottom: 1px solid var(--line-strong);
-  padding-bottom: 0.1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: var(--surface);
 }
 .masthead-link:hover {
-  border-bottom-color: var(--c-950);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.section-ink .masthead-link {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+.section-ink .masthead-link:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 /* ─── Ticker table (price wire) ───────────────────────── */
 
 .wire-table {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 .wire-row {
   font-variant-numeric: tabular-nums;
@@ -675,8 +669,9 @@ textarea {
   border-top: 1px solid var(--line);
 }
 
-/* Stat column with a left rule — hero "financial paper" stats */
+/* Stat column with a left rule — hero stats */
 .stat-rule {
-  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  border-left: 2px solid rgba(255, 255, 255, 0.25);
   padding-left: 0.9rem;
+  border-radius: 1px;
 }
