@@ -15,20 +15,39 @@ const navLinks = [
   { href: "/about", label: "როგორ მუშაობს" },
 ];
 
-// Retail category nav (handoff CategoryNav) — the public catalog categories,
-// with a deals shortcut on the right. Mirrors PUBLIC_CATEGORY_SLUGS.
-const categoryNav = [
+const CATEGORY_ICONS: Record<string, typeof Smartphone> = {
+  mobiles: Smartphone,
+  laptops: Laptop,
+  gaming: Gamepad2,
+  televisions: Tv,
+  audio: Headphones,
+  wearables: Watch,
+};
+
+// Shown only until the live list arrives, and only as a last resort if the
+// catalog query fails — never as a source of categories that have no products.
+const FALLBACK_CATEGORY_NAV = [
   { href: "/categories/mobiles", label: "სმარტფონები", icon: Smartphone },
   { href: "/categories/laptops", label: "ლეპტოპები", icon: Laptop },
-  { href: "/categories/gaming", label: "კონსოლები", icon: Gamepad2 },
-  { href: "/categories/televisions", label: "ტელევიზორები", icon: Tv },
-  { href: "/categories/audio", label: "აუდიო", icon: Headphones },
-  { href: "/categories/wearables", label: "სმარტ საათები", icon: Watch },
 ];
 
-export function SiteHeader() {
+export type HeaderCategory = { slug: string; nameKa: string };
+
+export function SiteHeader({ categories = [] }: { categories?: HeaderCategory[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+
+  // Driven by the live catalog (same source as the dropdown and /categories),
+  // so a category with no products never appears here. The strip used to be a
+  // hardcoded list of all six public slugs, which meant televisions/audio/
+  // wearables were advertised in the nav while leading to an empty page.
+  const categoryNav = categories.length
+    ? categories.map((category) => ({
+        href: `/categories/${category.slug}`,
+        label: category.nameKa,
+        icon: CATEGORY_ICONS[category.slug] ?? Grid3X3,
+      }))
+    : FALLBACK_CATEGORY_NAV;
 
   return (
     <header className="sticky top-0 z-40 site-header">

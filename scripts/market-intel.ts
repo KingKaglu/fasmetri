@@ -10,7 +10,13 @@
  * the Agent-Reach MCP section in ARCHITECTURE.md for setup instructions.
  *
  * Usage: npx tsx scripts/market-intel.ts
+ *
+ * NOTE: the `export {}` below scopes this file as a module. Without it the
+ * top-level `main` sits in the global scope shared by every script in the
+ * program and collides, which fails `npm run lint` for the whole repo.
  */
+
+export {};
 
 const UA = "FasmetriIntelBot/0.1 (+hello@fasmetri.ge)";
 const JINA = "https://r.jina.ai/";

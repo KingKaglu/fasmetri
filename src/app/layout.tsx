@@ -10,6 +10,7 @@ import { FavoritesProvider } from "@/lib/use-favorites";
 import { CompareTray } from "@/components/compare-tray";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { siteUrl } from "@/config/site";
+import { listPublicCategories } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -41,11 +42,17 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The header's category strip is driven by the live catalog so empty
+  // categories are never advertised. This reads the same cached summary the
+  // footer already awaits here, so it adds no extra database round trip.
+  const headerCategories = await listPublicCategories()
+    .then((categories) => categories.map(({ slug, nameKa }) => ({ slug, nameKa })))
+    .catch(() => []);
   const base = siteUrl();
   const siteJsonLd = [
     {
@@ -97,7 +104,7 @@ export default function RootLayout({
         <JsonLd data={siteJsonLd} />
         <CompareProvider>
           <FavoritesProvider>
-            <SiteHeader />
+            <SiteHeader categories={headerCategories} />
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <MobileBottomNav />

@@ -71,7 +71,8 @@
     "sync:ee:consoles": "tsx scripts/ee-consoles.ts --mode=prices --promote",
     "scrape:ee:consoles:full": "tsx scripts/ee-consoles.ts --mode=full --promote",
     "store-category-coverage": "tsx scripts/store-category-coverage.ts",
-    "intel": "tsx scripts/market-intel.ts"
+    "intel": "tsx scripts/market-intel.ts",
+    "diagnose:ee-discounts": "tsx scripts/diagnose-ee-discounts.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
