@@ -48,12 +48,14 @@ const historyDayFormatter = new Intl.DateTimeFormat("en-GB", {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const product = await getPublicProduct((await params).slug);
-  if (!product) {
-    return {
-      title: "პროდუქტი ვერ მოიძებნა",
-      robots: { index: false, follow: false },
-    };
-  }
+  // Single source of truth for "this product does not exist": metadata and the
+  // page below agree on one condition instead of each handling it separately.
+  // NOTE: this does not currently change the HTTP status — Next 16 still serves
+  // these as 200 (a soft 404) even when notFound() is raised here. The
+  // not-found response carries `noindex`, so search engines drop it regardless;
+  // if the framework's status handling improves this route gets a real 404 for
+  // free.
+  if (!product) notFound();
 
   const cheapest = product.offers[0];
   const description = cheapest

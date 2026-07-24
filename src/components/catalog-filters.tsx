@@ -328,7 +328,11 @@ function NumberFilter({
 
   return (
     <div>
-      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</label>
+      {/* The input is nested inside the <label> so the association is implicit —
+          previously the label sat beside it with no htmlFor, leaving these
+          three price/discount fields unlabelled for screen readers. */}
+      <label className="block">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
       <input
         type="number"
         min="0"
@@ -346,7 +350,8 @@ function NumberFilter({
             onCommit(val.trim());
           }
         }}
-      />
+        />
+      </label>
     </div>
   );
 }

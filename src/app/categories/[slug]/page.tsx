@@ -50,10 +50,12 @@ export async function generateMetadata({
   searchParams: Params;
 }): Promise<Metadata> {
   const slug = resolvePublicCategorySlug((await params).slug);
-  // Removed (non-public) categories must not be indexed.
-  if (!isPublicCategorySlug(slug)) return { title: "კატეგორია ვერ მოიძებნა", robots: { index: false, follow: false } };
+  // Unknown/removed categories raise not-found here as well as in the page, so
+  // both agree on one condition. Next 16 still returns 200 for these (soft 404);
+  // the response is `noindex`, so they stay out of search results.
+  if (!isPublicCategorySlug(slug)) notFound();
   const { category } = await resolveCategoryForPage(slug);
-  if (!category) return { title: "კატეგორია" };
+  if (!category) notFound();
 
   // Paginated listings self-canonicalize per page so page 2+ is not treated
   // as duplicate content of page 1; filtered views canonicalize to the base.

@@ -12,7 +12,9 @@ const productPageSize = 36;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const slug = (await params).slug;
   const shop = (await listPublicShops()).find((item) => item.slug === slug);
-  if (!shop || !shop.enabled || (shop.productCount ?? 0) <= 0) return { title: "მაღაზია" };
+  // Matches the page's own guard so both agree on one condition. Next 16 serves
+  // these as 200 (soft 404); the response is `noindex` so they are not indexed.
+  if (!shop || !shop.enabled || (shop.productCount ?? 0) <= 0) notFound();
   return {
     title: `${shop.name} შეთავაზებები`,
     description: `${shop.name} პროდუქტები, ფასები და აქციები ფასმეტრში.`,
