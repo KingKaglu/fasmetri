@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowRight, Cpu, Gamepad2, Info, MemoryStick, Monitor } from "lucide-react";
-import { listPublicProducts } from "@/lib/catalog";
+import { listPublicProductMatches } from "@/lib/catalog";
 import type { ProductView } from "@/lib/catalog-types";
 import { formatGel } from "@/lib/format";
 import { JsonLd } from "@/components/json-ld";
@@ -57,7 +57,14 @@ export default async function GamesPage({
   const activeGame = getGame((await searchParams).game ?? "") ?? GAMES[0];
 
   // Only laptops can be scored — phones and TVs have no comparable GPU tier.
-  const laptops = await listPublicProducts({ category: "laptops", sort: "lowest", pageSize: 200 });
+  //
+  // Deliberately unpaginated: listPublicProducts caps pageSize at 200, and the
+  // laptop catalog is larger than that. Taking the first page sorted by price
+  // would silently drop the most powerful machines — exactly the ones a gamer
+  // is here for — leaving the "runs it excellently" groups permanently empty.
+  // Scoring is regex over the title, so reading the full set is cheap, and the
+  // result is cached for 10 minutes anyway.
+  const laptops = await listPublicProductMatches({ category: "laptops", sort: "lowest" });
 
   const scored: Scored[] = laptops
     .map((product) => {
