@@ -265,7 +265,18 @@ export function evaluateGameFit(title: string, game: Game, specs?: ScrapedSpecs 
     };
   }
   if (gpu.kind === "unknown") {
-    return { verdict: "unknown", label: VERDICT_LABELS.unknown, preset: null, fps: null, notes: [] };
+    // Many shops list office laptops by bare SKU ("LENOVO IdeaPad 1/82VG00YRRK")
+    // with no GPU anywhere in the title. Guessing "integrated" from the absence
+    // of a GPU would wrongly tell a buyer that a discrete-GPU machine cannot run
+    // the game, so we say we don't know — and say why, rather than showing a row
+    // with no explanation at all.
+    return {
+      verdict: "unknown",
+      label: VERDICT_LABELS.unknown,
+      preset: null,
+      fps: null,
+      notes: ["მაღაზიის აღწერაში ვიდეობარათი მითითებული არ არის — გადაამოწმე პროდუქტის გვერდზე"],
+    };
   }
 
   const expectation = game.byTier[gpu.tier];
