@@ -7,6 +7,7 @@ import { formatGel } from "@/lib/format";
 import { extractProductAttributes, type ProductAttributes } from "@/lib/productNormalization";
 import { ShopClickLink } from "@/components/shop-click-link";
 import { CompareRemove } from "@/components/compare-remove";
+import { CompareSync } from "@/components/compare-sync";
 import { EmptyState, ProductImage, SectionHeader } from "@/components/public-ui";
 
 export const metadata: Metadata = {
@@ -31,12 +32,16 @@ export default async function ComparePage({
   // to null and are skipped; order follows the user's selection order.
   const loaded = await Promise.all(slugs.map((slug) => getPublicProduct(slug)));
   const products = loaded.filter((product): product is ProductView => Boolean(product && product.offers[0]));
+  // Slugs that survived the load. Anything the user asked for that is missing
+  // here is no longer purchasable, and CompareSync drops it from the tray.
+  const resolvedSlugs = products.map((product) => product.slug);
 
   if (products.length < 2) {
     return (
       <section className="shell py-6 sm:py-10">
         <Breadcrumb />
         <SectionHeader eyebrow="შედარება" title="პროდუქტების შედარება" />
+        <CompareSync requested={slugs} resolved={resolvedSlugs} />
         <div className="mt-4">
           <EmptyState
             icon="search"
@@ -69,6 +74,7 @@ export default async function ComparePage({
         title={`${columns.length} პროდუქტი გვერდიგვერდ`}
         description="მახასიათებლები გასწორებულია; ყველაზე დაბალი ფასი მონიშნულია, განსხვავებული მნიშვნელობები გამუქებულია."
       />
+      <CompareSync requested={slugs} resolved={resolvedSlugs} />
 
       {/* Swipe affordance — the grid overflows on phones even with 2 columns. */}
       <p className="mt-4 flex items-center gap-1.5 text-[11px] font-medium text-gray-400 sm:hidden">

@@ -18,6 +18,7 @@ type CompareContextValue = {
   items: string[];
   add: (slug: string) => void;
   remove: (slug: string) => void;
+  removeMany: (slugs: string[]) => void;
   toggle: (slug: string) => void;
   clear: () => void;
   has: (slug: string) => boolean;
@@ -88,8 +89,19 @@ export function CompareProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => (prev.includes(value) || prev.length >= COMPARE_MAX ? prev : [...prev, value]));
   }, []);
 
+  // Returns `prev` untouched when the slug is not in the list. Filtering
+  // unconditionally would hand React a fresh array every call, so a no-op
+  // removal would still re-render — and an effect that prunes stale slugs would
+  // loop forever.
   const remove = useCallback((slug: string) => {
-    setItems((prev) => prev.filter((item) => item !== slug));
+    setItems((prev) => (prev.includes(slug) ? prev.filter((item) => item !== slug) : prev));
+  }, []);
+
+  // Drops several slugs in one state update, so pruning N stale entries costs
+  // one render instead of N.
+  const removeMany = useCallback((slugs: string[]) => {
+    const drop = new Set(slugs);
+    setItems((prev) => (prev.some((item) => drop.has(item)) ? prev.filter((item) => !drop.has(item)) : prev));
   }, []);
 
   const toggle = useCallback((slug: string) => {
@@ -102,7 +114,7 @@ export function CompareProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const clear = useCallback(() => setItems([]), []);
+  const clear = useCallback(() => setItems((prev) => (prev.length ? [] : prev)), []);
 
   const value = useMemo<CompareContextValue>(
     () => ({
@@ -110,13 +122,14 @@ export function CompareProvider({ children }: { children: React.ReactNode }) {
       items,
       add,
       remove,
+      removeMany,
       toggle,
       clear,
       has: (slug: string) => items.includes(slug),
       isFull: items.length >= COMPARE_MAX,
       count: items.length,
     }),
-    [mounted, items, add, remove, toggle, clear],
+    [mounted, items, add, remove, removeMany, toggle, clear],
   );
 
   return <CompareContext.Provider value={value}>{children}</CompareContext.Provider>;

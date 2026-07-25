@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { BarChart2, X } from "lucide-react";
 import { useCompare } from "@/lib/use-compare";
 
@@ -9,6 +10,28 @@ import { useCompare } from "@/lib/use-compare";
 // picked — so empty selections cost no layout and there is no SSR mismatch.
 export function CompareTray() {
   const { mounted, items, remove, clear } = useCompare();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // The compare page renders from `?items=`, not from this selection. Clearing
+  // the tray while standing on it used to empty the tray and leave the table
+  // fully rendered, so "clear" looked like it had done nothing — drop the query
+  // string as well. Elsewhere the URL carries no selection, so there is nothing
+  // to reset and we leave navigation alone.
+  function handleClear() {
+    clear();
+    if (pathname === "/compare") router.replace("/compare");
+  }
+
+  // Removing the last chip has the same problem: the tray unmounts and the
+  // stale table stays behind.
+  function handleRemove(slug: string) {
+    remove(slug);
+    if (pathname === "/compare") {
+      const remaining = items.filter((item) => item !== slug);
+      router.replace(remaining.length ? `/compare?items=${remaining.map(encodeURIComponent).join(",")}` : "/compare");
+    }
+  }
 
   if (!mounted || items.length === 0) return null;
 
@@ -29,7 +52,7 @@ export function CompareTray() {
                   <span className="truncate" title={readableSlug(slug)}>{readableSlug(slug)}</span>
                   <button
                     type="button"
-                    onClick={() => remove(slug)}
+                    onClick={() => handleRemove(slug)}
                     aria-label={`${readableSlug(slug)} — შედარებიდან მოხსნა`}
                     className="grid size-4 shrink-0 place-items-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-700"
                   >
@@ -44,7 +67,7 @@ export function CompareTray() {
         <div className="flex shrink-0 items-center justify-end gap-2">
           <button
             type="button"
-            onClick={clear}
+            onClick={handleClear}
             className="rounded-md px-2.5 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
           >
             გასუფთავება
