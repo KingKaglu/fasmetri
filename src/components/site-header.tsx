@@ -11,6 +11,7 @@ import { useFavorites } from "@/lib/use-favorites";
 const navLinks = [
   { href: "/categories", label: "კატეგორიები" },
   { href: "/deals", label: "აქციები" },
+  { href: "/games", label: "თამაშები" },
   { href: "/shops", label: "მაღაზიები" },
   { href: "/about", label: "როგორ მუშაობს" },
 ];
