@@ -33,6 +33,21 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  async redirects() {
+    // The site now lives on fasmetri.ge. The old fasmetri.vercel.app hostname
+    // still resolves and would otherwise serve the whole site a second time,
+    // splitting search ranking between two identical hosts. Matched on the
+    // exact production hostname so preview deployments, which get their own
+    // *.vercel.app names, are untouched.
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "fasmetri.vercel.app" }],
+        destination: "https://fasmetri.ge/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     // Clean public routes for the MVP. Query strings (filters/sort/pagination)
     // are preserved automatically, so /mobiles?shop=zoommer keeps working.
