@@ -22,7 +22,7 @@ jobs:
     # For workflow_run, only chain when the sync actually succeeded.
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
       DATABASE_POOL_MAX: "1"
