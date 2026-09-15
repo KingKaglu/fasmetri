@@ -84,7 +84,7 @@ type EESpecValue = {
   colorValue?: string | null;
 };
 
-type NormalizedLaptopSpecs = {
+export type NormalizedLaptopSpecs = {
   brand?: string;
   model?: string;
   normalizedModelName?: string;
@@ -971,7 +971,7 @@ async function upsertRawOffer(shopId: string, item: StagedEeLaptop, tx?: Prisma.
     sourceCategory: SOURCE_CATEGORY,
     breadcrumbs: jsonValue([SOURCE_CATEGORY, item.productUrl]),
     sourceBreadcrumbs: jsonValue([SOURCE_CATEGORY, item.productUrl]),
-    description: stringValue(item.rawListingData.description),
+    description: buildSpecDescription(item.normalizedSpecs) ?? stringValue(item.rawListingData.description),
     imageAlt: stringValue(item.rawListingData.imageAlt),
     rawSpecsJson: jsonValue(rawSpecsPayload(item)),
     importBatchId: `ee-laptops:${item.scrapedAt.slice(0, 10)}`,
@@ -1326,6 +1326,37 @@ function allImageUrls(product: JsonRecord, share: JsonRecord, fallback?: string)
     fallback,
   ].filter((value): value is string => Boolean(value && /^https?:\/\//i.test(value)));
   return [...new Set(values)];
+}
+
+// EE lists laptops by SKU ("HP OmniBook X Flip x360/D5ZA1EA") and its listing
+// payload carries no description, so RAM and storage appeared NOWHERE in the raw
+// offer the matcher reads: 94% of EE laptops gave it no way to tell a 16/512
+// from a 32/1TB, and it correctly refused to merge them rather than compare two
+// different machines. The specs were already scraped into normalizedSpecs (RAM
+// on 308 of 359 offers, SSD on 299) — they were simply never written down.
+//
+// Emitted in the same shape pcshopCatalog uses, because the matcher's variant
+// extractor keys off the adjacency words ("RAM", "SSD"/"Storage", "inch").
+export function buildSpecDescription(specs: NormalizedLaptopSpecs): string | undefined {
+  const parts: string[] = [];
+  if (specs.ramGb) parts.push(`${specs.ramGb}GB RAM`);
+  if (specs.storageGb) {
+    parts.push(specs.storageType ? `${specs.storageGb}GB ${specs.storageType} Storage` : `${specs.storageGb}GB Storage`);
+  }
+  if (specs.screenSize) {
+    // EE stores screen size as "15.6 Inch"; appending the unit again would emit
+    // "15.6 Inch inch".
+    const size = String(specs.screenSize).replace(/\s*inch(es)?\s*$/i, "").trim();
+    if (size) parts.push(`${size} inch`);
+  }
+  if (specs.cpu) parts.push(specs.cpu);
+  if (specs.gpu) parts.push(specs.gpu);
+  if (specs.model) parts.push(specs.model);
+  if (specs.modelCode) parts.push(specs.modelCode);
+  if (specs.color) parts.push(specs.color);
+  if (specs.operatingSystem) parts.push(specs.operatingSystem);
+  const text = parts.filter(Boolean).join(". ").trim();
+  return text.length > 0 ? text : undefined;
 }
 
 function rawSpecsPayload(item: StagedEeLaptop) {
