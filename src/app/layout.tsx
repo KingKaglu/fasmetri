@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -112,6 +113,14 @@ export default async function RootLayout({
           </FavoritesProvider>
         </CompareProvider>
         <AnalyticsScripts />
+        {/*
+          Vercel Web Analytics, alongside GA4 rather than instead of it. It is
+          served first-party from /_vercel/insights on our own domain, so the
+          ad blockers that strip Google Analytics — Brave blocks it by default,
+          and gtag/js is simply ERR_ABORTED there — cannot remove it. GA still
+          carries the custom funnel events; this carries the honest traffic count.
+        */}
+        <VercelAnalytics />
         <ServiceWorkerRegister />
       </body>
     </html>
