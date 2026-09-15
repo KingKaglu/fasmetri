@@ -2,6 +2,7 @@
 
 import { BellRing, CheckCircle2, Loader2 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -73,6 +74,10 @@ export function AlertForm({
         setEmailUsed(email);
         setPushState("idle");
         setSuccess(true);
+        // Fired only after the API confirms the alert — a price alert is the
+        // strongest intent signal the site collects, so it is the conversion
+        // ad campaigns optimise toward.
+        trackEvent("alert_created", { productId, targetPrice: price });
         formElement.reset();
       } else {
         setUnsubscribeHref("");

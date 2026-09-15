@@ -8,6 +8,7 @@ import { extractProductAttributes, type ProductAttributes } from "@/lib/productN
 import { ShopClickLink } from "@/components/shop-click-link";
 import { CompareRemove } from "@/components/compare-remove";
 import { CompareSync } from "@/components/compare-sync";
+import { TrackView } from "@/components/track-view";
 import { EmptyState, ProductImage, SectionHeader } from "@/components/public-ui";
 
 export const metadata: Metadata = {
@@ -68,6 +69,14 @@ export default async function ComparePage({
 
   return (
     <section className="shell py-6 sm:py-10">
+      {/* Only a real side-by-side comparison counts as "compare_used" — the
+          early return above handles the <2 product case. Signed by the resolved
+          slugs so re-renders don't duplicate the event but a new pair does. */}
+      <TrackView
+        event="compare_used"
+        params={{ count: columns.length, slugs: resolvedSlugs.join(",") }}
+        signature={`compare:${resolvedSlugs.join(",")}`}
+      />
       <Breadcrumb />
       <SectionHeader
         eyebrow="შედარება"

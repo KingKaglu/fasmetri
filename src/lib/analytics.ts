@@ -19,7 +19,9 @@ export type AnalyticsEvent =
   | "shop_click"
   | "search"
   | "category_view"
-  | "filter_used";
+  | "filter_used"
+  | "alert_created"
+  | "compare_used";
 
 export type AnalyticsParams = Record<string, string | number | boolean | null | undefined>;
 
@@ -34,11 +36,13 @@ type AnyWindow = Window & {
 const META_EVENTS: Partial<Record<AnalyticsEvent, string>> = {
   product_view: "ViewContent",
   search: "Search",
+  alert_created: "Lead",
 };
 const TIKTOK_EVENTS: Partial<Record<AnalyticsEvent, string>> = {
   product_view: "ViewContent",
   search: "Search",
   shop_click: "ClickButton",
+  alert_created: "SubmitForm",
 };
 
 function cleanParams(params: AnalyticsParams): AnalyticsParams {
@@ -64,7 +68,13 @@ export function trackEvent(event: AnalyticsEvent, params: AnalyticsParams = {}) 
     /* ignore analytics errors */
   }
   try {
-    w.fbq?.("trackCustom", META_EVENTS[event] ?? event, data);
+    // Meta's STANDARD events (ViewContent, Search, Lead) must go through
+    // fbq("track"). Sending them via trackCustom registers them as custom
+    // events instead, which silently breaks standard-event optimisation and
+    // attribution — the exact thing ad campaigns are optimised against.
+    // Anything we have no standard name for stays a custom event.
+    const metaStandard = META_EVENTS[event];
+    w.fbq?.(metaStandard ? "track" : "trackCustom", metaStandard ?? event, data);
   } catch {
     /* ignore analytics errors */
   }
