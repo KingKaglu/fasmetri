@@ -75,7 +75,8 @@
     "store-category-coverage": "tsx scripts/store-category-coverage.ts",
     "intel": "tsx scripts/market-intel.ts",
     "diagnose:ee-discounts": "tsx scripts/diagnose-ee-discounts.ts",
-    "indexnow": "tsx scripts/indexnow.ts"
+    "indexnow": "tsx scripts/indexnow.ts",
+    "test:consoles": "tsx scripts/check-console-model.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

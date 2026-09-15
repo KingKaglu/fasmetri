@@ -8,6 +8,7 @@ import { probeDelisting } from "@/server/sync/delistingProbe";
 import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
+import { extractConsoleModel } from "@/lib/consoleModel";
 
 const STORE = "pcshop";
 const SOURCE = "pcshop";
@@ -465,14 +466,7 @@ function normalizeConsoleSpecs(title: string, product: WooProduct): NormalizedCo
   }
 
   // Simple model extraction: "PlayStation 5", "PS5 Slim", "DualSense", etc.
-  let model: string | undefined;
-  if (/ps5\s+slim/i.test(lower) || /playstation\s+5\s+slim/i.test(lower)) model = "PlayStation 5 Slim";
-  else if (/ps5|playstation\s+5/i.test(lower)) model = "PlayStation 5";
-  else if (/ps4\s+pro/i.test(lower) || /playstation\s+4\s+pro/i.test(lower)) model = "PlayStation 4 Pro";
-  else if (/ps4|playstation\s+4/i.test(lower)) model = "PlayStation 4";
-  else if (/dualsense\s+edge/i.test(lower)) model = "DualSense Edge";
-  else if (/dualsense/i.test(lower)) model = "DualSense";
-  else if (/dualshock/i.test(lower)) model = "DualShock 4";
+  const model = extractConsoleModel(title);
 
   return { brand, model, version, storageGb };
 }
