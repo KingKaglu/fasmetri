@@ -40,6 +40,8 @@ export type CategoryRule = {
   titleKeywordGroups?: readonly (readonly string[])[];
   contextKeywords?: readonly string[];
   negativeKeywords?: readonly string[];
+  /** Never bypassed, even by a title-group match — these name a different DEVICE CLASS. */
+  hardNegativeKeywords?: readonly string[];
   shopKeywords?: readonly string[];
   titleWeight?: number;
   requiresTitleMatch?: boolean;
@@ -508,7 +510,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "შუშა",
       "პაუერ ბანკი",
     ],
-    negativeKeywords: [
+    hardNegativeKeywords: [
       "ipad",
       "galaxy tab",
       "tablet",
@@ -521,6 +523,8 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "watch",
       "pixel watch",
       "samsung watch",
+    ],
+    negativeKeywords: [
       "audio cable",
       "3.5mm",
       "female audio",
@@ -553,6 +557,15 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       ["iphone", "screen protector"],
       ["iphone", "ეკრანის დამცავი"],
       ["iphone", "დამცავი"],
+      ["galaxy", "screen protector"],
+      ["galaxy", "tempered glass"],
+      ["galaxy", "spigen"],
+      ["galaxy", "magfit"],
+      ["galaxy", "magclick"],
+      ["galaxy", "uniq hybrid"],
+      ["samsung galaxy", "screen protector"],
+      ["samsung galaxy", "tempered glass"],
+      ["samsung galaxy", "ეკრანის დამცავი"],
       ["samsung galaxy", "spigen"],
       ["samsung galaxy", "magfit"],
       ["samsung galaxy", "uniq hybrid"],
@@ -644,7 +657,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "msi creator",
       "msi vector",
     ],
-    negativeKeywords: ["laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station", "dock", "usb-c dock", "universal usb-c", "microphone", "desk microphone", "mouse", "gaming mouse", "keyboard", "m100 rgb", "gy50z71902", "legion m600", "m600s", "legion go", "cpg-001", "cpg-003", "am5", "am4", "lga1700", "lga1851", "lga1200", "lga1151", "motherboard", "mainboard", "gaming geforce", "gaming radeon", "graphics card", "video card"],
+    negativeKeywords: ["laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station", "dock", "usb-c dock", "universal usb-c", "microphone", "desk microphone", "mouse", "gaming mouse", "keyboard", "usb combo", "m100 rgb", "gy50z71902", "legion m600", "m600s", "legion go", "cpg-001", "cpg-003", "am5", "am4", "lga1700", "lga1851", "lga1200", "lga1151", "motherboard", "mainboard", "gaming geforce", "gaming radeon", "graphics card", "video card"],
     contextKeywords: ["portable computer", "leptopebi", "laptop"],
     shopKeywords: ["laptop", "leptop"],
     titleWeight: 90,

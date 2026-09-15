@@ -103,7 +103,7 @@ export const TEXT_ALIASES: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bcozy\s*cream\b/gi, "cream"],
   [/\bcream\s*beige\b/gi, "beige"],
   [/\bmatcha\b/gi, "green"],
-  [/\bpinkgold\b/gi, "rose_gold"],
+  [/\bpink\s*gold\b/gi, "rose_gold"],
   [/\bblossom\b/gi, "pink"],
   [/\bclover\b/gi, "green"],
   [/\bfern\b/gi, "green"],

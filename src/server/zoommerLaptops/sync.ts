@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { OfferAvailability, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { probeDelisting } from "@/server/sync/delistingProbe";
 import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
@@ -562,7 +563,8 @@ async function validateSnapshot(snapshot: ZoommerLaptopsSnapshot): Promise<Valid
     if (!isZoommerUrl(product.productUrl)) invalidZoommerUrlCount += 1;
   }
 
-  const oldActiveZoommerLaptopCount = await activeZoommerLaptopCount();
+  const oldActiveZoommerLaptopUrls = await activeZoommerLaptopUrls();
+  const oldActiveZoommerLaptopCount = oldActiveZoommerLaptopUrls.length;
   const hardFailures: string[] = [];
   const warnings: string[] = [];
   const productCount = snapshot.products.length;
@@ -575,8 +577,20 @@ async function validateSnapshot(snapshot: ZoommerLaptopsSnapshot): Promise<Valid
   if (invalidCategoryCount) hardFailures.push(`${invalidCategoryCount} products have an invalid category.`);
   if (snapshot.listing.totalPagesExpected > 1 && snapshot.listing.totalBatchesLoaded <= 1) hardFailures.push("Scraper only captured the first page.");
   if (!snapshot.listing.seeMoreExhausted) hardFailures.push("Zoommer listing pages were not fully exhausted.");
-  if (oldActiveZoommerLaptopCount > 0 && productCount < Math.floor(oldActiveZoommerLaptopCount * LOW_COUNT_RATIO)) {
-    hardFailures.push(`New scraped count ${productCount} is suspiciously lower than old active count ${oldActiveZoommerLaptopCount}.`);
+  if (oldActiveZoommerLaptopCount > 0 && productCount > 0 && productCount < Math.floor(oldActiveZoommerLaptopCount * LOW_COUNT_RATIO)) {
+    // The count collapsed. Ask Zoommer whether the offers we are missing are
+    // actually gone before calling this a broken scrape — see delistingProbe.
+    const scrapedKeys = new Set(Array.from(urls, (url) => url.replace(/\/$/, "")));
+    const missing = oldActiveZoommerLaptopUrls.filter((url) => !scrapedKeys.has(url.replace(/\/$/, "")));
+    const probe = await probeDelisting(missing, { userAgent: USER_AGENT, timeoutMs: REQUEST_TIMEOUT_MS });
+    const line = `New scraped count ${productCount} is suspiciously lower than old active count ${oldActiveZoommerLaptopCount}`;
+    if (probe.delistingConfirmed) {
+      warnings.push(`${line} — Zoommer delisted them (${probe.summary}); promoting so the stale offers deactivate.`);
+    } else {
+      hardFailures.push(
+        `${line}. ${probe.summary}${probe.aliveSamples.length ? ` — still live, so the scrape looks broken: ${probe.aliveSamples.join(", ")}` : ""}.`,
+      );
+    }
   }
   if (missingPriceCount > Math.max(5, Math.ceil(productCount * MAX_MISSING_PRICE_RATIO))) {
     hardFailures.push(`${missingPriceCount} products are missing prices.`);
@@ -943,8 +957,8 @@ async function markMissingOffers(existingOffers: Map<string, ExistingOfferState>
   return { possiblyRemoved, markedInactive };
 }
 
-async function activeZoommerLaptopCount() {
-  if (!db) return 0;
+async function activeZoommerLaptopUrls(): Promise<string[]> {
+  if (!db) return [];
   const where = {
     shop: { slug: STORE },
     product: {
@@ -953,11 +967,14 @@ async function activeZoommerLaptopCount() {
     },
     url: { contains: "zoommer.ge" },
   } satisfies Prisma.ProductOfferWhereInput;
+  const select = { url: true } as const;
   try {
-    return await db.productOffer.count({ where: { ...where, isActive: true } });
+    const rows = await db.productOffer.findMany({ where: { ...where, isActive: true }, select });
+    return rows.map((row) => row.url);
   } catch (error) {
     if (!isMissingColumnError(error)) throw error;
-    return db.productOffer.count({ where });
+    const rows = await db.productOffer.findMany({ where, select });
+    return rows.map((row) => row.url);
   }
 }
 

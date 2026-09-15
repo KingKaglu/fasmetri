@@ -41,6 +41,8 @@
     "verify-products": "tsx scripts/verify-products.ts",
     "verify-product-across-stores": "tsx scripts/verify-products.ts",
     "test:matching": "tsx scripts/check-product-matching.ts",
+    "test:colors": "tsx scripts/check-color-extraction.ts",
+    "test:delisting": "tsx scripts/check-delisting-probe.ts",
     "test:categories": "tsx scripts/check-category-mapping.ts",
     "discover:zoommer:laptops": "tsx scripts/zoommer-laptops.ts --mode=discover",
     "scrape:zoommer:laptops:full": "tsx scripts/zoommer-laptops.ts --mode=full --promote",

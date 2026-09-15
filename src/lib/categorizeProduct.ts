@@ -83,8 +83,15 @@ function scoreRule(
     .filter((group) => group.every((keyword) => containsKeyword(titleSignal, keyword)))
     .map((group) => group.join("+"));
   // A stale or wrongly grouped offer must not override a strong title classification.
+  // A matched title GROUP is that strong classification: groups are conjunctions
+  // ("samsung galaxy" + "spigen"), so they only fire on the real thing. Blunt
+  // model-name negatives like "galaxy s26" exist to keep the PHONE out of
+  // accessories; vetoing ahead of the group also threw out every Galaxy S26 case
+  // and screen protector, which then fell through to "other".
+  const hardNegativeMatches = matchedKeywords(titleSignal, rule.hardNegativeKeywords ?? []);
+  if (hardNegativeMatches.length && rule.slug !== "adult") return null;
   const negativeMatches = matchedKeywords(titleSignal, rule.negativeKeywords ?? []);
-  if (negativeMatches.length && rule.slug !== "adult") return null;
+  if (negativeMatches.length && !titleGroupMatches.length && rule.slug !== "adult") return null;
   if (rule.requiresTitleMatch && !titleMatches.length && !titleGroupMatches.length) return null;
 
   const contextMatches = matchedKeywords(contextSignal, rule.contextKeywords ?? []);

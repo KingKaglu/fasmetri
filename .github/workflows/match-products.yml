@@ -10,6 +10,10 @@ on:
       - "Zoommer laptops sync"
       - "EE phones sync"
       - "EE laptops sync"
+      # PCShop syncs phones, laptops AND consoles in one workflow. Leaving it out
+      # meant PCShop offers were imported but never matched to a canonical, so
+      # they never joined a price comparison.
+      - "PCShop sync"
     types:
       - completed
 
@@ -32,13 +36,18 @@ jobs:
 
       - run: npm ci
 
+      # "PCShop sync" carries all three categories, so it matches all three.
       - name: Match phones
-        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'phones') }}
-        run: npm run match:phones -- --limit=5000
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'phones') || contains(github.event.workflow_run.name, 'pcshop') }}
+        run: npm run match:phones -- --all
 
       - name: Match laptops
-        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'laptops') }}
-        run: npm run match:laptops -- --limit=5000
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'laptops') || contains(github.event.workflow_run.name, 'pcshop') }}
+        run: npm run match:laptops -- --all
+
+      - name: Match consoles
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'consoles') || contains(github.event.workflow_run.name, 'pcshop') }}
+        run: npm run match:consoles -- --all
 
       # Matching changes public visibility, so bust the deployed cache too.
       - name: Revalidate public catalog cache

@@ -103,208 +103,226 @@ async function main() {
     failures: [],
   };
 
-  const rawOffers = await db.rawOffer.findMany({
-    where: {
-      id: options.cursor ? { gt: options.cursor } : undefined,
-      shop: options.shop ? { slug: options.shop } : undefined,
-      categorySlug: categories.length === 1 ? categories[0] : { in: categories },
-      categoryNeedsReview: false,
-      rawPrice: { not: null },
-      originalTitle: options.q ? { contains: options.q, mode: "insensitive" } : undefined,
-      status: { notIn: ["EXCLUDED", "UNABLE_TO_FETCH", "PARSE_FAILED", "DUPLICATE_URL", "STORE_UNAVAILABLE", "BLOCKED_OR_UNABLE_TO_FETCH"] },
-    },
-    include: {
-      shop: { select: { id: true, slug: true, name: true } },
-      productOffer: {
-        select: {
-          id: true,
-          canonicalProductId: true,
-          confidence: true,
-          reason: true,
-          matcherVersion: true,
-          matchedAt: true,
-          matchStatus: true,
-          currentPrice: true,
-          lastPriceChangedAt: true,
-        },
-      },
-    },
-    orderBy: { id: "asc" },
-    skip: options.cursor ? 0 : options.offset,
-    take: options.limit,
-  });
-
   const categoryIds = await categoryIdMap(categories);
 
-  for (const raw of rawOffers) {
-    report.processed += 1;
-    try {
-      if (isCurrentSafeLink(raw)) {
-        report.skipped += 1;
-        continue;
-      }
+  // --all drains every batch in one run. The scheduled matcher runs on an
+  // ephemeral runner, so the on-disk checkpoint never survives to the next run:
+  // without this it restarted at offset 0 every time and re-chewed the same
+  // first batch forever, leaving the rest of the catalogue unmatched.
+  const drainAll = process.argv.includes("--all");
+  let cursor = options.cursor;
+  let batchOffset = options.offset;
+  let totalFetched = 0;
 
-      const identity = normalizeSafeOffer({
-        title: raw.originalTitle,
-        categorySlug: raw.categorySlug,
-        brand: raw.brand,
-        model: raw.model,
-        description: raw.description,
-        specs: raw.rawSpecsJson,
-        imageUrl: raw.originalImageUrl,
-      });
-      if (!identity?.brand) {
-        report.rejected += 1;
-        addFailure(report, raw, "Missing brand after safe normalization.");
-        continue;
-      }
-      // For phones/laptops: model or modelCode required.
-      // For consoles: consoleFamily required.
-      // For accessories: accessoryModel or consoleFamily required.
-      const hasModel =
-        identity.model ||
-        identity.modelCode ||
-        (identity.kind === "console" && identity.consoleFamily) ||
-        (identity.kind === "accessory" && (identity.accessoryModel || identity.consoleFamily));
-      if (!hasModel) {
-        report.rejected += 1;
-        addFailure(report, raw, "Missing model/modelCode/consoleFamily after safe normalization.");
-        continue;
-      }
+  for (;;) {
+    const rawOffers = await db.rawOffer.findMany({
+      where: {
+        id: cursor ? { gt: cursor } : undefined,
+        shop: options.shop ? { slug: options.shop } : undefined,
+        categorySlug: categories.length === 1 ? categories[0] : { in: categories },
+        categoryNeedsReview: false,
+        rawPrice: { not: null },
+        originalTitle: options.q ? { contains: options.q, mode: "insensitive" } : undefined,
+        status: { notIn: ["EXCLUDED", "UNABLE_TO_FETCH", "PARSE_FAILED", "DUPLICATE_URL", "STORE_UNAVAILABLE", "BLOCKED_OR_UNABLE_TO_FETCH"] },
+      },
+      include: {
+        shop: { select: { id: true, slug: true, name: true } },
+        productOffer: {
+          select: {
+            id: true,
+            canonicalProductId: true,
+            confidence: true,
+            reason: true,
+            matcherVersion: true,
+            matchedAt: true,
+            matchStatus: true,
+            currentPrice: true,
+            lastPriceChangedAt: true,
+          },
+        },
+      },
+      orderBy: { id: "asc" },
+      skip: cursor ? 0 : batchOffset,
+      take: options.limit,
+    });
 
-      const candidates = await loadCandidates(identity);
-      const decisions = candidates
-        .map((candidate) => scoreCandidate(identity, candidate))
-        .filter((item): item is CandidateDecision => Boolean(item))
-        .sort((left, right) => right.decision.confidence - left.decision.confidence);
-      report.rejected += decisions.filter((item) => item.decision.band === "REJECTED").length;
+    if (!rawOffers.length) break;
+    totalFetched += rawOffers.length;
+    cursor = rawOffers.at(-1)?.id ?? cursor;
 
-      // A confident link is normally never moved silently (a PossibleMatch is queued
-      // instead). But if the offer's CURRENT canonical now hard-conflicts with the
-      // offer's own identity under the active matcher — e.g. a stale v1 canonical
-      // whose specsJson carries a corrupt RAM ("…|1|…") that the offer's true RAM
-      // rejects — that link is stale, not trustworthy. Let such an offer re-home to a
-      // correct canonical instead of leaving a wrong-RAM auto-match live forever.
-      const currentLinkConflicts = Boolean(
-        raw.productOffer?.canonicalProductId &&
-          decisions.some(
-            (item) => item.candidate.id === raw.productOffer?.canonicalProductId && item.decision.band === "REJECTED",
-          ),
-      );
-
-      const bestAuto = decisions.find((item) => item.decision.band === "AUTO");
-      if (bestAuto) {
-        if (!currentLinkConflicts && raw.productOffer?.canonicalProductId && raw.productOffer.canonicalProductId !== bestAuto.candidate.id && (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)) {
-          await maybeWritePossible(raw, bestAuto, options.dryRun);
-          report.possible += 1;
-          addReviewExample(report, raw, bestAuto, "Existing good safe match was not moved automatically.");
+    for (const raw of rawOffers) {
+      report.processed += 1;
+      try {
+        if (isCurrentSafeLink(raw)) {
+          report.skipped += 1;
           continue;
         }
 
-        const canonical = bestAuto.candidate;
-        const productId = await ensureLegacyProduct(canonical, bestAuto.identity, categoryIds.get(identity.categorySlug), false, options.dryRun);
-        if (!options.dryRun && productId && canonical.productId !== productId) {
-          await db.canonicalProduct.update({ where: { id: canonical.id }, data: { productId, lastMatchedAt: new Date() } });
-        }
-        const offerResult = await upsertOffer(raw, canonical.id, productId ?? canonical.productId, identity, {
-          confidence: bestAuto.decision.confidence,
-          reason: bestAuto.decision.reason,
-          status: "SAFE_AUTO",
-          needsReview: false,
-          dryRun: options.dryRun,
+        const identity = normalizeSafeOffer({
+          title: raw.originalTitle,
+          categorySlug: raw.categorySlug,
+          brand: raw.brand,
+          model: raw.model,
+          description: raw.description,
+          specs: raw.rawSpecsJson,
+          imageUrl: raw.originalImageUrl,
         });
-        await closePendingPossible(raw.id, options.dryRun);
-        report.auto += 1;
-        if (offerResult === "created") report.createdOffers += 1;
-        if (offerResult === "updated") report.updatedOffers += 1;
-        addAutoExample(report, raw, canonical, bestAuto);
-        continue;
-      }
+        if (!identity?.brand) {
+          report.rejected += 1;
+          addFailure(report, raw, "Missing brand after safe normalization.");
+          continue;
+        }
+        // For phones/laptops: model or modelCode required.
+        // For consoles: consoleFamily required.
+        // For accessories: accessoryModel or consoleFamily required.
+        const hasModel =
+          identity.model ||
+          identity.modelCode ||
+          (identity.kind === "console" && identity.consoleFamily) ||
+          (identity.kind === "accessory" && (identity.accessoryModel || identity.consoleFamily));
+        if (!hasModel) {
+          report.rejected += 1;
+          addFailure(report, raw, "Missing model/modelCode/consoleFamily after safe normalization.");
+          continue;
+        }
 
-      // An existing canonical whose canonicalKey is byte-identical to this offer's
-      // exactKey is the SAME SKU (brand|model/code|cpu|gpu|ram|storage|screen|color
-      // all equal). The additive scorer can still land below WEAK (e.g. when a spec
-      // is unknown on one side and caps the score), which previously spawned a
-      // duplicate `…|raw_<hash>` canonical. Link to the existing canonical instead —
-      // unless the offer is already confidently linked elsewhere, in which case queue
-      // a PossibleMatch rather than silently moving it.
-      const exactKeyMatch = identity.exactKey
-        ? decisions.find((item) => item.decision.band !== "REJECTED" && item.candidate.canonicalKey === identity.exactKey)
-        : undefined;
-      if (exactKeyMatch) {
-        if (
-          !currentLinkConflicts &&
+        const candidates = await loadCandidates(identity);
+        const decisions = candidates
+          .map((candidate) => scoreCandidate(identity, candidate))
+          .filter((item): item is CandidateDecision => Boolean(item))
+          .sort((left, right) => right.decision.confidence - left.decision.confidence);
+        report.rejected += decisions.filter((item) => item.decision.band === "REJECTED").length;
+
+        // A confident link is normally never moved silently (a PossibleMatch is queued
+        // instead). But if the offer's CURRENT canonical now hard-conflicts with the
+        // offer's own identity under the active matcher — e.g. a stale v1 canonical
+        // whose specsJson carries a corrupt RAM ("…|1|…") that the offer's true RAM
+        // rejects — that link is stale, not trustworthy. Let such an offer re-home to a
+        // correct canonical instead of leaving a wrong-RAM auto-match live forever.
+        const currentLinkConflicts = Boolean(
           raw.productOffer?.canonicalProductId &&
-          raw.productOffer.canonicalProductId !== exactKeyMatch.candidate.id &&
-          (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)
-        ) {
-          await maybeWritePossible(raw, exactKeyMatch, options.dryRun);
-          report.possible += 1;
-          addReviewExample(report, raw, exactKeyMatch, "ExactKey collision but offer already confidently linked; queued for review.");
+            decisions.some(
+              (item) => item.candidate.id === raw.productOffer?.canonicalProductId && item.decision.band === "REJECTED",
+            ),
+        );
+
+        const bestAuto = decisions.find((item) => item.decision.band === "AUTO");
+        if (bestAuto) {
+          if (!currentLinkConflicts && raw.productOffer?.canonicalProductId && raw.productOffer.canonicalProductId !== bestAuto.candidate.id && (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)) {
+            await maybeWritePossible(raw, bestAuto, options.dryRun);
+            report.possible += 1;
+            addReviewExample(report, raw, bestAuto, "Existing good safe match was not moved automatically.");
+            continue;
+          }
+
+          const canonical = bestAuto.candidate;
+          const productId = await ensureLegacyProduct(canonical, bestAuto.identity, categoryIds.get(identity.categorySlug), false, options.dryRun);
+          if (!options.dryRun && productId && canonical.productId !== productId) {
+            await db.canonicalProduct.update({ where: { id: canonical.id }, data: { productId, lastMatchedAt: new Date() } });
+          }
+          const offerResult = await upsertOffer(raw, canonical.id, productId ?? canonical.productId, identity, {
+            confidence: bestAuto.decision.confidence,
+            reason: bestAuto.decision.reason,
+            status: "SAFE_AUTO",
+            needsReview: false,
+            dryRun: options.dryRun,
+          });
+          await closePendingPossible(raw.id, options.dryRun);
+          report.auto += 1;
+          if (offerResult === "created") report.createdOffers += 1;
+          if (offerResult === "updated") report.updatedOffers += 1;
+          addAutoExample(report, raw, canonical, bestAuto);
           continue;
         }
-        const canonical = exactKeyMatch.candidate;
-        const productId = await ensureLegacyProduct(canonical, exactKeyMatch.identity, categoryIds.get(identity.categorySlug), false, options.dryRun);
-        if (!options.dryRun && productId && canonical.productId !== productId) {
-          await db.canonicalProduct.update({ where: { id: canonical.id }, data: { productId, lastMatchedAt: new Date() } });
+
+        // An existing canonical whose canonicalKey is byte-identical to this offer's
+        // exactKey is the SAME SKU (brand|model/code|cpu|gpu|ram|storage|screen|color
+        // all equal). The additive scorer can still land below WEAK (e.g. when a spec
+        // is unknown on one side and caps the score), which previously spawned a
+        // duplicate `…|raw_<hash>` canonical. Link to the existing canonical instead —
+        // unless the offer is already confidently linked elsewhere, in which case queue
+        // a PossibleMatch rather than silently moving it.
+        const exactKeyMatch = identity.exactKey
+          ? decisions.find((item) => item.decision.band !== "REJECTED" && item.candidate.canonicalKey === identity.exactKey)
+          : undefined;
+        if (exactKeyMatch) {
+          if (
+            !currentLinkConflicts &&
+            raw.productOffer?.canonicalProductId &&
+            raw.productOffer.canonicalProductId !== exactKeyMatch.candidate.id &&
+            (raw.productOffer.confidence ?? 0) >= autoThreshold(identity)
+          ) {
+            await maybeWritePossible(raw, exactKeyMatch, options.dryRun);
+            report.possible += 1;
+            addReviewExample(report, raw, exactKeyMatch, "ExactKey collision but offer already confidently linked; queued for review.");
+            continue;
+          }
+          const canonical = exactKeyMatch.candidate;
+          const productId = await ensureLegacyProduct(canonical, exactKeyMatch.identity, categoryIds.get(identity.categorySlug), false, options.dryRun);
+          if (!options.dryRun && productId && canonical.productId !== productId) {
+            await db.canonicalProduct.update({ where: { id: canonical.id }, data: { productId, lastMatchedAt: new Date() } });
+          }
+          const offerResult = await upsertOffer(raw, canonical.id, productId ?? canonical.productId, identity, {
+            confidence: Math.max(exactKeyMatch.decision.confidence, autoThreshold(identity)),
+            reason: `Linked on identical exactKey ${identity.exactKey}. ${exactKeyMatch.decision.reason}`,
+            status: "SAFE_AUTO",
+            needsReview: false,
+            dryRun: options.dryRun,
+          });
+          await closePendingPossible(raw.id, options.dryRun);
+          report.auto += 1;
+          if (offerResult === "created") report.createdOffers += 1;
+          if (offerResult === "updated") report.updatedOffers += 1;
+          addAutoExample(report, raw, canonical, exactKeyMatch);
+          continue;
         }
-        const offerResult = await upsertOffer(raw, canonical.id, productId ?? canonical.productId, identity, {
-          confidence: Math.max(exactKeyMatch.decision.confidence, autoThreshold(identity)),
-          reason: `Linked on identical exactKey ${identity.exactKey}. ${exactKeyMatch.decision.reason}`,
-          status: "SAFE_AUTO",
+
+        const possible = decisions.filter((item) => item.decision.band === "REVIEW" || item.decision.band === "WEAK").slice(0, 5);
+        for (const item of possible) {
+          await maybeWritePossible(raw, item, options.dryRun);
+          report.possible += 1;
+          addReviewExample(report, raw, item);
+        }
+        // Normally REVIEW/WEAK candidates mean "leave the offer where it is and let an
+        // admin decide". But if the offer's current link hard-conflicts (stale wrong-RAM
+        // canonical) and no AUTO/exactKey re-home was possible, we must NOT leave it on
+        // the conflicting canonical — fall through to give it its own correct canonical
+        // (the queued PossibleMatch still lets an admin merge it to a variant later).
+        if (possible.length > 0 && !currentLinkConflicts) {
+          continue;
+        }
+
+        const ownKey = ownCanonicalKey(identity, raw.id, possible, candidates);
+        const canonical = await ensureCanonical(raw, identity, ownKey, false, categoryIds.get(identity.categorySlug), options.dryRun);
+        if (canonical.created) report.createdCanonicals += 1;
+        const offerResult = await upsertOffer(raw, canonical.id, canonical.productId, identity, {
+          confidence: 100,
+          reason: "Created canonical product; no safe same-category same-brand candidate.",
+          status: possible.length ? "CANONICAL_CREATED_NEEDS_REVIEW" : "CANONICAL_CREATED",
           needsReview: false,
           dryRun: options.dryRun,
         });
-        await closePendingPossible(raw.id, options.dryRun);
-        report.auto += 1;
         if (offerResult === "created") report.createdOffers += 1;
         if (offerResult === "updated") report.updatedOffers += 1;
-        addAutoExample(report, raw, canonical, exactKeyMatch);
-        continue;
+      } catch (error) {
+        report.failed += 1;
+        addFailure(report, raw, error instanceof Error ? error.message : "Unknown safe matching error.");
       }
-
-      const possible = decisions.filter((item) => item.decision.band === "REVIEW" || item.decision.band === "WEAK").slice(0, 5);
-      for (const item of possible) {
-        await maybeWritePossible(raw, item, options.dryRun);
-        report.possible += 1;
-        addReviewExample(report, raw, item);
-      }
-      // Normally REVIEW/WEAK candidates mean "leave the offer where it is and let an
-      // admin decide". But if the offer's current link hard-conflicts (stale wrong-RAM
-      // canonical) and no AUTO/exactKey re-home was possible, we must NOT leave it on
-      // the conflicting canonical — fall through to give it its own correct canonical
-      // (the queued PossibleMatch still lets an admin merge it to a variant later).
-      if (possible.length > 0 && !currentLinkConflicts) {
-        continue;
-      }
-
-      const ownKey = ownCanonicalKey(identity, raw.id, possible, candidates);
-      const canonical = await ensureCanonical(raw, identity, ownKey, false, categoryIds.get(identity.categorySlug), options.dryRun);
-      if (canonical.created) report.createdCanonicals += 1;
-      const offerResult = await upsertOffer(raw, canonical.id, canonical.productId, identity, {
-        confidence: 100,
-        reason: "Created canonical product; no safe same-category same-brand candidate.",
-        status: possible.length ? "CANONICAL_CREATED_NEEDS_REVIEW" : "CANONICAL_CREATED",
-        needsReview: false,
-        dryRun: options.dryRun,
-      });
-      if (offerResult === "created") report.createdOffers += 1;
-      if (offerResult === "updated") report.updatedOffers += 1;
-    } catch (error) {
-      report.failed += 1;
-      addFailure(report, raw, error instanceof Error ? error.message : "Unknown safe matching error.");
     }
+
+    if (!drainAll || rawOffers.length < options.limit) break;
+    batchOffset += rawOffers.length;
   }
 
   const progress = {
     checkpointId: id,
-    cursor: rawOffers.at(-1)?.id ?? options.cursor,
+    cursor: cursor ?? options.cursor,
     created: options.dryRun ? 0 : report.createdOffers + report.createdCanonicals,
     updated: options.dryRun ? 0 : report.updatedOffers,
     skipped: report.skipped,
     failed: report.failed,
-    processed: rawOffers.length,
-    nextOffset: options.offset + rawOffers.length,
+    processed: totalFetched,
+    nextOffset: options.offset + totalFetched,
   };
   if (!options.dryRun) writeCheckpoint(options.checkpoint, progress);
   logProgress("match-products", progress);

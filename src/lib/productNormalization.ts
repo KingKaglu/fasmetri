@@ -501,10 +501,44 @@ function imageFingerprint(imageUrl?: string | null) {
   }
 }
 
+// Single-word colour aliases, longest first — used to pull apart the glued
+// colourways stores write as one token ("CoralRed", "PinkGold").
+const GLUED_COLOR_WORDS = Object.keys(COLOR_ALIASES)
+  .map((color) => normalizeProductTitle(color))
+  .filter((color) => /^[a-z]+$/.test(color) && color.length >= 3)
+  .sort((left, right) => right.length - left.length);
+
+/** "coralred" → "coral red"; returns null unless the WHOLE token is colours. */
+function splitGluedColorWord(token: string): string | null {
+  const parts: string[] = [];
+  let rest = token;
+  while (rest.length) {
+    const next = GLUED_COLOR_WORDS.find((color) => rest.startsWith(color));
+    if (!next) return null;
+    parts.push(next);
+    rest = rest.slice(next.length);
+  }
+  return parts.length >= 2 ? parts.join(" ") : null;
+}
+
+function expandGluedColorWords(signal: string) {
+  return signal.replace(/[a-z]{6,}/g, (token) => splitGluedColorWord(token) ?? token);
+}
+
+// Colours must match on WORD boundaries. Substring matching read the colour out
+// of the model name — every Xiaomi *Red*mi came back red, "Titanium" came back
+// tan, MSI "S*teal*th" came back teal — and a wrong colour is a hard mismatch,
+// so those offers were rejected against their own twin in another store.
 function colorValue(signal: string) {
+  const expanded = expandGluedColorWords(signal);
+  // Rank by the NORMALIZED key: aliases are matched after normalization, and
+  // several long keys collapse to a short one ("phantom gray" → "gray"). Sorted
+  // by raw length those outranked the specific colourways, so every Space Gray
+  // Mac was filed as plain gray and stopped matching its twin in another store.
   return Object.entries(COLOR_ALIASES)
+    .map(([color, value]) => [normalizeProductTitle(color), value] as const)
     .sort(([left], [right]) => right.length - left.length)
-    .find(([color]) => signal.includes(normalizeProductTitle(color)))?.[1];
+    .find(([color]) => containsWord(expanded, color))?.[1];
 }
 
 function containsWord(signal: string, word: string) {

@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { OfferAvailability, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
+import { probeDelisting } from "@/server/sync/delistingProbe";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 
@@ -612,7 +613,8 @@ async function validateSnapshot(config: CategoryConfig, snapshot: PcshopCatalogS
     if (!isPcshopUrl(product.productUrl)) invalidPcshopUrlCount += 1;
   }
 
-  const oldActiveCount = await activeOfferCount(config);
+  const oldActiveUrls = await activeOfferUrls(config);
+  const oldActiveCount = oldActiveUrls.length;
   const hardFailures: string[] = [];
   const warnings: string[] = [];
   const productCount = snapshot.products.length;
@@ -624,8 +626,20 @@ async function validateSnapshot(config: CategoryConfig, snapshot: PcshopCatalogS
   if (invalidCategoryCount) hardFailures.push(`${invalidCategoryCount} products have an invalid category.`);
   if (!snapshot.listing.listingExhausted) hardFailures.push("PCShop listing pages were not fully exhausted.");
   if (productCount === 0) hardFailures.push("PCShop listing returned zero products.");
-  if (oldActiveCount > 0 && productCount < Math.floor(oldActiveCount * LOW_COUNT_RATIO)) {
-    hardFailures.push(`New scraped count ${productCount} is suspiciously lower than old active count ${oldActiveCount}.`);
+  if (oldActiveCount > 0 && productCount > 0 && productCount < Math.floor(oldActiveCount * LOW_COUNT_RATIO)) {
+    // The count collapsed. Ask PCShop whether the offers we are missing are
+    // actually gone before calling this a broken scrape — see delistingProbe.
+    const scrapedKeys = new Set(Array.from(urls, (url) => url.replace(/\/$/, "")));
+    const missing = oldActiveUrls.filter((url) => !scrapedKeys.has(url.replace(/\/$/, "")));
+    const probe = await probeDelisting(missing, { userAgent: USER_AGENT, timeoutMs: REQUEST_TIMEOUT_MS });
+    const line = `New scraped count ${productCount} is suspiciously lower than old active count ${oldActiveCount}`;
+    if (probe.delistingConfirmed) {
+      warnings.push(`${line} — PCShop delisted them (${probe.summary}); promoting so the stale offers deactivate.`);
+    } else {
+      hardFailures.push(
+        `${line}. ${probe.summary}${probe.aliveSamples.length ? ` — still live, so the scrape looks broken: ${probe.aliveSamples.join(", ")}` : ""}.`,
+      );
+    }
   }
   if (missingPriceCount > Math.max(5, Math.ceil(productCount * MAX_MISSING_PRICE_RATIO))) {
     hardFailures.push(`${missingPriceCount} products are missing prices.`);
@@ -1022,8 +1036,8 @@ async function existingOfferStateByUrl(config: CategoryConfig, shopId: string) {
   return new Map(offers.map((offer) => [offer.url, offer]));
 }
 
-async function activeOfferCount(config: CategoryConfig) {
-  if (!db) return 0;
+async function activeOfferUrls(config: CategoryConfig): Promise<string[]> {
+  if (!db) return [];
   const where = {
     shop: { slug: STORE },
     product: {
@@ -1031,11 +1045,14 @@ async function activeOfferCount(config: CategoryConfig) {
     },
     url: { contains: "pcshop.ge" },
   } satisfies Prisma.ProductOfferWhereInput;
+  const select = { url: true } as const;
   try {
-    return await db.productOffer.count({ where: { ...where, isActive: true } });
+    const rows = await db.productOffer.findMany({ where: { ...where, isActive: true }, select });
+    return rows.map((row) => row.url);
   } catch (error) {
     if (!isMissingColumnError(error)) throw error;
-    return db.productOffer.count({ where });
+    const rows = await db.productOffer.findMany({ where, select });
+    return rows.map((row) => row.url);
   }
 }
 
