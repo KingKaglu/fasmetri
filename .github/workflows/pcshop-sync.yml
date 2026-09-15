@@ -72,8 +72,8 @@ jobs:
         if: ${{ steps.phones.outcome == 'success' || steps.laptops.outcome == 'success' || steps.consoles.outcome == 'success' }}
         continue-on-error: true
         run: |
-          npx tsx scripts/match-products.ts --shop=pcshop --limit=1000
-          npx tsx scripts/match-products.ts --shop=pcshop --category=gaming --limit=500
+          npx tsx scripts/match-products.ts --shop=pcshop --all
+          npx tsx scripts/match-products.ts --shop=pcshop --category=gaming --all
 
       - name: Evaluate price alerts
         if: ${{ steps.phones.outcome == 'success' || steps.laptops.outcome == 'success' || steps.consoles.outcome == 'success' }}
