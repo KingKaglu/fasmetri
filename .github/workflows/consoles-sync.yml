@@ -1,0 +1,102 @@
+name: Consoles sync
+
+# Zoommer and EE consoles had no workflow at all. PCShop's consoles ride along
+# in pcshop-sync.yml, so PCShop was the only shop with live console offers —
+# which made the whole gaming category impossible to compare across shops no
+# matter how well the matcher worked. Both stores are in one workflow because
+# each console catalogue is small and npm ci dominates the runtime.
+#
+# Scheduling is the watchdog's job (sync-watchdog.yml dispatches this once the
+# self-hosted GE runner answers a ping), so there is deliberately no cron here:
+# a schedule would fail and email every cycle the runner is offline.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Sync mode"
+        required: true
+        default: "prices"
+        type: choice
+        options:
+          - prices
+          - full
+
+jobs:
+  sync:
+    runs-on: self-hosted
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+      SCRAPER_USER_AGENT: "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+      RUN_FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - run: npm ci
+
+      - name: Ensure SyncLog table exists
+        run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
+
+      # Each store is continue-on-error so one store being down never costs us
+      # the other store's fresh prices.
+      - name: Zoommer consoles sync
+        id: zoommer
+        continue-on-error: true
+        env:
+          NODE_USE_ENV_PROXY: "1"
+          HTTPS_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
+          HTTP_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
+        run: npm run ${{ env.RUN_FULL == 'true' && 'scrape:zoommer:consoles:full' || 'sync:zoommer:consoles' }}
+
+      - name: EE consoles sync
+        id: ee
+        continue-on-error: true
+        env:
+          NODE_USE_ENV_PROXY: "1"
+          HTTPS_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
+          HTTP_PROXY: ${{ secrets.SCRAPER_PROXY_URL }}
+        run: npm run ${{ env.RUN_FULL == 'true' && 'scrape:ee:consoles:full' || 'sync:ee:consoles' }}
+
+      - name: Match consoles across stores
+        if: ${{ steps.zoommer.outcome == 'success' || steps.ee.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run match:consoles -- --all
+
+      - name: Evaluate price alerts
+        if: ${{ steps.zoommer.outcome == 'success' || steps.ee.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run alerts:evaluate
+
+      # The sync writes to the DB directly, so the deployed site's cached
+      # counts/summary must be busted explicitly or they go stale.
+      - name: Revalidate public catalog cache
+        if: ${{ steps.zoommer.outcome == 'success' || steps.ee.outcome == 'success' }}
+        continue-on-error: true
+        run: >-
+          curl -fsS --retry 3
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          https://fasmetri.ge/api/revalidate
+
+      - name: Log Zoommer sync result
+        if: ${{ always() && steps.zoommer.outcome != 'skipped' }}
+        continue-on-error: true
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=zoommer --category=consoles
+          --run-type=${{ env.RUN_FULL == 'true' && 'full' || 'prices' }}
+          --status=${{ steps.zoommer.outcome == 'success' && 'success' || 'failure' }}
+
+      - name: Log EE sync result
+        if: ${{ always() && steps.ee.outcome != 'skipped' }}
+        continue-on-error: true
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=ee --category=consoles
+          --run-type=${{ env.RUN_FULL == 'true' && 'full' || 'prices' }}
+          --status=${{ steps.ee.outcome == 'success' && 'success' || 'failure' }}

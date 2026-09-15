@@ -13,7 +13,7 @@ name: Sync watchdog
 #   2. if the ping isn't picked up within ~3 minutes, cancels it — cancelled
 #      runs produce NO failure emails — and stops;
 #   3. if the ping succeeds, the runner is provably online, so it dispatches
-#      all five store syncs (mode=full for the 03:xx UTC cycle, prices
+#      every store sync (mode=full for the 03:xx UTC cycle, prices
 #      otherwise — mirroring the old cron cadence).
 #
 # Net effect: while the runner is offline nothing fails and nobody gets
@@ -84,7 +84,7 @@ jobs:
           mode="prices"
           [ "$(date -u +%H)" = "03" ] && mode="full"
           echo "Self-hosted runner ONLINE — dispatching store syncs (mode=$mode)."
-          for wf in zoommer-phones-sync.yml zoommer-laptops-sync.yml ee-phones-sync.yml ee-laptops-sync.yml pcshop-sync.yml; do
+          for wf in zoommer-phones-sync.yml zoommer-laptops-sync.yml ee-phones-sync.yml ee-laptops-sync.yml pcshop-sync.yml consoles-sync.yml; do
             gh workflow run "$wf" --ref main -f mode="$mode" && echo "dispatched $wf"
           done
           # Daily (03:xx cycle): also ingest the expansion categories

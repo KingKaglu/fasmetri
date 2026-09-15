@@ -79,7 +79,7 @@ jobs:
         run: >-
           curl -fsS --retry 3
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
-          https://fasmetri.vercel.app/api/revalidate
+          https://fasmetri.ge/api/revalidate
 
       - name: Log sync result
         if: ${{ always() && (steps.price_sync.outcome != 'skipped' || steps.full_sync.outcome != 'skipped') }}
