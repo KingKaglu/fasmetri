@@ -85,7 +85,7 @@ export function ContactMailForm() {
       </Field>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="პროდუქტის ბმული (არასავალდებულო)" error={errors.productUrl}>
-          <input name="productUrl" type="url" maxLength={500} className="contact-control" placeholder="https://fasmetri.vercel.app/products/..." aria-invalid={Boolean(errors.productUrl)} />
+          <input name="productUrl" type="url" maxLength={500} className="contact-control" placeholder="https://fasmetri.ge/products/..." aria-invalid={Boolean(errors.productUrl)} />
         </Field>
         <Field label="მაღაზიის ბმული (არასავალდებულო)" error={errors.storeUrl}>
           <input name="storeUrl" type="url" maxLength={500} className="contact-control" placeholder="https://..." aria-invalid={Boolean(errors.storeUrl)} />

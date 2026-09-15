@@ -1,4 +1,4 @@
-const DEFAULT_PRODUCTION_URL = "https://fasmetri.vercel.app";
+const DEFAULT_PRODUCTION_URL = "https://fasmetri.ge";
 const DEFAULT_DEVELOPMENT_URL = "http://localhost:3000";
 
 function normalizeBaseUrl(value: string) {
