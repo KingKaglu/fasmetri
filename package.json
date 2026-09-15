@@ -74,7 +74,8 @@
     "scrape:ee:consoles:full": "tsx scripts/ee-consoles.ts --mode=full --promote",
     "store-category-coverage": "tsx scripts/store-category-coverage.ts",
     "intel": "tsx scripts/market-intel.ts",
-    "diagnose:ee-discounts": "tsx scripts/diagnose-ee-discounts.ts"
+    "diagnose:ee-discounts": "tsx scripts/diagnose-ee-discounts.ts",
+    "indexnow": "tsx scripts/indexnow.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

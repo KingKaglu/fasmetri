@@ -32,6 +32,13 @@ export const metadata: Metadata = {
     title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
     description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   },
+  // Search-console ownership proof. Held in env so a token can be added without
+  // a code change or redeploy of this file; when unset the tag is simply not
+  // emitted, which is what we want rather than an empty content="" meta.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || undefined,
+  },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "ფასმეტრი", statusBarStyle: "default" },
 };
