@@ -1,6 +1,7 @@
 import { COLOR_ALIASES } from "@/config/productAliases";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
 import { extractVariantIdentity } from "@/lib/variantMatching";
+import { extractLaptopSku } from "@/lib/laptopSku";
 
 export const SAFE_MATCHER_VERSION = "safe-products-v4";
 
@@ -122,7 +123,13 @@ export function normalizeSafeOffer(input: SafeOfferInput): SafeProductIdentity |
   const modelCode =
     normalizeModelCode(firstSpecValue(input.specs, ["modelCode", "model_code"])) ??
     detectModelCode(normalizedSignal, kind) ??
-    normalizeModelCode(extracted.modelCode ?? extracted.sku);
+    normalizeModelCode(extracted.modelCode ?? extracted.sku) ??
+    // Laptops carry their manufacturer part number in the title at every shop
+    // ("FA608PM-RV041"), and it is the only identifier the three shops agree
+    // on -- the marketing names do not, and the specs cannot separate an Air 13
+    // from an Air 15. Read from the ORIGINAL title, since normalizing the
+    // signal strips the punctuation that Acer codes are built from.
+    (kind === "laptop" ? normalizeModelCode(extractLaptopSku(input.title)) : undefined);
   const memory = detectMemory(normalizedSignal, kind, {
     storage: extracted.storage,
     ram: extracted.ram,
@@ -503,7 +510,22 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
     caps.push({ value: 0, reason: "color conflict score0" });
   }
 
-  return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 65 });
+  // An identical manufacturer part number settles it. FA608PM-RV041 names one
+  // machine, and the three shops printing it are describing that machine --
+  // so the caps the secondary specs raised no longer apply. Those caps exist
+  // to stop a merge guessed from a family name and a CPU, and they were
+  // holding back matches that the part number had already proven: one shop
+  // omits the GPU, the cap lands at 60, and an exact-SKU pair never reaches
+  // the 85 needed to link.
+  //
+  // Hard conflicts still stand. If two offers share a part number but disagree
+  // on RAM, one shop's spec text is wrong, and that is a review case rather
+  // than something to auto-merge.
+  const skuExact = Boolean(raw.modelCode && candidate.modelCode && raw.modelCode === candidate.modelCode);
+  const effectiveCaps = skuExact ? caps.filter((cap) => cap.value === 0) : caps;
+  if (skuExact) reasons.push("exact manufacturer SKU — spec caps lifted");
+
+  return finalize(confidence, reasons, hardConflicts, effectiveCaps, { auto: 85, review: 70, weak: 65 });
 }
 
 function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {
