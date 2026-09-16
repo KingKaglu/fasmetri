@@ -8,6 +8,7 @@ import { probeDelisting } from "@/server/sync/delistingProbe";
 import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
+import { extractScreenSizeFromTitle } from "@/lib/screenSize";
 
 const STORE = "ee";
 const SOURCE = "elite-electronics";
@@ -1219,7 +1220,14 @@ function normalizeLaptopSpecs(input: {
   const ram = specInGroup("Memory", ["RAM"]) ?? spec(["RAM", "ოპერატიული მეხსიერება"]);
   const ramTypeValue = specInGroup("Memory", ["RAM Type"]) ?? spec(["Type of RAM", "RAM Memory Type", "ოპერატიული მეხსიერების ტიპი"]);
   const ramSpeed = specInGroup("Memory", ["RAM Speed"]);
-  const screenSize = specInGroup("Display", ["Screen Size"]) ?? spec(["Screen size", "Screen Size", "ეკრანის ზომა"]);
+  // EE publishes a Screen Size spec on well under half its laptops but prints
+  // the number in the title of most of the rest ("ASUS TUF 16/FX607VJB"), and
+  // screen size is the field that separates an Air 13 from an Air 15 when CPU,
+  // RAM and storage all agree. The spec always wins when present: it carries
+  // the exact panel size, while a title carries the rounded marketing one.
+  const screenSizeSpec = specInGroup("Display", ["Screen Size"]) ?? spec(["Screen size", "Screen Size", "ეკრანის ზომა"]);
+  const screenSizeFromTitle = extractScreenSizeFromTitle(title);
+  const screenSize = screenSizeSpec ?? (screenSizeFromTitle ? `${screenSizeFromTitle} Inch` : undefined);
   const screenResolution = specInGroup("Display", ["Screen Resolution"]) ?? spec(["Resolution", "რეზოლუცია"]);
   const refreshRate = specInGroup("Display", ["Refresh Rate"]) ?? spec(["Refresh rate", "Refresh Rate", "განახლების სიხშირე"]);
   const bluetooth = specInGroup("Communication", ["Bluetooth"]) ?? spec(["Bluetooth"]);

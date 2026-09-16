@@ -77,7 +77,8 @@
     "diagnose:ee-discounts": "tsx scripts/diagnose-ee-discounts.ts",
     "indexnow": "tsx scripts/indexnow.ts",
     "test:consoles": "tsx scripts/check-console-model.ts",
-    "test:tiers": "tsx scripts/check-phone-tier.ts"
+    "test:tiers": "tsx scripts/check-phone-tier.ts",
+    "test:screen": "tsx scripts/check-screen-size.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

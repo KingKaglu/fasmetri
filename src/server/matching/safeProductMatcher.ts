@@ -440,7 +440,7 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
     const rawAirPro = macBookAirPro(raw.modelFamily);
     const candidateAirPro = macBookAirPro(candidate.modelFamily);
     if (rawAirPro && candidateAirPro && rawAirPro !== candidateAirPro) hardConflicts.push(`MacBook ${rawAirPro} vs ${candidateAirPro}`);
-    if (raw.screen?.sizeIn && candidate.screen?.sizeIn && raw.screen.sizeIn !== candidate.screen.sizeIn) {
+    if (raw.screen?.sizeIn && candidate.screen?.sizeIn && !sameScreenSize(raw.screen.sizeIn, candidate.screen.sizeIn)) {
       hardConflicts.push(`MacBook screen differs: ${raw.screen.sizeIn} vs ${candidate.screen.sizeIn}`);
     }
   }
@@ -1096,9 +1096,21 @@ function detectScreen(signal: string, extractedScreen?: string, specs?: unknown)
   return Object.keys(screen).length ? screen : undefined;
 }
 
+/**
+ * Shops disagree about whether to print the marketing size or the measured
+ * panel: one lists a laptop as 15", another as 15.6"; a MacBook Air 13" has a
+ * 13.6" panel. Comparing those with strict equality made the same machine look
+ * like two, so a correct cross-shop match was rejected on a rounding
+ * convention. The marketing size is the panel size floored, which is exactly
+ * what this compares -- and 13.3 vs 14 still differ, as they should.
+ */
+function sameScreenSize(left: number, right: number) {
+  return Math.floor(left) === Math.floor(right);
+}
+
 function screenHardConflict(left?: SafeScreenSpec, right?: SafeScreenSpec) {
   if (!left || !right) return undefined;
-  if (left.sizeIn && right.sizeIn && left.sizeIn !== right.sizeIn) return `laptop screen size differs: ${left.sizeIn} vs ${right.sizeIn}`;
+  if (left.sizeIn && right.sizeIn && !sameScreenSize(left.sizeIn, right.sizeIn)) return `laptop screen size differs: ${left.sizeIn} vs ${right.sizeIn}`;
   if (left.resolution && right.resolution && left.resolution !== right.resolution) return `laptop screen resolution differs: ${left.resolution} vs ${right.resolution}`;
   if (left.panel && right.panel && left.panel !== right.panel) return `laptop screen panel differs: ${left.panel} vs ${right.panel}`;
   if (left.hz && right.hz && left.hz !== right.hz) return `laptop screen refresh differs: ${left.hz} vs ${right.hz}`;
@@ -1108,7 +1120,7 @@ function screenHardConflict(left?: SafeScreenSpec, right?: SafeScreenSpec) {
 function screenComparable(left?: SafeScreenSpec, right?: SafeScreenSpec) {
   if (!left || !right) return false;
   return Boolean(
-    (left.sizeIn && right.sizeIn && left.sizeIn === right.sizeIn) ||
+    (left.sizeIn && right.sizeIn && sameScreenSize(left.sizeIn, right.sizeIn)) ||
       (left.resolution && right.resolution && left.resolution === right.resolution) ||
       (left.panel && right.panel && left.panel === right.panel) ||
       (left.hz && right.hz && left.hz === right.hz),
