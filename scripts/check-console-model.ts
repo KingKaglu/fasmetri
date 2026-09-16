@@ -32,9 +32,14 @@ const CASES: ReadonlyArray<readonly [string, string | undefined]> = [
   ["Silicone Cover for PlayStation 5 DualSense Controller", undefined],
   ["Seagate Storage Expansion Card 1TB for Xbox Series X", undefined],
 
-  // No console vocabulary at all.
-  ["EA Sports FC 26 PS5 Game Disc", "PlayStation 5"],
+  // Software and third-party hardware are not the console they run on.
+  ["EA Sports FC 26 PS5 Game Disc", undefined],
+  ["Cyberpunk 2077 for PS4", undefined],
+  ["Alone In The Dark for PS5", undefined],
+  ["Thrustmaster T300 RS GT Edition for PS4/PS5 Black", undefined],
   ["Logitech G920 Racing Wheel", undefined],
+  // ...but a console bundle that ships a game is still a console.
+  ["PlayStation 5 Slim CD Version Bundle with Game", "PlayStation 5 Slim"],
 ];
 
 let failed = 0;

@@ -90,6 +90,25 @@ const ACCESSORY_NOUNS =
 const CONSOLE_MARKERS =
   /\b(console|კონსოლი|slim|digital\s+edition|disc\s+edition|disc\s+version|cd\s+version|blu-?ray|bundle)\b/i;
 
+/**
+ * "X for PlayStation 5" states compatibility, not identity — the item is for
+ * the platform, so it is not the platform. This is the rule that keeps the
+ * shelf of games and third-party hardware out of the consoles:
+ *
+ *   Cyberpunk 2077 for PS4
+ *   Thrustmaster T300 RS GT Edition for PS4/PS5 Black
+ *
+ * Without it every game claimed to be the console it runs on, and 38 of them
+ * collapsed into a single bucket that no grouping could tell apart.
+ */
+const FOR_PLATFORM = /\bfor\s+(?:the\s+)?(?:ps\s?\d|playstation|xbox|nintendo|switch)/iu;
+
+/**
+ * Software rather than hardware. `\bgame\b` deliberately does not match
+ * "gaming", which is part of many hardware product lines.
+ */
+const IS_SOFTWARE = /\b(?:game|games|game\s+disc|edition\s+disc)\b/iu;
+
 function firstMatch(text: string, table: ReadonlyArray<readonly [RegExp, string]>) {
   return table.find(([pattern]) => pattern.test(text))?.[1];
 }
@@ -114,6 +133,11 @@ export function extractConsoleModel(title: string): string | undefined {
 
   // Serves another product: whatever model is named is the host, not this item.
   if (COMPANION_NOUNS.test(text) && !isConsoleUnit) return undefined;
+
+  // Compatible with a platform, or software for it — either way not the
+  // hardware. A console bundle that ships a game still reads as a console
+  // unit, so the marker check keeps it out of this branch.
+  if ((FOR_PLATFORM.test(text) || IS_SOFTWARE.test(text)) && !isConsoleUnit) return undefined;
 
   // An accessory line wins over the platform it plugs into, unless the title
   // is plainly a console unit that ships the accessory in the box.
