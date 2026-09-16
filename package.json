@@ -76,7 +76,8 @@
     "intel": "tsx scripts/market-intel.ts",
     "diagnose:ee-discounts": "tsx scripts/diagnose-ee-discounts.ts",
     "indexnow": "tsx scripts/indexnow.ts",
-    "test:consoles": "tsx scripts/check-console-model.ts"
+    "test:consoles": "tsx scripts/check-console-model.ts",
+    "test:tiers": "tsx scripts/check-phone-tier.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

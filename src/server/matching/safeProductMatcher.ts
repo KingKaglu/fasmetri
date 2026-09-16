@@ -334,6 +334,18 @@ function scorePhone(raw: SafeProductIdentity, candidate: SafeProductIdentity): S
     caps.push({ value: 50, reason: "suffix max50" });
   }
 
+  // Independent of baseModel, because the tier is what makes them different
+  // devices and it survives wherever it sits in the string. Treated like the
+  // colour conflict below: two different phones must never share a price page.
+  if (raw.model && candidate.model) {
+    const rawTier = phoneModelTier(raw.model);
+    const candidateTier = phoneModelTier(candidate.model);
+    if (rawTier !== candidateTier) {
+      hardConflicts.push(`phone tier differs: ${rawTier ?? "base"} vs ${candidateTier ?? "base"}`);
+      caps.push({ value: 0, reason: "tier conflict score0" });
+    }
+  }
+
   if (raw.modelCode && candidate.modelCode && raw.modelCode === candidate.modelCode) {
     confidence += 25;
     reasons.push("modelCode +25");
@@ -641,6 +653,30 @@ function phoneRamRequired(identity: SafeProductIdentity) {
 
 function isIphoneModel(brand?: string, model?: string) {
   return brand === "apple" && Boolean(model?.startsWith("iphone_"));
+}
+
+/**
+ * The tier words that name a DIFFERENT phone rather than a different finish: a
+ * Fold 8 Ultra is not a Fold 8, and a POCO X8 Pro Max is not a POCO X8 Pro.
+ *
+ * splitPhoneModel below only recognises a tier when the model ENDS with it, and
+ * real model strings put the SKU last — "samsung_galaxy_fold_8_ultra_f976_5g",
+ * "samsung_galaxy_fold_8_ultra_sm_f976bzkncau". Those read as having no tier at
+ * all, so the Ultra merged into the base model. Three Galaxy Folds and two POCOs
+ * merged that way, and since the two devices are hundreds of lari apart, those
+ * bogus pairs became the largest "price gaps" on the whole site.
+ *
+ * Ordered longest-first so "pro max" is never read as bare "pro".
+ */
+const PHONE_MODEL_TIERS = ["ultra", "pro", "plus", "max", "lite", "mini", "fe", "se"] as const;
+
+export function phoneModelTier(model?: string): string | undefined {
+  if (!model) return undefined;
+  const tokens = new Set(model.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+  // Compound tiers first: "pro max" and "pro plus" are single tiers, not two.
+  if (tokens.has("pro") && tokens.has("max")) return "pro_max";
+  if (tokens.has("pro") && tokens.has("plus")) return "pro_plus";
+  return PHONE_MODEL_TIERS.find((tier) => tokens.has(tier));
 }
 
 function splitPhoneModel(model?: string) {
