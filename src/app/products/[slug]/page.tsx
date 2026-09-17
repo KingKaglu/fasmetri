@@ -7,6 +7,7 @@ import { HistoryPoint, isPublicMatchStatus, ProductView } from "@/lib/catalog-ty
 import { PriceChart } from "@/components/price-chart";
 import { Sparkline } from "@/components/sparkline";
 import { AlertForm } from "@/components/alert-form";
+import { activeEmailProvider } from "@/server/alerts/email";
 import { FavoriteToggle } from "@/components/favorite-toggle";
 import { ShareButton } from "@/components/share-button";
 import { RecentlyViewedStrip, RecordRecentView } from "@/components/recently-viewed";
@@ -397,6 +398,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <AlertForm
             productId={product.id}
             vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? process.env.VAPID_PUBLIC_KEY ?? null}
+            emailDelivery={activeEmailProvider() !== null}
           />
           <TrustNote compact />
         </aside>

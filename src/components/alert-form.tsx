@@ -20,11 +20,16 @@ function urlBase64ToUint8Array(base64String: string) {
 export function AlertForm({
   productId,
   vapidPublicKey,
+  emailDelivery = true,
 }: {
   productId: string;
   // Passed from the server (page is ISR) so it works regardless of NEXT_PUBLIC
   // client-bundle inlining; null when push isn't configured.
   vapidPublicKey: string | null;
+  // False when no mail transport is configured. The alert is still stored and
+  // still fires later, but promising an email we cannot send is worse than
+  // saying plainly that it is waiting.
+  emailDelivery?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -161,7 +166,9 @@ export function AlertForm({
       {success ? (
         <p role="status" className="flex items-start gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
-          შეტყობინება დაყენებულია — ფასის დაკლებისას ელფოსტაზე მოგწერთ.
+          {emailDelivery
+            ? "შეტყობინება დაყენებულია — ფასის დაკლებისას ელფოსტაზე მოგწერთ."
+            : "შეტყობინება შენახულია — ელფოსტის გაგზავნა ჯერ არ არის ჩართული, ამიტომ ჩართვისთანავე მიიღებ. ახლავე შეტყობინებისთვის ჩართე ბრაუზერის push."}
         </p>
       ) : null}
       {success && pushSupported && pushState !== "enabled" ? (
