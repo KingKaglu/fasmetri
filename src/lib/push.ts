@@ -27,15 +27,17 @@ export type PushPayload = { title: string; body: string; url?: string };
 
 // Send a notification to every subscription registered for an email. Best-effort:
 // dead subscriptions (404/410) are pruned, and no error is ever thrown to the caller.
-export async function sendPushToEmail(email: string, payload: PushPayload) {
-  if (!ensureConfigured() || !prisma) return;
+/** Returns how many devices the payload actually reached. */
+export async function sendPushToEmail(email: string, payload: PushPayload): Promise<number> {
+  if (!ensureConfigured() || !prisma) return 0;
   let subscriptions;
   try {
     subscriptions = await prisma.pushSubscription.findMany({ where: { email } });
   } catch {
-    return;
+    return 0;
   }
   const body = JSON.stringify(payload);
+  let delivered = 0;
   await Promise.all(
     subscriptions.map(async (sub) => {
       try {
@@ -43,6 +45,7 @@ export async function sendPushToEmail(email: string, payload: PushPayload) {
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           body,
         );
+        delivered += 1;
       } catch (error) {
         const statusCode = (error as { statusCode?: number })?.statusCode;
         if (statusCode === 404 || statusCode === 410) {
@@ -53,4 +56,5 @@ export async function sendPushToEmail(email: string, payload: PushPayload) {
       }
     }),
   );
+  return delivered;
 }

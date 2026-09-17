@@ -87,6 +87,7 @@
     "catalog:split:sim": "tsx scripts/split-mixed-sim-phones.ts",
     "catalog:merge:laptops": "tsx scripts/merge-exact-sku-laptops.ts",
     "catalog:merge:phones": "tsx scripts/merge-exact-identity-phones.ts",
+    "indexnow": "tsx scripts/indexnow.ts",
     "gaps": "tsx scripts/top-price-gaps.ts"
   },
   "dependencies": {

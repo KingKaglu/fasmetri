@@ -1,0 +1,32 @@
+name: IndexNow submit
+
+# Pushes the live sitemap to IndexNow once a day. Bing, Yandex, Seznam and
+# Naver share the protocol and need no account — ownership is proved by
+# serving the key back from public/<key>.txt — so this is the one indexing
+# lever that works without a Search Console login. Google does not
+# participate; it finds the sitemap through robots.txt instead.
+#
+# Runs on GitHub-hosted infra: it only reads our own sitemap and posts to
+# IndexNow, so it does not need the self-hosted runner's Georgian IP.
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Submit sitemap URLs
+        run: npm run indexnow

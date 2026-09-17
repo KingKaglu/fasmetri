@@ -33,6 +33,19 @@ export async function prepareTriggeredAlerts() {
   });
   const triggered = alerts.filter((alert) => alert.product.offers[0] && Number(alert.product.offers[0].currentPrice) <= Number(alert.targetPrice));
 
+  // Without a transport every alert below would be closed having told nobody.
+  // Say so once, loudly: this is otherwise invisible until a user complains
+  // that the alert they subscribed to never arrived.
+  if (triggered.length && !activeEmailProvider() && process.env.ALERT_PROVIDER !== "console") {
+    console.error(
+      `[alerts] ${triggered.length} alert(s) reached their target price but no email transport is configured` +
+        " (set RESEND_API_KEY, or SMTP_HOST + SMTP_USER + SMTP_PASS). They stay active until they can be delivered.",
+    );
+  }
+
+  // Only alerts we actually reached are closed; see below.
+  const notified: string[] = [];
+
   for (const alert of triggered) {
     const offer = alert.product.offers[0];
     const currentPrice = Number(offer.currentPrice);
@@ -63,31 +76,46 @@ export async function prepareTriggeredAlerts() {
       notifiedVia = "console";
     }
 
-    // Always record the event so /admin can see what fired even without email.
-    await prisma.alertEvent.create({
-      data: {
-        alertId: alert.id,
-        email: alert.email,
-        productId: alert.productId,
-        productName: alert.product.name,
-        targetPrice: alert.targetPrice,
-        offerPrice: offer.currentPrice,
-        shopName: offer.shop.name,
-        notifiedVia,
-      },
-    });
+    // Record the event so /admin can see what fired even without email — but
+    // not the same undelivered event on every run, which would bury the log.
+    const duplicateUndelivered =
+      notifiedVia === "none" &&
+      (await prisma.alertEvent.findFirst({
+        where: { alertId: alert.id, notifiedVia: "none", offerPrice: offer.currentPrice },
+        select: { id: true },
+      })) != null;
+
+    if (!duplicateUndelivered) {
+      await prisma.alertEvent.create({
+        data: {
+          alertId: alert.id,
+          email: alert.email,
+          productId: alert.productId,
+          productName: alert.product.name,
+          targetPrice: alert.targetPrice,
+          offerPrice: offer.currentPrice,
+          shopName: offer.shop.name,
+          notifiedVia,
+        },
+      });
+    }
 
     // Best-effort Web Push to any browser subscriptions for this email.
     // No-ops when VAPID isn't configured; never throws.
-    await sendPushToEmail(alert.email, {
+    const pushed = await sendPushToEmail(alert.email, {
       title: "ფასი დაიკლო — ფასმეტრი",
       body: `${alert.product.name}: ${currentPrice.toFixed(2)} ₾`,
       url: `/products/${alert.product.slug}`,
     });
+
+    if (notifiedVia !== "none" || pushed > 0) notified.push(alert.id);
   }
 
+  // An alert that reached nobody must not be marked TRIGGERED: that closes it
+  // for good, so a misconfigured mailer silently burns every subscription it
+  // touches. Leaving it ACTIVE means it fires again once delivery works.
   await prisma.userPriceAlert.updateMany({
-    where: { id: { in: triggered.map((alert) => alert.id) } },
+    where: { id: { in: notified } },
     data: { status: AlertStatus.TRIGGERED, lastNotifiedAt: new Date() },
   });
   return triggered;
