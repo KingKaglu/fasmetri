@@ -82,6 +82,12 @@ jobs:
       - name: Evaluate price alerts
         if: ${{ steps.phones.outcome == 'success' || steps.laptops.outcome == 'success' || steps.consoles.outcome == 'success' }}
         continue-on-error: true
+        # Alerts are evaluated here, not on Vercel, so the mail transport has
+        # to be present here too. Without it the evaluator has nothing to send
+        # with and every triggered alert stays active instead of being closed.
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
         run: npm run alerts:evaluate
 
       # The sync writes to the DB directly, so the deployed site's cached
