@@ -1,5 +1,7 @@
 # ფასმეტრი (Fasmetri)
 
+**Live: [fasmetri.ge](https://fasmetri.ge)**
+
 Fasmetri is an **independent** Georgian price-comparison platform. The public MVP
 compares **mobile phones and laptops only** across a few stable Georgian online
 stores (Zoommer, EE.ge / Elite Electronics, PCShop) and answers one question:
