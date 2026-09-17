@@ -10,6 +10,7 @@ on:
       - "Zoommer laptops sync"
       - "EE phones sync"
       - "EE laptops sync"
+      - "PCShop sync"
     types:
       - completed
 
@@ -22,6 +23,8 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
       DATABASE_POOL_MAX: "1"
+      # PCShop's one workflow covers phones, laptops and consoles.
+      ALL_CATEGORIES: ${{ contains(github.event.workflow_run.name, 'PCShop') }}
     steps:
       - uses: actions/checkout@v5
 
@@ -33,16 +36,24 @@ jobs:
       - run: npm ci
 
       - name: Match phones
-        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'phones') }}
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'phones') || env.ALL_CATEGORIES == 'true' }}
         run: npm run match:phones -- --all
 
       - name: Match laptops
-        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'laptops') }}
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'laptops') || env.ALL_CATEGORIES == 'true' }}
         run: npm run match:laptops -- --all
 
       - name: Match consoles
-        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'consoles') }}
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.workflow_run.name, 'consoles') || env.ALL_CATEGORIES == 'true' }}
         run: npm run match:consoles -- --all
+
+      # The matcher writes the canonical layer, but the public catalogue groups
+      # by Product — so a canonical link alone changes nothing a visitor sees.
+      # These bridge that gap on evidence that is certain, and re-splitting runs
+      # before re-merging so a bad group is broken up before anything joins it.
+      - name: Bridge canonical matches into the public catalogue
+        continue-on-error: true
+        run: npm run catalog:bridge
 
       # Matching changes public visibility, so bust the deployed cache too.
       - name: Revalidate public catalog cache

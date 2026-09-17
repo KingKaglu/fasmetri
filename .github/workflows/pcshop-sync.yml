@@ -42,15 +42,19 @@ jobs:
       - run: npm ci
 
       - name: Ensure sync columns exist
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260605000000_zoommer_phone_sync_state/migration.sql
 
       - name: Ensure SyncLog table exists
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
 
       - name: Ensure AlertEvent table exists
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260611100000_add_alert_event/migration.sql
 
       - name: Ensure PriceAnomaly table exists
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260611120000_add_price_anomaly/migration.sql
 
       - name: Phones sync

@@ -27,6 +27,7 @@ jobs:
       - run: npm ci
 
       - name: Ensure CatalogHealthReport table exists
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260611110000_add_catalog_health_report/migration.sql
 
       - name: Validate matches

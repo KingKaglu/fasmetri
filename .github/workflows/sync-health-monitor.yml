@@ -5,12 +5,10 @@ name: Sync health monitor
 # and fails the job when a module has no success in the last 28 hours.
 on:
   workflow_dispatch:
-  # Scheduled run is PAUSED alongside the store scrapers: this monitor fails
-  # (and emails) whenever a sync has no success in 28h, so while the scrapers
-  # are paused it would fail every day. Re-enable this cron at the same time as
-  # the scraper schedules, once the self-hosted runner is reliable again.
-  # schedule:
-  #   - cron: "0 6 * * *"
+  # The store scrapers are dispatched every 3 hours by sync-watchdog.yml, so a
+  # module with no success in 28h is now a real fault worth an email.
+  schedule:
+    - cron: "0 6 * * *"
 
 jobs:
   health:
@@ -30,6 +28,7 @@ jobs:
       - run: npm ci
 
       - name: Ensure SyncLog table exists
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
 
       - name: Check sync health

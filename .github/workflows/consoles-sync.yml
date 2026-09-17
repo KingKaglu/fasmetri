@@ -41,6 +41,7 @@ jobs:
       - run: npm ci
 
       - name: Ensure SyncLog table exists
+        continue-on-error: true
         run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
 
       # Each store is continue-on-error so one store being down never costs us
@@ -67,6 +68,15 @@ jobs:
         if: ${{ steps.zoommer.outcome == 'success' || steps.ee.outcome == 'success' }}
         continue-on-error: true
         run: npm run match:consoles -- --all
+
+      # The matcher writes the canonical layer; the public catalogue groups by
+      # Product. This is the same bridge match-products.yml runs for the other
+      # stores — that workflow does not chain off this one, because the matcher
+      # above already runs in-line.
+      - name: Bridge canonical matches into the public catalogue
+        if: ${{ steps.zoommer.outcome == 'success' || steps.ee.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run catalog:bridge
 
       - name: Evaluate price alerts
         if: ${{ steps.zoommer.outcome == 'success' || steps.ee.outcome == 'success' }}

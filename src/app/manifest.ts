@@ -13,6 +13,12 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     background_color: "#ffffff",
     theme_color: "#15172b",
-    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+    // Android's install prompt ignores an SVG-only icon set and falls back to a
+    // screenshot of the page, so the square brand mark is offered as a raster
+    // icon too; Chrome downsamples the 1024 source for every slot it needs.
+    icons: [
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
+      { src: "/brand/fasmetri-profile.png", sizes: "1024x1024", type: "image/png", purpose: "any" },
+    ],
   };
 }

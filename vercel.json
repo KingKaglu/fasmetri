@@ -1,21 +1,3 @@
 {
-  "regions": ["fra1"],
-  "crons": [
-    {
-      "path": "/api/sync/zoommer-laptops/full",
-      "schedule": "20 2 * * *"
-    },
-    {
-      "path": "/api/sync/ee-phones/full",
-      "schedule": "40 2 * * *"
-    },
-    {
-      "path": "/api/sync/zoommer-phones/full",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/sync/ee-laptops/full",
-      "schedule": "10 3 * * *"
-    }
-  ]
+  "regions": ["fra1"]
 }
