@@ -15,6 +15,11 @@ import { buildCategoryBreadcrumbJsonLd, buildCategoryItemListJsonLd } from "@/li
 import { isCategoryAlias, resolvePublicCategorySlug } from "@/lib/categoryNormalization";
 import { cleanSlugParam, finiteNumberParam, firstParam, pageNumberParam, PUBLIC_LIST_PAGE_SIZE } from "@/lib/publicQueryParams";
 
+// No loading.tsx for this segment: a route-level skeleton makes Next stream
+// the response, which flushes a 200 before notFound() can run — unknown
+// slugs then answer 200 with a not-found body, which Search Console reads
+// as a soft 404. Serving the real 404 is worth more than the skeleton.
+
 type Params = Promise<Record<string, string | string[] | undefined>>;
 
 function fallbackPublicCategory(slug: string): CategoryView | null {
@@ -51,8 +56,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const slug = resolvePublicCategorySlug((await params).slug);
   // Unknown/removed categories raise not-found here as well as in the page, so
-  // both agree on one condition. Next 16 still returns 200 for these (soft 404);
-  // the response is `noindex`, so they stay out of search results.
+  // both agree on one condition.
   if (!isPublicCategorySlug(slug)) notFound();
   const { category } = await resolveCategoryForPage(slug);
   if (!category) notFound();

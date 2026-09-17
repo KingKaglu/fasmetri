@@ -39,6 +39,11 @@ import { explainMatchDecision } from "@/lib/productMatching";
 // after the first render instead of re-querying Supabase on every visit.
 export const revalidate = 600;
 
+// No loading.tsx for this segment: a route-level skeleton makes Next stream
+// the response, which flushes a 200 before notFound() can run — unknown
+// slugs then answer 200 with a not-found body, which Search Console reads
+// as a soft 404. Serving the real 404 is worth more than the skeleton.
+
 const historyDayFormatter = new Intl.DateTimeFormat("en-GB", {
   timeZone: "Asia/Tbilisi",
   day: "2-digit",
@@ -50,11 +55,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const product = await getPublicProduct((await params).slug);
   // Single source of truth for "this product does not exist": metadata and the
   // page below agree on one condition instead of each handling it separately.
-  // NOTE: this does not currently change the HTTP status — Next 16 still serves
-  // these as 200 (a soft 404) even when notFound() is raised here. The
-  // not-found response carries `noindex`, so search engines drop it regardless;
-  // if the framework's status handling improves this route gets a real 404 for
-  // free.
   if (!product) notFound();
 
   const cheapest = product.offers[0];

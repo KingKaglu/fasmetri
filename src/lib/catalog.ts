@@ -611,8 +611,11 @@ async function loadShops(): Promise<ShopView[]> {
         dealCount: dealCounts.get(shop.id) ?? 0,
       }),
     );
-  } catch {
-    return prisma ? [] : shopFixtures;
+  } catch (error) {
+    // Same reasoning as the catalog summary: an empty shop list is a cacheable
+    // lie that hides every store, so surface the failure instead.
+    console.error("[catalog] shop query failed", error);
+    throw error;
   }
 }
 
@@ -788,10 +791,14 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
       });
 
       publicCatalog = publicProducts(products.map(productView));
-    } catch {
-      // Never substitute demo fixtures when a real DB exists — an empty (but
-      // honest) summary beats fake counts that disagree with other pages.
-      publicCatalog = prisma ? [] : publicProducts(productFixtures);
+    } catch (error) {
+      // An empty summary is indistinguishable from "these shops sell nothing",
+      // and unstable_cache would keep that answer for the whole revalidation
+      // window — turning one database blip into ten minutes of 404s across
+      // /shops and /categories, and zeroed counts on the homepage. Failing
+      // loudly caches nothing and lets the next request retry.
+      console.error("[catalog] public summary query failed", error);
+      throw error;
     }
   }
 

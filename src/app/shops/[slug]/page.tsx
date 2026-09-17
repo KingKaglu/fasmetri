@@ -5,6 +5,11 @@ import { ProductGrid } from "@/components/product-grid";
 import { CatalogPager } from "@/components/catalog-pager";
 import { LastUpdatedText, ShopMark, ShopStatusBadge } from "@/components/public-ui";
 
+// No loading.tsx for this segment: a route-level skeleton makes Next stream
+// the response, which flushes a 200 before notFound() can run — unknown
+// slugs then answer 200 with a not-found body, which Search Console reads
+// as a soft 404. Serving the real 404 is worth more than the skeleton.
+
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
 const productPageSize = 36;
@@ -12,8 +17,7 @@ const productPageSize = 36;
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const slug = (await params).slug;
   const shop = (await listPublicShops()).find((item) => item.slug === slug);
-  // Matches the page's own guard so both agree on one condition. Next 16 serves
-  // these as 200 (soft 404); the response is `noindex` so they are not indexed.
+  // Matches the page's own guard so both agree on one condition.
   if (!shop || !shop.enabled || (shop.productCount ?? 0) <= 0) notFound();
   return {
     title: `${shop.name} შეთავაზებები`,

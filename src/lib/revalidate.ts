@@ -15,7 +15,9 @@ import { revalidatePath, revalidateTag } from "next/cache";
 export function revalidatePublicCatalog() {
   try {
     revalidateTag("catalog", "max");
-    for (const path of ["/", "/deals", "/categories", "/shops", "/search"]) {
+    // /sitemap.xml is generated from the same product rows, so leaving it out
+    // left crawlers reading a lastmod from the previous revalidation window.
+    for (const path of ["/", "/deals", "/categories", "/shops", "/search", "/price-index", "/sitemap.xml"]) {
       revalidatePath(path);
     }
     revalidatePath("/products/[slug]", "page");
