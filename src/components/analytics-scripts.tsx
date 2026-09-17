@@ -1,10 +1,18 @@
+"use client";
+
 import Script from "next/script";
 import { GA_ID, META_PIXEL_ID, TIKTOK_PIXEL_ID } from "@/lib/analytics";
+import { useConsent } from "@/lib/consent";
 
-// Injects GA4 / Meta Pixel / TikTok Pixel — each only when its env ID is set.
-// With no IDs configured this renders nothing, so the site runs cleanly without
-// any analytics. Loaded `afterInteractive` so it never blocks first paint.
+// Injects GA4 / Meta Pixel / TikTok Pixel — each only when its env ID is set
+// AND the visitor has granted consent. Georgian data-protection law requires
+// prior consent for non-essential cookies, so these must not load on the way
+// to the question. With no IDs configured this renders nothing either way.
+// Loaded `afterInteractive` so it never blocks first paint.
 export function AnalyticsScripts() {
+  const consent = useConsent();
+  if (consent !== "granted") return null;
+
   return (
     <>
       {GA_ID ? (

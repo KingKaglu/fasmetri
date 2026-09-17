@@ -1,3 +1,4 @@
+import { ConsentControl } from "@/components/consent-control";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -52,6 +53,14 @@ export default function PrivacyPage() {
               „ფასმეტრმა ამ თვეში თქვენს პროდუქტებზე X გადასვლა გამოგიგზავნათ“. პერსონალურ მონაცემებს
               არ ვყიდით.
             </p>
+          </div>
+
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">ანალიტიკის არჩევანი</h2>
+            <p className="mt-2">
+              ანალიტიკა მხოლოდ შენი თანხმობით ირთვება და ნებისმიერ დროს შეგიძლია გამორთო.
+            </p>
+            <ConsentControl />
           </div>
 
           <div>

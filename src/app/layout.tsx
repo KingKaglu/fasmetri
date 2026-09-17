@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
+import { CookieConsent } from "@/components/cookie-consent";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { JsonLd } from "@/components/json-ld";
 import { SiteFooter } from "@/components/site-footer";
@@ -120,6 +121,7 @@ export default async function RootLayout({
           </FavoritesProvider>
         </CompareProvider>
         <AnalyticsScripts />
+        <CookieConsent />
         {/*
           Vercel Web Analytics, alongside GA4 rather than instead of it. It is
           served first-party from /_vercel/insights on our own domain, so the
