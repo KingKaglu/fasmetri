@@ -39,6 +39,11 @@ const PS5_FILTER = /playstation|ps5|dualsense|dualshock|ps4/i;
 // Exclude game software — the consoles category is hardware only.
 const GAME_SOFTWARE_FILTER = /\bgames?\b/i;
 
+// Prisma gives up after 2s of waiting for a free connection by default, which
+// aborts a whole sync — including the scrape that preceded it — whenever the
+// shared session pool is briefly busy. The writes themselves are a few upserts.
+const TRANSACTION_OPTIONS = { maxWait: 20_000, timeout: 30_000 };
+
 type JsonRecord = Record<string, unknown>;
 
 export type EeConsoleSyncMode = "discover" | "full" | "prices" | "validate" | "promote";
@@ -749,7 +754,7 @@ async function promoteSnapshot(snapshot: EeConsolesSnapshot): Promise<PromotionR
             },
           });
         }
-      });
+      }, TRANSACTION_OPTIONS);
     try {
       await runTransaction();
     } catch (err) {

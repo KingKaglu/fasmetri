@@ -29,6 +29,11 @@ const INACTIVE_MISS_THRESHOLD = 3;
 //                  37720260605 (ee-phones), 5820260605 (ee-laptops)
 const ADVISORY_LOCK_ID = 90000000001;
 
+// Prisma gives up after 2s of waiting for a free connection by default, which
+// aborts a whole sync — including the scrape that preceded it — whenever the
+// shared session pool is briefly busy. The writes themselves are a few upserts.
+const TRANSACTION_OPTIONS = { maxWait: 20_000, timeout: 30_000 };
+
 type JsonRecord = Record<string, unknown>;
 
 export type PcshopConsoleSyncMode = "discover" | "full" | "prices" | "validate" | "promote";
@@ -700,7 +705,7 @@ async function promoteSnapshot(snapshot: PcshopConsolesSnapshot): Promise<Promot
             },
           });
         }
-      });
+      }, TRANSACTION_OPTIONS);
 
     try {
       await runTransaction();

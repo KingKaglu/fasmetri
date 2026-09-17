@@ -30,6 +30,11 @@ const MAX_MISSING_PRICE_RATIO = 0.1;
 const INACTIVE_MISS_THRESHOLD = 3;
 const ADVISORY_LOCK_ID = 37720260605;
 
+// Prisma gives up after 2s of waiting for a free connection by default, which
+// aborts a whole sync — including the scrape that preceded it — whenever the
+// shared session pool is briefly busy. The writes themselves are a few upserts.
+const TRANSACTION_OPTIONS = { maxWait: 20_000, timeout: 30_000 };
+
 type JsonRecord = Record<string, unknown>;
 
 export type EePhoneSyncMode = "discover" | "full" | "prices" | "validate" | "promote";
@@ -770,7 +775,7 @@ async function promoteSnapshot(snapshot: EePhonesSnapshot): Promise<PromotionRep
             },
           });
         }
-      });
+      }, TRANSACTION_OPTIONS);
     try {
       await runTransaction();
     } catch (err) {

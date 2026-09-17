@@ -8,6 +8,7 @@ import { probeDelisting } from "@/server/sync/delistingProbe";
 import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
+import { stockNeedsRefresh } from "@/lib/stockRefresh";
 import { extractConsoleModel } from "@/lib/consoleModel";
 
 const STORE = "zoommer";
@@ -39,6 +40,11 @@ const PS5_FILTER = /playstation|ps5|dualsense|dualshock|ps4/i;
 // Exclude game software (discs/downloads) — the consoles category is hardware
 // only (console + accessories). Game titles read "<Name> Game For PS5".
 const GAME_SOFTWARE_FILTER = /\bgames?\b/i;
+
+// Prisma gives up after 2s of waiting for a free connection by default, which
+// aborts a whole sync — including the scrape that preceded it — whenever the
+// shared session pool is briefly busy. The writes themselves are a few upserts.
+const TRANSACTION_OPTIONS = { maxWait: 20_000, timeout: 30_000 };
 
 type JsonRecord = Record<string, unknown>;
 
@@ -133,6 +139,7 @@ export type StagedZoommerConsole = {
   allImages: string[];
   rawSpecs: JsonRecord;
   normalizedSpecs: NormalizedConsoleSpecs;
+  stockCheckedAt?: string | null;
 };
 
 export type ZoommerConsolesSnapshot = {
@@ -213,6 +220,7 @@ export type ZoommerConsoleSyncReport = {
 type ExistingRawState = {
   originalTitle: string;
   rawSpecsJson: unknown;
+  availability: OfferAvailability;
 };
 
 type ExistingOfferState = {
@@ -298,7 +306,10 @@ async function scrapeSnapshot(options: ZoommerConsoleSyncOptions): Promise<Zoomm
     if (!current) return true;
     if (current.originalTitle !== item.originalTitle) return true;
     const specs = readRawSpecs(current.rawSpecsJson);
-    return !specs || Object.keys(specs.normalizedSpecs ?? {}).length === 0;
+    if (!specs || Object.keys(specs.normalizedSpecs ?? {}).length === 0) return true;
+    // Stock only moves when the detail page is re-read; the listing API
+    // reports isInStock=false for every product.
+    return stockNeedsRefresh(current.availability, specs.stockCheckedAt);
   });
 
   const limitedTargets = options.detailLimit ? detailTargets.slice(0, options.detailLimit) : detailTargets;
@@ -460,6 +471,7 @@ async function scrapeDetail(item: StagedZoommerConsole) {
             ? OfferAvailability.IN_STOCK
             : OfferAvailability.OUT_OF_STOCK
           : item.availability,
+      stockCheckedAt: typeof product.isInStock === "boolean" ? new Date().toISOString() : item.stockCheckedAt ?? null,
     };
   } catch (error) {
     return {
@@ -472,6 +484,7 @@ async function scrapeDetail(item: StagedZoommerConsole) {
       normalizedSpecs: item.normalizedSpecs,
       canonicalUrl: item.productUrl,
       availability: item.availability,
+      stockCheckedAt: item.stockCheckedAt ?? null,
     };
   }
 }
@@ -494,6 +507,7 @@ function mergeDetail(
       normalizedSpecs: { ...item.normalizedSpecs, ...detail.normalizedSpecs },
       brand: detail.normalizedSpecs.brand ?? item.brand,
       availability: detail.availability,
+      stockCheckedAt: detail.stockCheckedAt ?? item.stockCheckedAt ?? null,
     };
   }
 
@@ -505,6 +519,7 @@ function mergeDetail(
     rawSpecs: prior.rawSpecs ?? item.rawSpecs,
     normalizedSpecs: { ...item.normalizedSpecs, ...(prior.normalizedSpecs ?? {}) },
     brand: prior.normalizedSpecs?.brand ?? item.brand,
+    stockCheckedAt: prior.stockCheckedAt ?? item.stockCheckedAt ?? null,
   };
 }
 
@@ -650,7 +665,7 @@ async function promoteSnapshot(snapshot: ZoommerConsolesSnapshot): Promise<Promo
     const resolvedAvailability =
       item.availability === OfferAvailability.UNKNOWN ? existing?.availability ?? OfferAvailability.UNKNOWN : item.availability;
 
-    const rawOffer = await upsertRawOffer(shop.id, item, undefined);
+    const rawOffer = await upsertRawOffer(shop.id, item, undefined, resolvedAvailability);
     let offerExternalId: string | null = item.zoommerProductId ?? null;
     const runTransaction = () =>
       db.$transaction(async (tx) => {
@@ -723,7 +738,7 @@ async function promoteSnapshot(snapshot: ZoommerConsolesSnapshot): Promise<Promo
             },
           });
         }
-      });
+      }, TRANSACTION_OPTIONS);
     try {
       await runTransaction();
     } catch (err) {
@@ -819,7 +834,15 @@ function productData(categoryId: string, item: StagedZoommerConsole) {
   } satisfies Prisma.ProductUncheckedUpdateInput;
 }
 
-async function upsertRawOffer(shopId: string, item: StagedZoommerConsole, tx?: Prisma.TransactionClient) {
+async function upsertRawOffer(
+  shopId: string,
+  item: StagedZoommerConsole,
+  tx?: Prisma.TransactionClient,
+  // A price-only run stages UNKNOWN for every product, so the caller passes
+  // the stock it resolved against the previous run — otherwise the raw row
+  // forgets what the last detail scrape established.
+  resolvedAvailability?: OfferAvailability,
+) {
   if (!db) throw new Error("DATABASE_URL is required for promotion.");
   const client = tx ?? db;
   let externalId: string | null = item.zoommerProductId ?? null;
@@ -830,7 +853,7 @@ async function upsertRawOffer(shopId: string, item: StagedZoommerConsole, tx?: P
     rawPrice: item.currentPriceGel,
     rawOldPrice: item.oldPriceGel,
     rawDiscount: item.discountPercent,
-    availability: item.availability,
+    availability: resolvedAvailability ?? item.availability,
     rawCategory: SOURCE_CATEGORY,
     sourceCategory: SOURCE_CATEGORY,
     breadcrumbs: jsonValue([SOURCE_CATEGORY, item.productUrl]),
@@ -946,9 +969,11 @@ async function existingRawStateByUrl(urls: string[]) {
   if (!db || urls.length === 0) return new Map<string, ExistingRawState>();
   const raws = await db.rawOffer.findMany({
     where: { shop: { slug: STORE }, originalUrl: { in: urls } },
-    select: { originalUrl: true, originalTitle: true, rawSpecsJson: true },
+    select: { originalUrl: true, originalTitle: true, rawSpecsJson: true, availability: true },
   });
-  return new Map(raws.map((raw) => [raw.originalUrl, { originalTitle: raw.originalTitle, rawSpecsJson: raw.rawSpecsJson }]));
+  return new Map(
+    raws.map((raw) => [raw.originalUrl, { originalTitle: raw.originalTitle, rawSpecsJson: raw.rawSpecsJson, availability: raw.availability }]),
+  );
 }
 
 async function existingOfferStateByUrl(shopId: string) {
@@ -1215,6 +1240,7 @@ function rawSpecsPayload(item: StagedZoommerConsole) {
     rawListingData: item.rawListingData,
     rawSpecs: item.rawSpecs,
     normalizedSpecs: item.normalizedSpecs,
+    stockCheckedAt: item.stockCheckedAt ?? null,
     detail: {
       attempted: item.detailAttempted,
       succeeded: item.detailSucceeded,
@@ -1252,6 +1278,7 @@ function readRawSpecs(value: unknown) {
     allImages: Array.isArray(record.allImages) ? record.allImages.filter((item): item is string => typeof item === "string") : undefined,
     rawSpecs: asRecord(record.rawSpecs),
     normalizedSpecs: asRecord(record.normalizedSpecs) as NormalizedConsoleSpecs | undefined,
+    stockCheckedAt: typeof record.stockCheckedAt === "string" ? record.stockCheckedAt : undefined,
   };
 }
 

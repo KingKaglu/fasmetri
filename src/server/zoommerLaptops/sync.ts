@@ -8,6 +8,7 @@ import { probeDelisting } from "@/server/sync/delistingProbe";
 import { isAnomalousPriceChange, recordPriceAnomaly } from "@/server/sync/priceAnomalyGuard";
 import { normalizeProductName, slugifyProduct } from "@/lib/matching";
 import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalization";
+import { stockNeedsRefresh } from "@/lib/stockRefresh";
 
 const STORE = "zoommer";
 const SOURCE = "zoommer";
@@ -29,6 +30,11 @@ const LOW_COUNT_RATIO = 0.7;
 const MAX_MISSING_PRICE_RATIO = 0.1;
 const INACTIVE_MISS_THRESHOLD = 3;
 const ADVISORY_LOCK_ID = 53120260605;
+
+// Prisma gives up after 2s of waiting for a free connection by default, which
+// aborts a whole sync — including the scrape that preceded it — whenever the
+// shared session pool is briefly busy. The writes themselves are a few upserts.
+const TRANSACTION_OPTIONS = { maxWait: 20_000, timeout: 30_000 };
 
 type JsonRecord = Record<string, unknown>;
 
@@ -140,6 +146,7 @@ export type StagedZoommerLaptop = {
   allImages: string[];
   rawSpecs: JsonRecord;
   normalizedSpecs: NormalizedLaptopSpecs;
+  stockCheckedAt?: string | null;
 };
 
 export type ZoommerLaptopsSnapshot = {
@@ -225,6 +232,7 @@ export type ZoommerLaptopSyncReport = {
 type ExistingRawState = {
   originalTitle: string;
   rawSpecsJson: unknown;
+  availability: OfferAvailability;
 };
 
 type ExistingOfferState = {
@@ -310,7 +318,10 @@ async function scrapeSnapshot(options: ZoommerLaptopSyncOptions): Promise<Zoomme
     if (!current) return true;
     if (current.originalTitle !== item.originalTitle) return true;
     const specs = readRawSpecs(current.rawSpecsJson);
-    return !specs || Object.keys(specs.normalizedSpecs ?? {}).length === 0;
+    if (!specs || Object.keys(specs.normalizedSpecs ?? {}).length === 0) return true;
+    // Stock only moves when the detail page is re-read; the listing API
+    // reports isInStock=false for every product.
+    return stockNeedsRefresh(current.availability, specs.stockCheckedAt);
   });
 
   const limitedTargets = options.detailLimit ? detailTargets.slice(0, options.detailLimit) : detailTargets;
@@ -473,6 +484,7 @@ async function scrapeDetail(item: StagedZoommerLaptop) {
             ? OfferAvailability.IN_STOCK
             : OfferAvailability.OUT_OF_STOCK
           : item.availability,
+      stockCheckedAt: typeof product.isInStock === "boolean" ? new Date().toISOString() : item.stockCheckedAt ?? null,
     };
   } catch (error) {
     return {
@@ -485,6 +497,7 @@ async function scrapeDetail(item: StagedZoommerLaptop) {
       normalizedSpecs: item.normalizedSpecs,
       canonicalUrl: item.productUrl,
       availability: item.availability,
+      stockCheckedAt: item.stockCheckedAt ?? null,
     };
   }
 }
@@ -511,6 +524,7 @@ function mergeDetail(item: StagedZoommerLaptop, detail?: Awaited<ReturnType<type
       normalizedSpecs: { ...item.normalizedSpecs, ...detail.normalizedSpecs },
       brand: detail.normalizedSpecs.brand ?? item.brand,
       availability: detail.availability,
+      stockCheckedAt: detail.stockCheckedAt ?? item.stockCheckedAt ?? null,
     };
   }
 
@@ -522,6 +536,7 @@ function mergeDetail(item: StagedZoommerLaptop, detail?: Awaited<ReturnType<type
     rawSpecs: prior.rawSpecs ?? item.rawSpecs,
     normalizedSpecs: { ...item.normalizedSpecs, ...(prior.normalizedSpecs ?? {}) },
     brand: prior.normalizedSpecs?.brand ?? item.brand,
+    stockCheckedAt: prior.stockCheckedAt ?? item.stockCheckedAt ?? null,
   };
 }
 
@@ -687,7 +702,7 @@ async function promoteSnapshot(snapshot: ZoommerLaptopsSnapshot): Promise<Promot
     const resolvedAvailability =
       item.availability === OfferAvailability.UNKNOWN ? existing?.availability ?? OfferAvailability.UNKNOWN : item.availability;
 
-    const rawOffer = await upsertRawOffer(shop.id, item, undefined);
+    const rawOffer = await upsertRawOffer(shop.id, item, undefined, resolvedAvailability);
     let offerExternalId: string | null = item.zoommerProductId ?? null;
     const runTransaction = () =>
       db.$transaction(async (tx) => {
@@ -760,7 +775,7 @@ async function promoteSnapshot(snapshot: ZoommerLaptopsSnapshot): Promise<Promot
             },
           });
         }
-      });
+      }, TRANSACTION_OPTIONS);
     try {
       await runTransaction();
     } catch (err) {
@@ -856,7 +871,15 @@ function productData(categoryId: string, item: StagedZoommerLaptop) {
   } satisfies Prisma.ProductUncheckedUpdateInput;
 }
 
-async function upsertRawOffer(shopId: string, item: StagedZoommerLaptop, tx?: Prisma.TransactionClient) {
+async function upsertRawOffer(
+  shopId: string,
+  item: StagedZoommerLaptop,
+  tx?: Prisma.TransactionClient,
+  // A price-only run stages UNKNOWN for every product, so the caller passes
+  // the stock it resolved against the previous run — otherwise the raw row
+  // forgets what the last detail scrape established.
+  resolvedAvailability?: OfferAvailability,
+) {
   if (!db) throw new Error("DATABASE_URL is required for promotion.");
   const client = tx ?? db;
   let externalId: string | null = item.zoommerProductId ?? null;
@@ -867,7 +890,7 @@ async function upsertRawOffer(shopId: string, item: StagedZoommerLaptop, tx?: Pr
     rawPrice: item.currentPriceGel,
     rawOldPrice: item.oldPriceGel,
     rawDiscount: item.discountPercent,
-    availability: item.availability,
+    availability: resolvedAvailability ?? item.availability,
     rawCategory: SOURCE_CATEGORY,
     sourceCategory: SOURCE_CATEGORY,
     breadcrumbs: jsonValue([SOURCE_CATEGORY, item.productUrl]),
@@ -982,9 +1005,11 @@ async function existingRawStateByUrl(urls: string[]) {
   if (!db || urls.length === 0) return new Map<string, ExistingRawState>();
   const raws = await db.rawOffer.findMany({
     where: { shop: { slug: STORE }, originalUrl: { in: urls } },
-    select: { originalUrl: true, originalTitle: true, rawSpecsJson: true },
+    select: { originalUrl: true, originalTitle: true, rawSpecsJson: true, availability: true },
   });
-  return new Map(raws.map((raw) => [raw.originalUrl, { originalTitle: raw.originalTitle, rawSpecsJson: raw.rawSpecsJson }]));
+  return new Map(
+    raws.map((raw) => [raw.originalUrl, { originalTitle: raw.originalTitle, rawSpecsJson: raw.rawSpecsJson, availability: raw.availability }]),
+  );
 }
 
 async function existingOfferStateByUrl(shopId: string) {
@@ -1223,6 +1248,7 @@ function rawSpecsPayload(item: StagedZoommerLaptop) {
     rawListingData: item.rawListingData,
     rawSpecs: item.rawSpecs,
     normalizedSpecs: item.normalizedSpecs,
+    stockCheckedAt: item.stockCheckedAt ?? null,
     detail: {
       attempted: item.detailAttempted,
       succeeded: item.detailSucceeded,
@@ -1272,6 +1298,7 @@ function readRawSpecs(value: unknown) {
     allImages: Array.isArray(record.allImages) ? record.allImages.filter((item): item is string => typeof item === "string") : undefined,
     rawSpecs: asRecord(record.rawSpecs),
     normalizedSpecs: asRecord(record.normalizedSpecs) as NormalizedLaptopSpecs | undefined,
+    stockCheckedAt: typeof record.stockCheckedAt === "string" ? record.stockCheckedAt : undefined,
   };
 }
 

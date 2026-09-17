@@ -66,6 +66,11 @@ const CATEGORY_CONFIGS: Record<PcshopCatalogCategory, CategoryConfig> = {
   },
 };
 
+// Prisma gives up after 2s of waiting for a free connection by default, which
+// aborts a whole sync — including the scrape that preceded it — whenever the
+// shared session pool is briefly busy. The writes themselves are a few upserts.
+const TRANSACTION_OPTIONS = { maxWait: 20_000, timeout: 30_000 };
+
 type JsonRecord = Record<string, unknown>;
 
 export type PcshopCatalogSyncMode = "discover" | "full" | "prices" | "validate" | "promote";
@@ -797,7 +802,7 @@ async function promoteSnapshot(config: CategoryConfig, snapshot: PcshopCatalogSn
             },
           });
         }
-      });
+      }, TRANSACTION_OPTIONS);
 
     try {
       await runTransaction();

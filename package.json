@@ -78,8 +78,15 @@
     "indexnow": "tsx scripts/indexnow.ts",
     "test:consoles": "tsx scripts/check-console-model.ts",
     "test:tiers": "tsx scripts/check-phone-tier.ts",
+    "test:stock": "tsx scripts/check-stock-refresh.ts",
     "test:screen": "tsx scripts/check-screen-size.ts",
     "test:sku": "tsx scripts/check-laptop-sku.ts",
+    "catalog:bridge": "npm run catalog:split:tier && npm run catalog:split:color && npm run catalog:split:sim && npm run catalog:merge:laptops && npm run catalog:merge:phones",
+    "catalog:split:tier": "tsx scripts/split-mixed-tier-products.ts",
+    "catalog:split:color": "tsx scripts/split-mixed-color-products.ts",
+    "catalog:split:sim": "tsx scripts/split-mixed-sim-phones.ts",
+    "catalog:merge:laptops": "tsx scripts/merge-exact-sku-laptops.ts",
+    "catalog:merge:phones": "tsx scripts/merge-exact-identity-phones.ts",
     "gaps": "tsx scripts/top-price-gaps.ts"
   },
   "dependencies": {
