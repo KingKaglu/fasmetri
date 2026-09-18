@@ -31,20 +31,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   async headers() {
-    return [
-      { source: "/(.*)", headers: securityHeaders },
-      // The public listing pages read filter search params, so Next renders
-      // them dynamically and sends `private, no-store`: every visit and every
-      // crawl woke a function and re-rendered the grid. Nothing on them is
-      // personalised — no session, nothing read from a cookie — and the data
-      // behind them is already memoised for 5-10 minutes, so a short shared
-      // cache window costs nothing and takes the repeat hits off the origin.
-      // A sync's revalidate call still refreshes the underlying data.
-      ...["/categories/:slug", "/shops/:slug", "/deals", "/search", "/games"].map((source) => ({
-        source,
-        headers: [{ key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" }],
-      })),
-    ];
+    return [{ source: "/(.*)", headers: securityHeaders }];
   },
   async redirects() {
     // The site now lives on fasmetri.ge. The old fasmetri.vercel.app hostname
