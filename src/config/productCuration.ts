@@ -383,7 +383,20 @@ function hasAdultAgeMarker(value: string) {
   return /(^|[^\dA-Za-z])18\s*\+(?=$|[^\dA-Za-z])/i.test(value);
 }
 
-function isPublicOffer(offer: OfferView) {
+// The sitemap works from raw Prisma rows rather than a built ProductView, so
+// the public-offer rule is expressed over the narrow field set both callers can
+// supply. One predicate, so a URL can never be listed for indexing under looser
+// conditions than the page itself enforces.
+export type PublicOfferFields = {
+  url: string;
+  currentPrice: number;
+  matchStatus?: string | null;
+  verificationStatus?: string | null;
+  matchConfidence?: number | null;
+  shop: { enabled: boolean };
+};
+
+export function isPublicOfferFields(offer: PublicOfferFields) {
   return offer.shop.enabled &&
     offer.currentPrice > 0 &&
     Number.isFinite(offer.currentPrice) &&
@@ -395,6 +408,15 @@ function isPublicOffer(offer: OfferView) {
     // thresholds): SAFE_AUTO offers land at exactly 85 and are auto-approved
     // by design, so a higher gate here silently hides them from the catalog.
     (offer.matchConfidence == null || offer.matchConfidence >= 85);
+}
+
+function isPublicOffer(offer: OfferView) {
+  return isPublicOfferFields(offer);
+}
+
+// Same keyword/age screen the product page applies to a product's name.
+export function isExcludedPublicName(name: string) {
+  return hasExcludedKeyword(name);
 }
 
 function comparableTitle(value: string) {

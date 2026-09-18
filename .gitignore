@@ -63,3 +63,6 @@ reports/
 phase2-browser/
 phase3-browser/
 phase3-next-start*.log
+
+# optional standalone python scraping experiment, excluded from the deploy
+/scraper-sgai/

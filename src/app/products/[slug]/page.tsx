@@ -40,6 +40,18 @@ import { explainMatchDecision } from "@/lib/productMatching";
 // after the first render instead of re-querying Supabase on every visit.
 export const revalidate = 600;
 
+// A dynamic segment only joins the ISR cache when it declares
+// generateStaticParams; without it Next serves the route fully dynamic
+// (`Cache-Control: private, no-store`) and `revalidate` above is ignored —
+// every product view then woke a function and re-queried Postgres. The list is
+// empty on purpose: there are >1200 products and prerendering them all would
+// make each deploy scrape the whole catalogue. Pages are rendered on first
+// request and cached at the edge for 10 minutes from then on.
+export const dynamicParams = true;
+export function generateStaticParams() {
+  return [];
+}
+
 // No loading.tsx for this segment: a route-level skeleton makes Next stream
 // the response, which flushes a 200 before notFound() can run — unknown
 // slugs then answer 200 with a not-found body, which Search Console reads

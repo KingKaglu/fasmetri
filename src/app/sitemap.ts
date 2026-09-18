@@ -3,6 +3,7 @@ import { PUBLIC_CATEGORY_SLUGS } from "@/config/categoryMapping";
 import { GAMES } from "@/config/gameCompatibility";
 import { siteUrl } from "@/config/site";
 import { PUBLIC_OFFER_MATCH_STATUSES } from "@/lib/catalog-types";
+import { isExcludedPublicCategory, isExcludedPublicName, isPublicOfferFields } from "@/config/productCuration";
 import { categoryFixtures, productFixtures, shopFixtures } from "@/lib/fixtures";
 import { prisma } from "@/lib/prisma";
 
@@ -60,17 +61,20 @@ async function listSitemapProducts(): Promise<SitemapProduct[]> {
   if (!prisma) return productFixtures.map((product) => ({ slug: product.slug, updatedAt: null }));
 
   try {
-    return await prisma.product.findMany({
+    // The WHERE clause is only a cheap pre-filter. A slug belongs in the
+    // sitemap exactly when /products/[slug] renders it, and that page runs
+    // toPublicProduct: public category by relation (not by suggestion),
+    // no excluded category or keyword, and at least one offer that passes
+    // isPublicOffer — which also rejects non-product/outlet URLs and offers
+    // under the matcher's AUTO band. Applying the same rules here is what
+    // keeps 404s out of the file Google crawls.
+    const products = await prisma.product.findMany({
       where: {
         isPublic: true,
         archivedAt: null,
         needsReview: false,
         categoryNeedsReview: false,
-        // Public catalog scope.
-        OR: [
-          { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
-          { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
-        ],
+        category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
         offers: {
           some: {
             shop: { enabled: true },
@@ -81,9 +85,40 @@ async function listSitemapProducts(): Promise<SitemapProduct[]> {
         },
       },
       orderBy: { updatedAt: "desc" },
-      select: { slug: true, updatedAt: true },
+      select: {
+        slug: true,
+        name: true,
+        updatedAt: true,
+        category: { select: { slug: true, nameKa: true, nameEn: true } },
+        offers: {
+          select: {
+            url: true,
+            currentPrice: true,
+            matchStatus: true,
+            verificationStatus: true,
+            matchConfidence: true,
+            shop: { select: { enabled: true } },
+          },
+        },
+      },
       take: 3000,
     });
+
+    return products
+      .filter((product) => {
+        if (isExcludedPublicCategory(product.category) || isExcludedPublicName(product.name)) return false;
+        return product.offers.some((offer) =>
+          isPublicOfferFields({
+            url: offer.url,
+            currentPrice: Number(offer.currentPrice ?? 0),
+            matchStatus: offer.matchStatus,
+            verificationStatus: offer.verificationStatus,
+            matchConfidence: offer.matchConfidence,
+            shop: offer.shop,
+          }),
+        );
+      })
+      .map((product) => ({ slug: product.slug, updatedAt: product.updatedAt }));
   } catch {
     return productFixtures.map((product) => ({ slug: product.slug, updatedAt: null }));
   }

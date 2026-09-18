@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { listPublicProducts } from "@/lib/catalog";
+import { publicApiProduct } from "@/lib/publicApiView";
 import { cleanSearchQuery, cleanSlugParam, finiteNumberParam, pageNumberParam, pageSizeParam } from "@/lib/publicQueryParams";
 
 export async function GET(request: NextRequest) {
@@ -17,5 +18,12 @@ export async function GET(request: NextRequest) {
     page: pageNumberParam(params.get("page")),
     pageSize: pageSizeParam(params.get("pageSize")),
   });
-  return Response.json({ products });
+  return Response.json(
+    { products: products.map(publicApiProduct) },
+    {
+      // The underlying catalogue is memoized for 5-10 minutes anyway, so let the
+      // CDN answer repeat calls instead of waking a function for each one.
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    },
+  );
 }

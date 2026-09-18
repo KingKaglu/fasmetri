@@ -3,6 +3,7 @@ import { OfferAvailability, Prisma } from "@prisma/client";
 import { PUBLIC_CATEGORY_SLUGS, PUBLIC_CATEGORY_TAXONOMY, isPublicCategorySlug } from "@/config/categoryMapping";
 import { CategoryView, OfferView, ProductView, PUBLIC_OFFER_MATCH_STATUSES, ScrapeRunView, ShopView } from "@/lib/catalog-types";
 import { categoryFixtures, productFixtures, scrapeRunFixtures, shopFixtures } from "@/lib/fixtures";
+import { isPublicOfferFields } from "@/config/productCuration";
 import {
   compareDealPriority,
   compareProductPriority,
@@ -87,6 +88,30 @@ type ProductSummaryRecord = Prisma.ProductGetPayload<{
   };
 }>;
 
+// One offer per shop (color variants share the same product record). Cheapest
+// wins, but only among the offers the public catalogue is allowed to show: a
+// rejected or unverified row is often the cheapest, and when it won this dedupe
+// it evicted the shop's confirmed offer, leaving the product with no public
+// offer at all — the page then 404s and the product disappears from the
+// catalogue even though it is on sale. Shops with no displayable offer still
+// keep their cheapest row, so the admin views lose nothing.
+export function selectShopOffers(offers: OfferView[]): OfferView[] {
+  const byPrice = [...offers].sort((left, right) => left.currentPrice - right.currentPrice);
+  const seenShops = new Set<string>();
+  const chosen: OfferView[] = [];
+  for (const offer of byPrice) {
+    if (!isPublicOfferFields(offer) || seenShops.has(offer.shop.id)) continue;
+    seenShops.add(offer.shop.id);
+    chosen.push(offer);
+  }
+  for (const offer of byPrice) {
+    if (seenShops.has(offer.shop.id)) continue;
+    seenShops.add(offer.shop.id);
+    chosen.push(offer);
+  }
+  return chosen.sort((left, right) => left.currentPrice - right.currentPrice);
+}
+
 function productView(product: ProductRecord | ProductSummaryRecord): ProductView {
   const category = normalizedCategoryView(product);
 
@@ -142,14 +167,8 @@ function productView(product: ProductRecord | ProductSummaryRecord): ProductView
           capturedAt: history.capturedAt.toISOString(),
           price: numberValue(history.price) ?? 0,
         })),
-      })).sort((left: OfferView, right: OfferView) => left.currentPrice - right.currentPrice);
-      // Keep only the cheapest offer per shop (color variants share the same product record)
-      const seenShops = new Set<string>();
-      return mapped.filter((offer) => {
-        if (seenShops.has(offer.shop.id)) return false;
-        seenShops.add(offer.shop.id);
-        return true;
-      });
+      }));
+      return selectShopOffers(mapped);
     })(),
   };
 }
@@ -483,7 +502,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v11", publicListingKey(filters)],
+    ["public-products-v12", publicListingKey(filters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -494,7 +513,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v9", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v10", publicListingKey(unpagedFilters)],
     { revalidate: 300, tags: ["catalog"] },
   );
   return cached();
@@ -518,7 +537,7 @@ function productIdentifiers(identifier: string) {
 // Cross-request cache: category list + per-category counts change only when the
 // catalog is re-scraped. Uncached, loadCategories runs an unbounded
 // "all discounted products" scan on every category/deals render.
-const cachedCategories = unstable_cache(loadCategories, ["categories-v8"], {
+const cachedCategories = unstable_cache(loadCategories, ["categories-v9"], {
   revalidate: 600,
   tags: ["catalog"],
 });
@@ -865,7 +884,7 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 // out into a single scan per revalidation window.
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
-  ["public-catalog-summary-v9"],
+  ["public-catalog-summary-v10"],
   { revalidate: 600, tags: ["catalog"] },
 );
 

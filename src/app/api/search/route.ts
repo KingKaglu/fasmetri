@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { listPublicProducts } from "@/lib/catalog";
+import { publicApiProduct } from "@/lib/publicApiView";
 import { isExcludedPublicQuery } from "@/config/productCuration";
 import { cleanSearchQuery, cleanSlugParam, finiteNumberParam, pageNumberParam, pageSizeParam } from "@/lib/publicQueryParams";
 
@@ -20,5 +21,8 @@ export async function GET(request: NextRequest) {
     page: pageNumberParam(params.get("page")),
     pageSize: pageSizeParam(params.get("pageSize")),
   });
-  return Response.json({ q: q ?? "", products });
+  return Response.json(
+    { q: q ?? "", products: products.map(publicApiProduct) },
+    { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } },
+  );
 }
