@@ -752,10 +752,30 @@ model SiteReview {
   repliedAt  DateTime?
   // sha256(ip). Never the raw address, and null for local/dev traffic.
   ipHash     String?
+  // sha256(install id sent by the native app). Georgian carriers NAT hard, so
+  // an IP-only limit would let one app user block a whole cell. Null for web.
+  deviceHash String?
   userAgent  String?
   createdAt  DateTime  @default(now())
 
   @@index([hidden, createdAt])
   @@index([ipHash, createdAt])
+  @@index([deviceHash, createdAt])
   @@index([createdAt])
+}
+
+// Native push targets for the iOS/Android app, the counterpart to
+// PushSubscription (which holds browser Web Push endpoints). Matched to an
+// alert by email, exactly like the browser table: there are still no accounts.
+model AppPushToken {
+  id         String   @id @default(cuid())
+  // "ExponentPushToken[...]" — issued by Expo, reissued on reinstall.
+  token      String   @unique
+  platform   String
+  email      String?
+  appVersion String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([email])
 }

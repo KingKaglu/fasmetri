@@ -3,8 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { isLikelyBot } from "@/lib/bot-detect";
 import { clientIp, isPublicHttpHost, sha256 } from "@/lib/request-ip";
 import { revalidateReviews } from "@/lib/revalidate";
+import { publicReviewSummary } from "@/lib/reviews";
 import {
+  DEVICE_ID_HEADER,
+  DEVICE_ID_MAX,
+  REVIEWS_PER_DEVICE_PER_DAY,
   REVIEWS_PER_IP_PER_DAY,
+  REVIEWS_PER_SHARED_IP_PER_DAY,
   REVIEW_BODY_MAX,
   REVIEW_BODY_MIN,
   REVIEW_NAME_MAX,
@@ -41,6 +46,32 @@ function reject(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
 
+// Read side, for the mobile app. The website renders /reviews from
+// publicReviewSummary() directly on the server, so this route exists purely so a
+// native client can fetch the same data. Dates are serialised to ISO here
+// because the cache behind publicReviewSummary() rehydrates them into Date
+// objects, and JSON.stringify would otherwise depend on the runtime's default.
+export async function GET() {
+  const summary = await publicReviewSummary();
+  return Response.json(
+    {
+      total: summary.total,
+      average: summary.average,
+      distribution: summary.distribution,
+      reviews: summary.reviews.map((review) => ({
+        id: review.id,
+        authorName: review.authorName,
+        rating: review.rating,
+        body: review.body,
+        reply: review.reply,
+        repliedAt: review.repliedAt ? review.repliedAt.toISOString() : null,
+        createdAt: review.createdAt.toISOString(),
+      })),
+    },
+    { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } },
+  );
+}
+
 export async function POST(request: Request) {
   if (isLikelyBot(request.headers.get("user-agent"))) {
     return reject("მოთხოვნა ვერ დამუშავდა.", 403);
@@ -72,17 +103,34 @@ export async function POST(request: Request) {
   const ip = clientIp(request);
   const ipHash = ip && isPublicHttpHost(ip) ? sha256(ip) : null;
 
+  // The native app sends a random install id. It is client-supplied and so
+  // cannot be trusted on its own — rotating it is trivial — which is why the
+  // IP cap below stays in force, just raised to a number that survives carrier
+  // NAT. Only the hash is stored; the id itself is never written down.
+  const deviceId = request.headers.get(DEVICE_ID_HEADER)?.trim().slice(0, DEVICE_ID_MAX) || null;
+  const deviceHash = deviceId ? sha256(deviceId) : null;
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  if (deviceHash) {
+    const perDevice = await prisma.siteReview.count({ where: { deviceHash, createdAt: { gte: since } } });
+    if (perDevice >= REVIEWS_PER_DEVICE_PER_DAY) {
+      return reject("დღეს უკვე დატოვე შეფასება. მადლობა! სცადე ხვალ.", 429);
+    }
+  }
+
   if (ipHash) {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const perIpCap = deviceHash ? REVIEWS_PER_SHARED_IP_PER_DAY : REVIEWS_PER_IP_PER_DAY;
     const recent = await prisma.siteReview.count({ where: { ipHash, createdAt: { gte: since } } });
-    if (recent >= REVIEWS_PER_IP_PER_DAY) {
+    if (recent >= perIpCap) {
       return reject("დღეს უკვე დატოვე შეფასება. მადლობა! სცადე ხვალ.", 429);
     }
 
     // Same text twice from the same place is a repost, not a second opinion.
+    // Scoped to the device when there is one: behind carrier NAT the previous
+    // review from "this IP" belongs to a stranger.
     const normalized = normalizeReviewBody(body);
     const duplicate = await prisma.siteReview.findFirst({
-      where: { ipHash, createdAt: { gte: since } },
+      where: { ...(deviceHash ? { deviceHash } : { ipHash }), createdAt: { gte: since } },
       select: { body: true },
       orderBy: { createdAt: "desc" },
     });
@@ -102,6 +150,7 @@ export async function POST(request: Request) {
       authorName: authorName?.trim() ? authorName.trim() : null,
       hidden,
       ipHash,
+      deviceHash,
       userAgent: request.headers.get("user-agent")?.slice(0, 300) ?? null,
     },
   });

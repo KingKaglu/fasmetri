@@ -1,5 +1,6 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
+import { sendExpoPushToEmail } from "@/lib/push-expo";
 
 // Web Push for price alerts. Fully optional: when the VAPID env vars are not
 // configured, every function here is a graceful no-op so nothing breaks in a
@@ -27,8 +28,20 @@ export type PushPayload = { title: string; body: string; url?: string };
 
 // Send a notification to every subscription registered for an email. Best-effort:
 // dead subscriptions (404/410) are pruned, and no error is ever thrown to the caller.
-/** Returns how many devices the payload actually reached. */
+/**
+ * Returns how many devices the payload actually reached, across both browsers
+ * and the native app. Callers (evaluate.ts) only care whether the number is
+ * above zero, so fanning out here keeps the alert pipeline unchanged.
+ */
 export async function sendPushToEmail(email: string, payload: PushPayload): Promise<number> {
+  const [web, native] = await Promise.all([
+    sendWebPushToEmail(email, payload),
+    sendExpoPushToEmail(email, payload).catch(() => 0),
+  ]);
+  return web + native;
+}
+
+async function sendWebPushToEmail(email: string, payload: PushPayload): Promise<number> {
   if (!ensureConfigured() || !prisma) return 0;
   let subscriptions;
   try {

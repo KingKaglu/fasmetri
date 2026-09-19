@@ -10,12 +10,20 @@ const DEDUP_RETENTION_HOURS = 24;
 
 export async function GET(request: Request, context: { params: Promise<{ offerId: string }> }) {
   const fallback = new URL("/", request.url);
-  if (!prisma) return Response.redirect(fallback);
+  // The native app cannot follow a 302 and still control the in-app browser, so
+  // ?format=json hands it the tracked URL instead. Same guards, same ClickEvent,
+  // same dedup — only the response shape differs. Browsers never pass the flag,
+  // so the redirect behaviour below is untouched for every existing caller.
+  const wantsJson = new URL(request.url).searchParams.get("format") === "json";
+  const miss = (status: number) =>
+    wantsJson ? Response.json({ error: "Offer not found." }, { status }) : Response.redirect(fallback);
+
+  if (!prisma) return miss(503);
   const { offerId } = await context.params;
   const offer = await loadOffer(offerId).catch(() => null);
-  if (!offer) return Response.redirect(fallback);
+  if (!offer) return miss(404);
   const target = trackedTarget(offer.url, offer.id);
-  if (!target) return Response.redirect(fallback);
+  if (!target) return miss(404);
 
   try {
     if (await shouldCountClick(request, offer)) {
@@ -39,6 +47,13 @@ export async function GET(request: Request, context: { params: Promise<{ offerId
     }
   } catch {
     // Redirect remains available when analytics persistence is temporarily unavailable.
+  }
+
+  if (wantsJson) {
+    return Response.json(
+      { target: target.toString(), shop: offer.shop?.name ?? null },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   }
 
   return Response.redirect(target);

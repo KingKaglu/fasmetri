@@ -55,6 +55,11 @@ const nextConfig: NextConfig = {
       { source: "/mobiles", destination: "/categories/mobiles" },
       { source: "/laptops", destination: "/categories/laptops" },
       { source: "/product/:slug", destination: "/products/:slug" },
+      // Deep-link association files for the mobile app. They live under
+      // /api/well-known because Next ignores route folders that start with a
+      // dot, and both must be served from the real /.well-known/ paths.
+      { source: "/.well-known/apple-app-site-association", destination: "/api/well-known/apple-app-site-association" },
+      { source: "/.well-known/assetlinks.json", destination: "/api/well-known/assetlinks" },
     ];
   },
   images: {

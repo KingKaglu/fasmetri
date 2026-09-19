@@ -12,6 +12,15 @@ export const REVIEW_RATING_MAX = 5;
 
 /** Rows one hashed IP may add in a day. Two lets someone fix a typo by reposting. */
 export const REVIEWS_PER_IP_PER_DAY = 2;
+// Native-app traffic carries an install id, so it is limited per device instead.
+// The IP cap still applies on top, only looser: Georgian mobile carriers NAT
+// thousands of phones behind one address, and a shared cap of 2 would let the
+// first app user of the day silence everyone else on that cell. A spammer who
+// rotates install ids therefore still runs into this number.
+export const REVIEWS_PER_DEVICE_PER_DAY = 2;
+export const REVIEWS_PER_SHARED_IP_PER_DAY = 12;
+export const DEVICE_ID_HEADER = "x-fasmetri-device";
+export const DEVICE_ID_MAX = 64;
 
 /** Newest reviews rendered on /reviews. Beyond this the page stops growing. */
 export const REVIEWS_PAGE_SIZE = 60;
