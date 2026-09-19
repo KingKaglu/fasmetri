@@ -81,6 +81,17 @@ jobs:
           ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
         run: npm run alerts:evaluate
 
+      - name: Notify stock requests
+        if: ${{ steps.price_sync.outcome == 'success' || steps.full_sync.outcome == 'success' }}
+        continue-on-error: true
+        # Same reason as the alerts step above: the mail transport has to exist
+        # here. A stock request is a ONE-SHOT notification, so the fulfiller
+        # refuses to mark anything notified when it cannot actually send.
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
+        run: npm run stock-requests:fulfil
+
       # The sync writes to the DB directly, so the deployed site's cached
       # counts/summary must be busted explicitly or they go stale.
       - name: Revalidate public catalog cache

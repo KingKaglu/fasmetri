@@ -113,6 +113,52 @@ export function priceDropEmailHtml(params: {
 </html>`;
 }
 
+export function stockRequestEmailHtml(params: {
+  query: string;
+  searchUrl: string;
+  productCount: number;
+  topProductName: string;
+}) {
+  const { searchUrl, productCount } = params;
+  const query = escapeHtml(params.query);
+  const topProductName = escapeHtml(params.topProductName);
+  return `<!doctype html>
+<html lang="ka">
+  <body style="margin:0;padding:0;background:#f4f5f7;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;">
+      <tr><td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:560px;width:100%;">
+          <tr>
+            <td style="background:#0a0a0a;padding:20px 28px;">
+              <span style="color:#ffffff;font-size:18px;font-weight:700;">ფასმეტრი</span>
+              <span style="color:#94a3b8;font-size:13px;margin-left:8px;">შენი მოთხოვნა</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px;">
+              <h1 style="margin:0 0 8px;font-size:20px;color:#0a0a0a;">„${query}“ უკვე ფასმეტრზეა 🎉</h1>
+              <p style="margin:0 0 20px;font-size:15px;color:#334155;line-height:1.5;">
+                იპოვე ${productCount} პროდუქტი — მათ შორის <strong style="color:#0a0a0a;">${topProductName}</strong>.
+                შეადარე ყველა მაღაზიის ფასი ერთ გვერდზე.
+              </p>
+              <a href="${searchUrl}" style="display:inline-block;background:#0a0a0a;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;padding:12px 24px;">ფასების ნახვა</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 28px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;font-size:12px;color:#94a3b8;">
+                ეს ერთჯერადი შეტყობინებაა — მოგივიდა, რადგან ითხოვე, რომ გეცნობოთ როცა „${query}“ გამოჩნდებოდა.
+                სხვა წერილს ამ მოთხოვნაზე აღარ მიიღებ.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+}
+
 function escapeHtml(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

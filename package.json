@@ -27,6 +27,7 @@
     "match:consoles": "tsx scripts/match-products.ts --category=gaming",
     "validate:matches": "tsx scripts/validate-matches.ts",
     "alerts:evaluate": "tsx scripts/evaluate-alerts.ts",
+    "stock-requests:fulfil": "tsx scripts/fulfil-stock-requests.ts",
     "recategorize-products": "tsx scripts/recategorize-products.ts",
     "validate-category-assignments": "tsx scripts/validate-category-assignments.ts",
     "validate-variant-matching": "tsx scripts/validate-variant-matching.ts",
