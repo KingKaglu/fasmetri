@@ -12,6 +12,18 @@ import { revalidatePath, revalidateTag } from "next/cache";
 // Safe to call from anywhere: revalidateTag/revalidatePath throw when invoked
 // outside a request/render scope (e.g. a CLI script), so the whole thing is
 // wrapped — in that case the DB write still lands and ISR catches up normally.
+// Visitor reviews live on their own tag: a new review must appear on /reviews
+// straight away (the visitor who just wrote it looks for it), but it says
+// nothing about prices, so it must not blow away the whole catalog cache.
+export function revalidateReviews() {
+  try {
+    revalidateTag("reviews", "max");
+    revalidatePath("/reviews");
+  } catch {
+    // Outside a Next request scope — ISR refreshes within the 5 min window.
+  }
+}
+
 export function revalidatePublicCatalog() {
   try {
     revalidateTag("catalog", "max");

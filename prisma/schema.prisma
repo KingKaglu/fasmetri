@@ -730,3 +730,32 @@ model StockRequest {
   @@index([normalized, createdAt])
   @@index([notified, createdAt])
 }
+
+// Public visitor reviews of the site itself — no account, no email, no cookie.
+// The whole point is that leaving one costs nothing, so the only identity we
+// keep is a hashed IP used for rate limiting; `authorName` is free text the
+// visitor may leave blank.
+//
+// Rows are published immediately by default (that is the feature). `hidden`
+// lets an admin pull one without destroying it, and REVIEWS_REQUIRE_APPROVAL=1
+// flips new rows to hidden on arrival if the page ever gets abused.
+model SiteReview {
+  id         String    @id @default(cuid())
+  // Optional display name. Blank renders as "ანონიმური".
+  authorName String?
+  // 1..5, enforced in the API rather than by an enum so the scale can move.
+  rating     Int
+  body       String
+  hidden     Boolean   @default(false)
+  // Owner's public answer, shown under the review.
+  reply      String?
+  repliedAt  DateTime?
+  // sha256(ip). Never the raw address, and null for local/dev traffic.
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([hidden, createdAt])
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
+}

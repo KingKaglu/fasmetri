@@ -21,7 +21,10 @@ export type AnalyticsEvent =
   | "category_view"
   | "filter_used"
   | "alert_created"
-  | "compare_used";
+  | "compare_used"
+  // Left unmapped below on purpose: a site review is engagement, not a lead, so
+  // it should not land in an ad platform's conversion column.
+  | "review_submitted";
 
 export type AnalyticsParams = Record<string, string | number | boolean | null | undefined>;
 

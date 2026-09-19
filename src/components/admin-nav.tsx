@@ -12,6 +12,7 @@ import {
   MousePointerClick,
   PackageSearch,
   RefreshCw,
+  MessagesSquare,
   SearchX,
   Store,
   Tags,
@@ -28,6 +29,7 @@ const items = [
   { href: "/admin/categories/review", label: "კატეგორიები", icon: Layers3 },
   { href: "/admin/clicks", label: "კლიკები", icon: MousePointerClick },
   { href: "/admin/searches", label: "ძებნები", icon: SearchX },
+  { href: "/admin/feedback", label: "შეფასებები", icon: MessagesSquare },
 ];
 
 // First 4 get dedicated slots in the mobile bottom bar; the rest live behind "მეტი".

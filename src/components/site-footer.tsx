@@ -18,6 +18,7 @@ const columns: Array<[string, Array<[string, string]>]> = [
     "კომპანია",
     [
       ["/about", "ჩვენ შესახებ"],
+      ["/reviews", "შეფასებები"],
       ["/contact", "კონტაქტი"],
     ],
   ],
