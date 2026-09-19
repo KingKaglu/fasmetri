@@ -668,3 +668,65 @@ model UserPriceAlert {
 
   @@index([email, status])
 }
+
+// First-party search log — the search twin of ClickEvent. Written server-side so
+// it survives ad-blockers and does not depend on analytics consent: this is the
+// site's own operational catalog data, not ad tech. No raw IP is ever stored,
+// only a hash used for dedup and rate limiting.
+//
+// The point of this table is `hasResults = false`: failed searches are a ranked
+// backlog of what shoppers want that the catalog either does not carry or does
+// not match. See /admin/searches.
+model SearchQuery {
+  id           String   @id @default(cuid())
+  // What the visitor actually typed, trimmed but otherwise untouched.
+  query        String
+  // normalizeSearchText() output, so "აიფონი 15" and "iPhone 15 " group together.
+  normalized   String
+  resultsCount Int
+  hasResults   Boolean
+  // "search" = a submitted search; "suggest" = a type-ahead prefix that
+  // returned nothing, which is how autocomplete failures get recorded.
+  source       String   @default("search")
+  category     String?
+  shop         String?
+  page         Int      @default(1)
+  referrer     String?
+  ipHash       String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([hasResults, createdAt])
+  @@index([normalized, createdAt])
+  @@index([source, hasResults, createdAt])
+}
+
+// Dedup + rate-limit guard for SearchQuery, mirroring ClickDedup: one row per
+// (ip, normalized query, category, hour-bucket) hash. The unique constraint
+// makes a refresh or a paginated re-query a no-op instead of inflating counts.
+model SearchDedup {
+  id        String   @id @default(cuid())
+  dedupKey  String   @unique
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
+}
+
+// "Tell me when you stock this" — captured from the zero-results state, where
+// the visitor has told us exactly what the catalog is missing. Not a
+// UserPriceAlert: that one requires a productId, and by definition there is no
+// product here yet.
+model StockRequest {
+  id         String   @id @default(cuid())
+  email      String
+  query      String
+  normalized String
+  notified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([email, normalized])
+  @@index([normalized, createdAt])
+  @@index([notified, createdAt])
+}

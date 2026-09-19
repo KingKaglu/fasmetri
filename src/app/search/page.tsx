@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import { headers } from "next/headers";
+import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { BadgePercent, Laptop, Search, Smartphone, Sparkles, type LucideIcon } from "lucide-react";
 import { listPublicCategories, listPublicProducts, listPublicShops } from "@/lib/catalog";
@@ -10,7 +12,11 @@ import { ActiveFilterChips } from "@/components/active-filter-chips";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { TrackView } from "@/components/track-view";
+import { StockRequestForm } from "@/components/stock-request-form";
 import { isExcludedPublicQuery } from "@/config/productCuration";
+import { recordSearch } from "@/lib/search-log";
+import { relaxedSearchSuggestions, type RelaxedSuggestion } from "@/lib/search-relax";
+import { popularSearchTerms } from "@/lib/popular-searches";
 import {
   cleanSearchQuery,
   cleanSlugParam,
@@ -34,15 +40,37 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
   const params = await searchParams;
   const filters = readFilters(params);
   const hasSearchIntent = Boolean(filters.q || filters.category || filters.shop || filters.dealsOnly || filters.inStockOnly || filters.minPrice || filters.maxPrice || filters.minDiscount || filters.availability);
-  const [products, discoveryProducts, latestDeals, categories, shops] = await Promise.all([
+  const [products, discoveryProducts, latestDeals, categories, shops, popular] = await Promise.all([
     hasSearchIntent ? listPublicProducts({ ...filters, pageSize: PUBLIC_LIST_PAGE_SIZE }) : Promise.resolve([]),
     hasSearchIntent ? Promise.resolve([]) : listPublicProducts({ sort: "priority", pageSize: 8 }),
     hasSearchIntent ? Promise.resolve([]) : listPublicProducts({ dealsOnly: true, sort: "deal-priority", pageSize: 4 }),
     listPublicCategories(),
     listPublicShops(),
+    // Real demand when there is enough of it, the hand-written list until then.
+    hasSearchIntent ? Promise.resolve(popularSearches) : popularSearchTerms(popularSearches),
   ]);
   if (hasSearchIntent && (filters.page ?? 1) > 1 && products.length === 0) notFound();
   const headline = filters.q ? `"${filters.q}"` : "მოძებნე პროდუქტი";
+
+  // A zero-result search is the most useful thing this page can tell us, so
+  // work out what we *could* have shown before rendering the dead end.
+  const relaxed = filters.q && products.length === 0 ? await relaxedSearchSuggestions(filters.q) : [];
+
+  // First-party search log. `after()` runs once the response has been flushed,
+  // so this never adds latency to the search itself.
+  if (filters.q) {
+    const requestHeaders = await headers();
+    after(() =>
+      recordSearch({
+        query: filters.q!,
+        resultsCount: products.length,
+        category: filters.category,
+        shop: filters.shop,
+        page: filters.page,
+        headers: requestHeaders,
+      }),
+    );
+  }
 
   return (
     <section className="shell py-5 sm:py-7">
@@ -98,12 +126,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
               {products.length ? (
                 <ProductGrid products={products} resetHref="/search" />
               ) : (
-                <FailedSearchState />
+                <FailedSearchState query={filters.q} relaxed={relaxed} />
               )}
               <CatalogPager baseHref="/search" params={params} page={filters.page} hasNext={products.length === PUBLIC_LIST_PAGE_SIZE} />
             </>
           ) : (
-            <SearchDiscovery latestDeals={latestDeals} products={discoveryProducts} />
+            <SearchDiscovery latestDeals={latestDeals} products={discoveryProducts} popular={popular} />
           )}
         </div>
       </div>
@@ -131,9 +159,11 @@ function readFilters(params: Record<string, string | string[] | undefined>) {
 function SearchDiscovery({
   latestDeals,
   products,
+  popular,
 }: {
   latestDeals: Awaited<ReturnType<typeof listPublicProducts>>;
   products: Awaited<ReturnType<typeof listPublicProducts>>;
+  popular: string[];
 }) {
   return (
     <div className="grid gap-6">
@@ -141,7 +171,7 @@ function SearchDiscovery({
         <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
           <Sparkles className="size-3.5" /> პოპულარული ძიებები
         </div>
-        <KeywordLinks keywords={popularSearches} />
+        <KeywordLinks keywords={popular} />
         <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-gray-400">შემოთავაზებული</p>
         <KeywordLinks keywords={suggestedSearches} compact />
         <div className="mt-4 grid gap-2 min-[380px]:grid-cols-2">
@@ -167,18 +197,44 @@ function SearchDiscovery({
   );
 }
 
-function FailedSearchState() {
+function FailedSearchState({ query, relaxed }: { query?: string; relaxed: RelaxedSuggestion[] }) {
   return (
     <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-4 py-10 text-center">
-      <div>
+      <div className="w-full">
         <span className="mx-auto grid size-12 place-items-center rounded-lg border border-gray-200 bg-gray-50 text-gray-400">
           <Search className="size-5" />
         </span>
         <h2 className="mt-4 text-base font-semibold text-gray-900">ვერ მოიძებნა შედეგი</h2>
-        <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-gray-500">
-          სცადე სხვა სახელი, ბრენდი ან მეხსიერების მოცულობა.
-        </p>
-        <KeywordLinks keywords={suggestedSearches} compact />
+
+        {/* Every relaxed query below was checked against the catalog first, so
+            these links can never lead to another empty page. */}
+        {relaxed.length ? (
+          <>
+            <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-gray-500">იქნებ ეძებდი:</p>
+            <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+              {relaxed.map((suggestion) => (
+                <Link
+                  key={suggestion.query}
+                  href={`/search?q=${encodeURIComponent(suggestion.query)}`}
+                  className="flex h-8 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-800 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                >
+                  {suggestion.query}
+                  <span className="text-xs text-gray-400">{suggestion.productCount}+</span>
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-gray-500">
+              სცადე სხვა სახელი, ბრენდი ან მეხსიერების მოცულობა.
+            </p>
+            <KeywordLinks keywords={suggestedSearches} compact />
+          </>
+        )}
+
+        {query ? <StockRequestForm query={query} /> : null}
+
         <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2">
           <Link href="/search" className="flex h-9 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
             ფილტრების გასუფთავება

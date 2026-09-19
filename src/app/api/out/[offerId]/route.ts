@@ -1,4 +1,5 @@
 import { clientIp, isPublicHttpHost, sha256 } from "@/lib/request-ip";
+import { isLikelyBot } from "@/lib/bot-detect";
 import { prisma } from "@/lib/prisma";
 
 // Fraud guards: clicks are only counted when they pass bot/IP validation,
@@ -6,9 +7,6 @@ import { prisma } from "@/lib/prisma";
 // always works — failing a guard silently skips analytics, never the user.
 const RATE_LIMIT_MAX_PER_MINUTE = 20;
 const DEDUP_RETENTION_HOURS = 24;
-
-const BOT_UA_PATTERN =
-  /bot|crawl|spider|slurp|curl|wget|python-requests|python-urllib|httpx|aiohttp|libwww|scrapy|headless|phantomjs|puppeteer|playwright|selenium|httpclient|okhttp|java\/|go-http-client|node-fetch|axios|postman|insomnia|facebookexternalhit|monitoring|pingdom|uptime/i;
 
 export async function GET(request: Request, context: { params: Promise<{ offerId: string }> }) {
   const fallback = new URL("/", request.url);
@@ -47,8 +45,7 @@ export async function GET(request: Request, context: { params: Promise<{ offerId
 }
 
 async function shouldCountClick(request: Request, offer: { id: string; product: { id: string } | null }) {
-  const userAgent = request.headers.get("user-agent") ?? "";
-  if (!userAgent || BOT_UA_PATTERN.test(userAgent)) return false;
+  if (isLikelyBot(request.headers.get("user-agent"))) return false;
 
   const ip = clientIp(request);
   // No resolvable public IP (direct localhost hit, internal probe) → don't count.

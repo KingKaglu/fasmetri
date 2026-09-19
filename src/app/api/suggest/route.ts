@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { listPublicCategories, listPublicProducts } from "@/lib/catalog";
 import { normalizeSearchText } from "@/lib/searchKeywords";
+import { recordSearch } from "@/lib/search-log";
 
 export const runtime = "nodejs";
 
@@ -61,6 +62,14 @@ export async function GET(request: NextRequest) {
       nameKa: category.nameKa,
       productCount: category.productCount ?? 0,
     }));
+
+  // Only log the prefixes autocomplete could NOT answer. Logging every
+  // keystroke would bury the signal in partial words, whereas a prefix that
+  // offered the visitor nothing at all is a real gap — and it is recorded even
+  // when they give up before submitting, which the /search page never sees.
+  if (!suggestions.length && !brands.length && !categories.length) {
+    after(() => recordSearch({ query: q, resultsCount: 0, source: "suggest", headers: request.headers }));
+  }
 
   return NextResponse.json(
     { suggestions, brands, categories },

@@ -12,16 +12,22 @@ export function sha256(value: string) {
 // Falls back to the first `x-forwarded-for` hop only when no trusted header is
 // present (local dev / non-Vercel hosts), preserving prior behaviour there.
 export function clientIp(request: Request) {
-  const vercelForwarded = request.headers.get("x-vercel-forwarded-for");
+  return clientIpFromHeaders(request.headers);
+}
+
+// Same resolution, but from a bare Headers bag — server components only have
+// `headers()` from next/headers, not a Request.
+export function clientIpFromHeaders(headers: Pick<Headers, "get">) {
+  const vercelForwarded = headers.get("x-vercel-forwarded-for");
   if (vercelForwarded) {
     const first = vercelForwarded.split(",")[0]?.trim();
     if (first) return stripIpPort(first);
   }
 
-  const realIp = request.headers.get("x-real-ip");
+  const realIp = headers.get("x-real-ip");
   if (realIp?.trim()) return stripIpPort(realIp.trim());
 
-  const forwarded = request.headers.get("x-forwarded-for");
+  const forwarded = headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
     if (first) return stripIpPort(first);
