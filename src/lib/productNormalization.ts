@@ -40,6 +40,13 @@ export type ProductAttributes = {
   compatibleDevice?: string;
   typeTokens: string[];
   imageFingerprint?: string;
+  /**
+   * The model the store stated outright, as a single token. `modelCodes()`
+   * deliberately drops word+digits tokens like "32BS8000" (they collide with
+   * GPU and CPU part numbers), which leaves appliance and TV brands with no
+   * model at all when the store already told us what it is.
+   */
+  explicitModel?: string;
 };
 
 export function normalizeProductTitle(title: string) {
@@ -100,7 +107,17 @@ export function extractProductAttributes(input: ProductAttributeInput): ProductA
     compatibleDevice: compatibleDevice(extractionSignal),
     typeTokens: matchingTokens(cleanTitle).slice(0, 20),
     imageFingerprint: imageFingerprint(input.imageUrl),
+    explicitModel: explicitModelToken(input.model),
   };
+}
+
+function explicitModelToken(model?: string | null) {
+  if (!model) return undefined;
+  const token = normalizeProductTitle(model).replace(/\s+/g, "").replace(/[^a-z0-9._/-]/g, "");
+  // Too short to identify anything, or a bare number that would collide with
+  // capacities and screen sizes.
+  if (token.length < 4 || !/[a-z]/.test(token)) return undefined;
+  return token;
 }
 
 function explicitBrand(brand: string | null | undefined, signal: string) {
@@ -443,8 +460,17 @@ function gpuValue(signal: string) {
   return signal.match(/\b(?:rtx|gtx)\s*(\d{3,4}(?:\s*ti)?)\b/)?.[0].replace(/\s+/g, "_");
 }
 
+// Georgian shops write the diagonal every way there is: `55"`, `55''` (two
+// apostrophes), `55″` (double prime), `55”` (curly quote) and `55 inch`. Only
+// the plain quote used to parse, so a television listed as `55''` had no screen
+// size — and a television without one gets no parent key at all
+// (variantMatching.buildParentKey), i.e. it could never match across stores.
+// The trailing guard is a non-alphanumeric lookahead rather than whitespace so a
+// size that ends a clause ("55", 4K") still counts.
 function screenSize(signal: string) {
-  const size = signal.match(/\b(\d{1,3}(?:\.\d)?)\s*(?:inch|inches|in|")(?=\s|$)/)?.[1];
+  // `″` never reaches here intact: normalizeProductTitle's NFKC pass expands it
+  // into two U+2032 primes, so both spellings have to be listed.
+  const size = signal.match(/\b(\d{1,3}(?:\.\d)?)\s*(?:inch(?:es)?|in|''|′′|[″”"])(?![a-z0-9])/)?.[1];
   if (size) return `${size}in`;
   // Watch sizes (38–49 mm)
   const mm = signal.match(/\b([34]\d)\s*mm\b/)?.[1];

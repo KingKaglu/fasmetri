@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { extractProductIdentity } from "../src/lib/productIdentity";
 import { explainMatchDecision } from "../src/lib/productMatching";
+import { extractVariantIdentity } from "../src/lib/variantMatching";
 import { normalizeSafeOffer, scoreSafeMatch } from "../src/server/matching/safeProductMatcher";
 
 type MatchCase = {
@@ -135,6 +136,94 @@ for (const testCase of cases) {
 }
 
 console.log(`Verified ${cases.length} structured product matching cases.`);
+
+// ---------------------------------------------------------------------------
+// Television variant keys (src/lib/variantMatching.ts). A television's parent
+// key is brand + model code + screen size, so a title whose diagonal does not
+// parse produces NO key and the offer can never be compared across shops.
+// Georgian shops write the diagonal five different ways, and TechnoBoom states
+// the model outright because codes like "32BS8000" are filtered out of
+// `modelCodes()` as CPU/GPU lookalikes.
+// ---------------------------------------------------------------------------
+
+type TelevisionCase = {
+  label: string;
+  input: { title: string; brand?: string; model?: string; description?: string };
+  expectedParentKey: string;
+};
+
+const televisionCases: TelevisionCase[] = [
+  {
+    label: "diagonal written with a straight quote",
+    input: { title: 'ტელევიზორი LG 55UT80006LA 55" 4K Smart' },
+    expectedParentKey: "lg|55ut80006la|55in",
+  },
+  {
+    label: "diagonal written with two apostrophes",
+    input: { title: "ტელევიზორი Samsung UE55DU7100UXRU 55'' 4K UHD Smart TV" },
+    expectedParentKey: "samsung|ue55du7100uxru|55in",
+  },
+  {
+    label: "diagonal written with a double prime",
+    input: { title: "TV Hisense 55A6K 55″ UHD" },
+    expectedParentKey: "hisense|55a6k|55in",
+  },
+  {
+    label: "diagonal written with a curly quote",
+    input: { title: "ტელევიზორი Samsung UE43DU7100UXRU 43”" },
+    expectedParentKey: "samsung|ue43du7100uxru|43in",
+  },
+  {
+    label: "diagonal spelled out",
+    input: { title: "ტელევიზორი Samsung UE43DU7100UXRU 43 inch" },
+    expectedParentKey: "samsung|ue43du7100uxru|43in",
+  },
+  {
+    label: "model code ending in digits comes from the stated model (TechnoBoom)",
+    input: { title: "ტელევიზორი BBS 32BS8000", brand: "BBS", model: "32BS8000", description: "32 inch | დიაგონალი: 32''" },
+    expectedParentKey: "bbs|32bs8000|32in",
+  },
+  {
+    // Zoommer never writes the diagonal: "LG TV 50UA75009LA Black" carries it
+    // only inside the model code. Without inference these have no parent key,
+    // so no Zoommer television could ever match another shop's.
+    label: "diagonal inferred from a model code that leads with it",
+    input: { title: "LG TV 50UA75009LA Black" },
+    expectedParentKey: "lg|50ua75009la|50in",
+  },
+  {
+    label: "diagonal inferred from a model code behind a separator (Sony)",
+    input: { title: "Sony TV K-55XR50 Black" },
+    expectedParentKey: "sony|k_55xr50|55in",
+  },
+  {
+    label: "diagonal inferred from a short model code (TCL)",
+    input: { title: "TCL TV 65V6D Black" },
+    expectedParentKey: "tcl|65v6d|65in",
+  },
+  {
+    label: "spec sheet must not hand the refresh rate over as a model code",
+    input: {
+      title: "ტელევიზორი HYUNDAI 65HY9909WOS",
+      brand: "HYUNDAI",
+      model: "65HY9909WOS",
+      description: "65 inch | განახლების სიხშირე: 60 HZ | ეკრანის გაფართოება: 3840 x 2160",
+    },
+    expectedParentKey: "hyundai|65hy9909wos|65in",
+  },
+];
+
+for (const testCase of televisionCases) {
+  const identity = extractVariantIdentity({ ...testCase.input, categorySlug: "televisions" });
+  assert.equal(
+    identity.canonicalParentKey,
+    testCase.expectedParentKey,
+    `${testCase.label}: expected parent key ${testCase.expectedParentKey}, received ${identity.canonicalParentKey}`,
+  );
+  console.log(`TV KEY ${testCase.label}: ${identity.canonicalParentKey}`);
+}
+
+console.log(`Verified ${televisionCases.length} television variant-key cases.`);
 
 // ---------------------------------------------------------------------------
 // Safe cross-store matcher cases (src/server/matching/safeProductMatcher.ts) —

@@ -177,7 +177,7 @@ function identityFromAttributes(attributes: ProductAttributes, productType: Prod
     categorySlug: attributes.categorySlug,
     brand,
     productLine: attributes.productLine,
-    model: family,
+    model: family ?? statedModelFallback(attributes, productType),
     variant: attributes.variant,
     storage: chooseStorage(attributes.storage),
     ram: chooseRam(attributes.ram),
@@ -187,7 +187,7 @@ function identityFromAttributes(attributes: ProductAttributes, productType: Prod
     sku: attributes.skuCodes[0],
     cpu: attributes.cpu,
     gpu: attributes.gpu,
-    screenSize: attributes.screenSize,
+    screenSize: attributes.screenSize ?? inferredScreenDiagonal(attributes, productType),
     os: attributes.os,
     capacity: attributes.capacity,
     compatibleDevice: attributes.compatibleDevice,
@@ -198,6 +198,50 @@ function identityFromAttributes(attributes: ProductAttributes, productType: Prod
     confidence: identityConfidence(attributes, productType),
     attributes,
   };
+}
+
+// Phones and laptops are covered by the model-family lists, so their keys must
+// keep coming from `modelFamily` alone. Televisions, monitors and appliances
+// have no family list — their identity is the bare model code, and brands like
+// BBS or Hyundai use codes ("32BS8000") that `modelCodes()` filters out as
+// GPU/CPU lookalikes. Where the store stated the model outright, use it rather
+// than leaving the product with no model and therefore no parent key.
+const STATED_MODEL_PRODUCT_TYPES = new Set<ProductType>(["television", "monitor", "appliance", "small_appliance"]);
+
+function statedModelFallback(attributes: ProductAttributes, productType: ProductType) {
+  if (!STATED_MODEL_PRODUCT_TYPES.has(productType)) return undefined;
+  return attributes.explicitModel;
+}
+
+// A television or monitor without a screen size gets no parent key at all
+// (variantMatching.buildParentKey), and Georgian shops routinely omit the
+// diagonal from the title: Zoommer lists "LG TV 50UA75009LA Black", where the
+// only "50" is inside the model code.
+//
+// Panel makers put the diagonal at the front of the model code, either directly
+// (TCL 65V6D, LG 50UA75009LA, Hisense 55A6K, Hyundai 55HY9909WOS) or behind a
+// short series prefix (Samsung UE55DU7100UXRU). Failing that, a standalone
+// 2–3 digit number in the title is the diagonal ("Xiaomi TV S Mini LED 75").
+// Both are bounded to real panel sizes, so years, refresh rates and resolutions
+// cannot be mistaken for one.
+const SCREEN_DIAGONAL_PRODUCT_TYPES = new Set<ProductType>(["television", "monitor"]);
+
+function inferredScreenDiagonal(attributes: ProductAttributes, productType: ProductType) {
+  if (!SCREEN_DIAGONAL_PRODUCT_TYPES.has(productType)) return undefined;
+
+  for (const code of [attributes.modelCodes[0], attributes.explicitModel, attributes.skuCodes[0]]) {
+    // Sony writes the series prefix with a separator ("K-55XR50"), so allow one.
+    const leading = code?.match(/^[a-z]{0,3}[-_]?(\d{2,3})(?=[a-z])/)?.[1];
+    if (leading && isPanelDiagonal(leading)) return `${leading}in`;
+  }
+
+  const standalone = attributes.cleanTitle.match(/(?:^|\s)(\d{2,3})(?![a-z0-9])/)?.[1];
+  return standalone && isPanelDiagonal(standalone) ? `${standalone}in` : undefined;
+}
+
+function isPanelDiagonal(value: string) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 17 && parsed <= 120;
 }
 
 function productTypeFor(attributes: ProductAttributes): ProductType {
