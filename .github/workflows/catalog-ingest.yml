@@ -53,15 +53,21 @@ jobs:
       # New-category passes on the proven store adapters. Each pass is
       # independent — a failure in one shop×category logs and moves on so a
       # single store hiccup doesn't kill the whole ingest.
+      # NOTE: this job runs on the self-hosted GE runner, which is Windows, so
+      # every multi-line `run:` here is PowerShell. The original bash loops
+      # ("for shop in zoommer ee; do") were a parse error on the very first
+      # line, so this workflow had never once ingested anything - which is why
+      # televisions had no Zoommer or EE offers to compare against.
       - name: Ingest expansion categories (zoommer, ee)
         run: |
-          set +e
-          for shop in zoommer ee; do
-            for category in televisions audio wearables; do
-              echo "── import $shop/$category (limit $LIMIT) ──"
-              npm run import:store:full -- --shop=$shop --category=$category --limit=$LIMIT $DRY_RUN_FLAG
-            done
-          done
+          $ErrorActionPreference = "Continue"
+          $extra = if ($env:DRY_RUN_FLAG) { @($env:DRY_RUN_FLAG) } else { @() }
+          foreach ($shop in @("zoommer", "ee")) {
+            foreach ($category in @("televisions", "audio", "wearables")) {
+              Write-Host "-- import $shop/$category (limit $env:LIMIT) --"
+              npm run import:store:full -- "--shop=$shop" "--category=$category" "--limit=$env:LIMIT" @extra
+            }
+          }
           exit 0
 
       # Whole-catalog passes for the two new stores. Kontakt's adapter is
@@ -69,26 +75,41 @@ jobs:
       # unconfirmed offers out of the public catalog regardless.
       - name: Ingest new stores (extra, kontakt)
         run: |
-          set +e
-          for shop in extra kontakt; do
-            echo "── import $shop (whole catalog, limit $LIMIT) ──"
-            npm run import:store:full -- --shop=$shop --limit=$LIMIT $DRY_RUN_FLAG
-          done
+          $ErrorActionPreference = "Continue"
+          $extra = if ($env:DRY_RUN_FLAG) { @($env:DRY_RUN_FLAG) } else { @() }
+          foreach ($shop in @("extra", "kontakt")) {
+            Write-Host "-- import $shop (whole catalog, limit $env:LIMIT) --"
+            npm run import:store:full -- "--shop=$shop" "--limit=$env:LIMIT" @extra
+          }
           exit 0
 
       - name: Normalize raw offers
         if: ${{ !inputs.dry_run }}
         run: |
-          set +e
-          for shop in zoommer ee extra kontakt; do
-            npm run normalize-raw-offers -- --shop=$shop --limit=600
-          done
+          $ErrorActionPreference = "Continue"
+          foreach ($shop in @("zoommer", "ee", "extra", "kontakt")) {
+            foreach ($offset in 0, 300, 600) {
+              npm run normalize-raw-offers -- "--shop=$shop" --limit=300 "--offset=$offset"
+            }
+          }
           exit 0
 
+      # clampLimit caps each batch at 300 regardless of what is asked for, so
+      # --limit=600 only ever did half the work. Loop instead.
       - name: Match offers to variants
         if: ${{ !inputs.dry_run }}
-        run: npm run match-offers-to-variants -- --limit=600
+        run: |
+          $ErrorActionPreference = "Continue"
+          foreach ($offset in 0, 300, 600, 900, 1200) {
+            npm run match-offers-to-variants -- --limit=300 "--offset=$offset"
+          }
+          exit 0
 
       - name: Recategorize products
         if: ${{ !inputs.dry_run }}
-        run: npm run recategorize-products -- --limit=600
+        run: |
+          $ErrorActionPreference = "Continue"
+          foreach ($pass in 1, 2, 3, 4) {
+            npm run recategorize-products -- --limit=300
+          }
+          exit 0

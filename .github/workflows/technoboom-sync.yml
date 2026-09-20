@@ -60,20 +60,40 @@ jobs:
       # Raw offers only become comparable prices after the shared pipeline runs,
       # exactly as in catalog-ingest.yml. Each step is independent so one bad
       # batch cannot strand the rest.
+      # job-utils.clampLimit caps every batch script at 300 rows, so a single
+      # --limit=800 pass silently leaves most of a ~685 item catalogue behind.
+      # These loop instead. This runner is Windows: the shell is PowerShell.
       - name: Normalize raw offers
         if: ${{ steps.sync.outcome == 'success' }}
         continue-on-error: true
-        run: npm run normalize-raw-offers -- --shop=technoboom --limit=800
+        run: |
+          $ErrorActionPreference = "Continue"
+          foreach ($offset in 0, 300, 600, 900) {
+            npm run normalize-raw-offers -- --shop=technoboom --limit=300 "--offset=$offset"
+          }
+          exit 0
 
       - name: Match offers to variants
         if: ${{ steps.sync.outcome == 'success' }}
         continue-on-error: true
-        run: npm run match-offers-to-variants -- --shop=technoboom --limit=800
+        run: |
+          $ErrorActionPreference = "Continue"
+          foreach ($offset in 0, 300, 600, 900) {
+            npm run match-offers-to-variants -- --shop=technoboom --limit=300 "--offset=$offset"
+          }
+          exit 0
 
+      # Each pass fixes up to 300 products and they then leave the
+      # needs-review filter, so repeated passes keep making progress.
       - name: Recategorize products
         if: ${{ steps.sync.outcome == 'success' }}
         continue-on-error: true
-        run: npm run recategorize-products -- --limit=800
+        run: |
+          $ErrorActionPreference = "Continue"
+          foreach ($pass in 1, 2, 3) {
+            npm run recategorize-products -- --limit=300
+          }
+          exit 0
 
       - name: Evaluate price alerts
         if: ${{ steps.sync.outcome == 'success' }}
