@@ -68,7 +68,7 @@ const CATEGORY_BY_MAIN_AND_CATEGORY: Record<string, FasmetriCategorySlug> = {
 
 const CATEGORY_BY_ID: Record<number, FasmetriCategorySlug> = {
   25: "televisions", // ტელევიზორი
-  23: "tech", // ტელევიზორის საკიდი (TV mount)
+  23: "tv-mounts", // ტელევიზორის საკიდი
   16: "computers", // პერსონალური კომპიუტერი
   17: "monitors", // კომპიუტერის მონიტორი
   19: "computer-accessories", // კომპიუტერის პერიფერია
@@ -563,7 +563,7 @@ const DIAGONAL_LABELS = ["დიაგონალი", "ეკრანის �
 //    (variantMatching.buildParentKey). So we emit an explicit `NN inch` token.
 function buildSpecDescription(item: TechnoboomItem, specs: Record<string, string>) {
   const parts: string[] = [];
-  const full = String(item.fullDescription ?? "").trim();
+  const full = stripHtml(String(item.fullDescription ?? ""));
   if (full) parts.push(sanitizeSpecText(full));
 
   const inches = screenInches(item, specs);
@@ -602,6 +602,23 @@ function screenInches(item: TechnoboomItem, specs: Record<string, string>): stri
 function isPlausibleInches(value: string) {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) && parsed >= 17 && parsed <= 120;
+}
+
+// fullDescription is rich text from the store's admin, so it arrives as raw
+// HTML. Left alone, the markup itself becomes matcher input: the tag soup in
+// "</span></li>" survives tokenisation as "span" and "lili" and gets picked as
+// the product's model code (e.g. "hyundai|80_200oc_span_ppspan").
+function stripHtml(value: string) {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function sanitizeSpecText(value: string) {
