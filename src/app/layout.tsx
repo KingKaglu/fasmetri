@@ -16,12 +16,15 @@ import { listPublicCategories } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
-  title: { default: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში", template: "%s — ფასმეტრი" },
-  description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
+  // "Fasmetri" is kept in the Latin alphabet in every default title and
+  // description: the brand query people actually type is the Latin one, and a
+  // page built entirely of Georgian text gives that query nothing to match.
+  title: { default: "ფასმეტრი (Fasmetri) — ფასების შედარება ქართულ მაღაზიებში", template: "%s — ფასმეტრი (Fasmetri)" },
+  description: "Fasmetri.ge — შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   openGraph: {
-    title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
-    description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
-    siteName: "ფასმეტრი",
+    title: "ფასმეტრი (Fasmetri) — ფასების შედარება ქართულ მაღაზიებში",
+    description: "Fasmetri.ge — შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
+    siteName: "ფასმეტრი (Fasmetri)",
     locale: "ka_GE",
     type: "website",
     // The social image is supplied by the file-based src/app/opengraph-image.tsx
@@ -30,8 +33,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ფასმეტრი — ფასების შედარება ქართულ მაღაზიებში",
-    description: "შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
+    title: "ფასმეტრი (Fasmetri) — ფასების შედარება ქართულ მაღაზიებში",
+    description: "Fasmetri.ge — შეადარე ფასები, იპოვე აქციები და საუკეთესო შეთავაზებები ქართულ ონლაინ მაღაზიებში.",
   },
   // Search-console ownership proof. Held in env so a token can be added without
   // a code change or redeploy of this file; when unset the tag is simply not
@@ -68,7 +71,9 @@ export default async function RootLayout({
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "ფასმეტრი",
-      alternateName: "Fasmetri",
+      // Both spellings are declared so a Latin brand query resolves to this
+      // site rather than to the unrelated "Fasmetrics" company.
+      alternateName: ["Fasmetri", "Fasmetri.ge", "ფასმეტრი.ge"],
       url: base,
       inLanguage: "ka-GE",
       potentialAction: {
@@ -84,9 +89,17 @@ export default async function RootLayout({
       "@context": "https://schema.org",
       "@type": "Organization",
       name: "ფასმეტრი",
-      alternateName: "Fasmetri",
+      alternateName: ["Fasmetri", "Fasmetri.ge"],
       url: base,
       logo: `${base}/brand/fasmetri-logo.png`,
+      description: "Fasmetri (ფასმეტრი) — ქართული ფასების შედარების პლატფორმა.",
+      // sameAs is what ties the domain to the brand's own social profiles, so a
+      // search for the name has more than one property pointing back here.
+      sameAs: [
+        "https://www.facebook.com/fasmetri",
+        "https://www.instagram.com/fasmetri.ge/",
+        "https://www.tiktok.com/@fasmetrigeorgia",
+      ],
     },
   ];
 

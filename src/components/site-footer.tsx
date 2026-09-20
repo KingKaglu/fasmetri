@@ -32,6 +32,12 @@ const columns: Array<[string, Array<[string, string]>]> = [
   ],
 ];
 
+const socialLinks: Array<[string, string]> = [
+  ["https://www.facebook.com/fasmetri", "Facebook"],
+  ["https://www.instagram.com/fasmetri.ge/", "Instagram"],
+  ["https://www.tiktok.com/@fasmetrigeorgia", "TikTok"],
+];
+
 export async function SiteFooter() {
   // Most recent offer update across the public catalog (cached summary).
   const latestUpdate = await getCatalogStats()
@@ -45,8 +51,25 @@ export async function SiteFooter() {
         <div>
           <BrandLogo compact tone="light" />
           <p className="mt-4 max-w-xs text-[15px] leading-7 text-slate-300">
-            ფასმეტრი — ქართული ონლაინ მაღაზიების დამოუკიდებელი ფასების შედარების პლატფორმა.
+            ფასმეტრი (Fasmetri) — ქართული ონლაინ მაღაზიების დამოუკიდებელი ფასების შედარების პლატფორმა.
           </p>
+          {/* Outbound profile links. They give the Latin brand name a second
+              place to appear on the page and pair with the Organization
+              sameAs in the layout, which is how the name resolves to us. */}
+          <ul className="mt-4 flex flex-wrap gap-4">
+            {socialLinks.map(([href, label]) => (
+              <li key={href}>
+                <a
+                  href={href}
+                  rel="me noopener noreferrer"
+                  target="_blank"
+                  className="inline-block py-1 text-sm text-slate-300 transition-colors hover:text-white"
+                >
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
           <p className="mt-4 rounded-xl bg-white/[0.06] px-3 py-2.5 text-[11px] leading-5 text-slate-400">
             ფასმეტრი არ არის ჩამოთვლილი მაღაზიების ოფიციალური პარტნიორი. ყიდვამდე საბოლოო ფასი მაღაზიის გვერდზე გადაამოწმე.
           </p>

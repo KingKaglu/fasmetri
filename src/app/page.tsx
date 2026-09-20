@@ -35,9 +35,12 @@ import {
 import { compareDealPriority, compareProductPriority, filterCuratedProducts, PRIORITY_CATEGORIES } from "@/config/productCuration";
 
 export const metadata: Metadata = {
-  title: "ფასმეტრი — შეადარე ფასები ქართულ ონლაინ მაღაზიებში",
+  // The Latin spelling is carried in the title and description on purpose: the
+  // brand is searched as "fasmetri" far more often than as "ფასმეტრი", and the
+  // page is otherwise 100% Georgian, so nothing else on it matches that query.
+  title: "ფასმეტრი (Fasmetri) — შეადარე ფასები ქართულ ონლაინ მაღაზიებში",
   description:
-    "შეადარე მობილურებისა და ლეპტოპების ფასები ქართულ ონლაინ მაღაზიებში. იპოვე საუკეთესო შეთავაზება და ყიდვამდე გადაამოწმე ფასი ოფიციალურ გვერდზე.",
+    "Fasmetri.ge — შეადარე მობილურებისა და ლეპტოპების ფასები ქართულ ონლაინ მაღაზიებში. იპოვე საუკეთესო შეთავაზება და ყიდვამდე გადაამოწმე ფასი ოფიციალურ გვერდზე.",
   alternates: { canonical: "/" },
 };
 
