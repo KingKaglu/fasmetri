@@ -114,9 +114,12 @@ export function extractProductAttributes(input: ProductAttributeInput): ProductA
 function explicitModelToken(model?: string | null) {
   if (!model) return undefined;
   const token = normalizeProductTitle(model).replace(/\s+/g, "").replace(/[^a-z0-9._/-]/g, "");
-  // Too short to identify anything, or a bare number that would collide with
-  // capacities and screen sizes.
-  if (token.length < 4 || !/[a-z]/.test(token)) return undefined;
+  if (token.length < 3) return undefined;
+  // A purely numeric token is normally a capacity or a screen size, but this
+  // value came from a store's dedicated model field, not from parsing a title —
+  // and for house brands the number IS the model ("DSP 20185"). Four or more
+  // digits keeps years and litre/watt figures out.
+  if (!/[a-z]/.test(token) && !/^\d{4,}$/.test(token)) return undefined;
   return token;
 }
 

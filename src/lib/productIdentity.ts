@@ -206,7 +206,11 @@ function identityFromAttributes(attributes: ProductAttributes, productType: Prod
 // BBS or Hyundai use codes ("32BS8000") that `modelCodes()` filters out as
 // GPU/CPU lookalikes. Where the store stated the model outright, use it rather
 // than leaving the product with no model and therefore no parent key.
-const STATED_MODEL_PRODUCT_TYPES = new Set<ProductType>(["television", "monitor", "appliance", "small_appliance"]);
+// "other" is included deliberately: it means we could not type the product at
+// all, so a model the store stated outright is the best identity available —
+// without it, personal-care items like "თმის დასახვევი DSP 20185" have no
+// model, no model code and no SKU, and the matcher refuses to confirm them.
+const STATED_MODEL_PRODUCT_TYPES = new Set<ProductType>(["television", "monitor", "appliance", "small_appliance", "computer", "other"]);
 
 function statedModelFallback(attributes: ProductAttributes, productType: ProductType) {
   if (!STATED_MODEL_PRODUCT_TYPES.has(productType)) return undefined;
