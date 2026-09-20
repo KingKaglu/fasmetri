@@ -22,6 +22,7 @@ import {
   githubRepo,
   lockStatus,
   readLatestReport,
+  syncLogCategoryFor,
 } from "@/lib/admin-sync-status";
 import { formatDurationMs, formatRelativeTime, formatUpdated } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
@@ -52,8 +53,8 @@ export default async function AdminSyncPage() {
         shop: { slug: module.shopSlug },
         rawOffer: { categorySlug: module.categorySlug },
       };
-      // SyncLog keys: store = shop slug, category = "phones" | "laptops" | "consoles".
-      const syncLogCategory = module.categorySlug === "mobiles" ? "phones" : module.categorySlug === "gaming" ? "consoles" : "laptops";
+      // SyncLog keys: store = shop slug, category = "phones" | "laptops" | "consoles" | "catalog".
+      const syncLogCategory = syncLogCategoryFor(module.categorySlug);
       const [activeCount, lastSeen, seen24h, missing, runs, syncLogs, lastSuccess] = await Promise.all([
         db.productOffer.count({ where: { ...offerWhere, isActive: true } }),
         db.productOffer.aggregate({ where: offerWhere, _max: { lastSeenAt: true } }),

@@ -28,6 +28,9 @@ const MODULES: Array<{ store: string; category: string }> = [
   { store: "pcshop", category: "consoles" },
   { store: "zoommer", category: "consoles" },
   { store: "ee", category: "consoles" },
+  // TechnoBoom syncs its whole catalogue in one pass, so it logs a single
+  // "catalog" module rather than one per category.
+  { store: "technoboom", category: "catalog" },
 ];
 
 function hoursAgo(date: Date): number {

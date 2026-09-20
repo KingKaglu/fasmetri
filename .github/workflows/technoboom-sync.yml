@@ -1,0 +1,107 @@
+name: TechnoBoom sync
+
+# TechnoBoom is ingested from the store's own JSON API rather than by scraping
+# HTML (its storefront is client-rendered and ships no sitemap), so one call
+# returns the whole catalogue. The sync writes RawOffer rows only — the normal
+# pipeline below turns them into variants and matches them to the other shops.
+#
+# Scheduling is the watchdog's job (sync-watchdog.yml dispatches this once the
+# self-hosted GE runner answers a ping), so there is deliberately no cron here:
+# a schedule would fail and email every cycle the runner is offline.
+#
+# mode=prices refreshes price + stock from the single listing call and reuses
+# the spec sheet captured by the last full run. mode=full re-reads every item's
+# spec dimensions (~684 extra calls), which is what feeds screen size, colour
+# and model code into variant matching.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Sync mode"
+        required: true
+        default: "prices"
+        type: choice
+        options:
+          - prices
+          - full
+
+jobs:
+  sync:
+    runs-on: self-hosted
+    timeout-minutes: 90
+    env:
+      DATABASE_URL: ${{ secrets.EU_DATABASE_URL }}
+      DATABASE_POOL_MAX: "1"
+      SCRAPER_USER_AGENT: "FasmetriPriceBot/0.1 (+hello@fasmetri.ge)"
+      RUN_FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - run: npm ci
+
+      - name: Ensure sync columns exist
+        continue-on-error: true
+        run: npx prisma db execute --file prisma/migrations/20260605000000_zoommer_phone_sync_state/migration.sql
+
+      - name: Ensure SyncLog table exists
+        continue-on-error: true
+        run: npx prisma db execute --file prisma/migrations/20260611000000_add_sync_log/migration.sql
+
+      - name: Catalogue sync
+        id: sync
+        continue-on-error: true
+        run: npm run ${{ env.RUN_FULL == 'true' && 'scrape:technoboom:full' || 'sync:technoboom' }}
+
+      # Raw offers only become comparable prices after the shared pipeline runs,
+      # exactly as in catalog-ingest.yml. Each step is independent so one bad
+      # batch cannot strand the rest.
+      - name: Normalize raw offers
+        if: ${{ steps.sync.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run normalize-raw-offers -- --shop=technoboom --limit=800
+
+      - name: Match offers to variants
+        if: ${{ steps.sync.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run match-offers-to-variants -- --shop=technoboom --limit=800
+
+      - name: Recategorize products
+        if: ${{ steps.sync.outcome == 'success' }}
+        continue-on-error: true
+        run: npm run recategorize-products -- --limit=800
+
+      - name: Evaluate price alerts
+        if: ${{ steps.sync.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
+        run: npm run alerts:evaluate
+
+      # The sync writes to the DB directly, so the deployed site's cached
+      # counts/summary must be busted explicitly or they go stale.
+      - name: Revalidate public catalog cache
+        if: ${{ steps.sync.outcome == 'success' }}
+        continue-on-error: true
+        run: >-
+          curl -fsS --retry 3
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          https://fasmetri.ge/api/revalidate
+
+      - name: Log sync result
+        if: ${{ always() && steps.sync.outcome != 'skipped' }}
+        continue-on-error: true
+        run: >-
+          npx tsx scripts/log-sync.ts
+          --store=technoboom --category=catalog
+          --run-type=${{ env.RUN_FULL == 'true' && 'full' || 'prices' }}
+          --status=${{ steps.sync.outcome == 'success' && 'success' || 'failure' }}
+
+      - name: Fail the run if the sync failed
+        if: ${{ steps.sync.outcome == 'failure' }}
+        run: exit 1

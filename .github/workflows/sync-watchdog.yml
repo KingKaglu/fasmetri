@@ -84,7 +84,7 @@ jobs:
           mode="prices"
           [ "$(date -u +%H)" = "03" ] && mode="full"
           echo "Self-hosted runner ONLINE — dispatching store syncs (mode=$mode)."
-          for wf in zoommer-phones-sync.yml zoommer-laptops-sync.yml ee-phones-sync.yml ee-laptops-sync.yml pcshop-sync.yml consoles-sync.yml; do
+          for wf in zoommer-phones-sync.yml zoommer-laptops-sync.yml ee-phones-sync.yml ee-laptops-sync.yml pcshop-sync.yml consoles-sync.yml technoboom-sync.yml; do
             gh workflow run "$wf" --ref main -f mode="$mode" && echo "dispatched $wf"
           done
           # Daily (03:xx cycle): also ingest the expansion categories

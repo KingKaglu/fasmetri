@@ -21,6 +21,7 @@ export const STORE_CONFIGS: StoreConfig[] = [
   { key: "ee",           name: "Elite Electronics", baseUrl: "https://ee.ge",         enabled: true,  priority: "high"   },
   { key: "pcshop",       name: "PCShop",         baseUrl: "https://pcshop.ge",        enabled: true,  priority: "high"   },
   // Medium-priority stores — enabled
+  { key: "technoboom",   name: "TechnoBoom",     baseUrl: "https://www.technoboom.ge", enabled: true, priority: "medium", notes: "Synced from the store's own JSON API (npm run sync:technoboom) — the storefront is client-rendered, so there is no HTML scraper or sitemap." },
   { key: "extra",        name: "Extra",          baseUrl: "https://extra.ge",         enabled: true,  priority: "medium" },
   { key: "veli",         name: "Veli",           baseUrl: "https://veli.store",       enabled: true,  priority: "medium" },
   // Medium-priority stores — disabled until adapter is configured

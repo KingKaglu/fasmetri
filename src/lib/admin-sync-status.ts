@@ -2,13 +2,31 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 export type SyncModule = {
-  key: "zoommer-phones" | "zoommer-laptops" | "ee-phones" | "ee-laptops" | "pcshop-phones" | "pcshop-laptops" | "pcshop-consoles";
+  key:
+    | "zoommer-phones"
+    | "zoommer-laptops"
+    | "ee-phones"
+    | "ee-laptops"
+    | "pcshop-phones"
+    | "pcshop-laptops"
+    | "pcshop-consoles"
+    | "technoboom-catalog";
   label: string;
-  shopSlug: "zoommer" | "ee" | "pcshop";
+  shopSlug: "zoommer" | "ee" | "pcshop" | "technoboom";
   shopName: string;
-  categorySlug: "mobiles" | "laptops" | "gaming";
+  categorySlug: "mobiles" | "laptops" | "gaming" | "televisions";
   workflowFile: string;
 };
+
+// SyncLog rows are keyed by store + a coarse category name. TechnoBoom is
+// synced as one whole-catalogue pass rather than per category, so it logs
+// under "catalog" — see .github/workflows/technoboom-sync.yml.
+export function syncLogCategoryFor(categorySlug: SyncModule["categorySlug"]) {
+  if (categorySlug === "mobiles") return "phones";
+  if (categorySlug === "gaming") return "consoles";
+  if (categorySlug === "televisions") return "catalog";
+  return "laptops";
+}
 
 export const SYNC_MODULES: SyncModule[] = [
   { key: "zoommer-phones", label: "Zoommer ტელეფონები", shopSlug: "zoommer", shopName: "Zoommer", categorySlug: "mobiles", workflowFile: "zoommer-phones-sync.yml" },
@@ -19,6 +37,9 @@ export const SYNC_MODULES: SyncModule[] = [
   { key: "pcshop-phones", label: "PCShop ტელეფონები", shopSlug: "pcshop", shopName: "PCShop", categorySlug: "mobiles", workflowFile: "pcshop-sync.yml" },
   { key: "pcshop-laptops", label: "PCShop ლეპტოპები", shopSlug: "pcshop", shopName: "PCShop", categorySlug: "laptops", workflowFile: "pcshop-sync.yml" },
   { key: "pcshop-consoles", label: "PCShop კონსოლები", shopSlug: "pcshop", shopName: "PCShop", categorySlug: "gaming", workflowFile: "pcshop-sync.yml" },
+  // TechnoBoom is one API-driven whole-catalogue sync; televisions are the only
+  // public category it contributes, so that is what the dashboard counts.
+  { key: "technoboom-catalog", label: "TechnoBoom ტელევიზორები", shopSlug: "technoboom", shopName: "TechnoBoom", categorySlug: "televisions", workflowFile: "technoboom-sync.yml" },
 ];
 
 export const MATCHER_WORKFLOW_FILE = "match-products.yml";

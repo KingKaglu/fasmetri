@@ -78,6 +78,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.pcshop.ge" },
       { protocol: "https", hostname: "kontakt.ge" },
       { protocol: "https", hostname: "**.kontakt.ge" },
+      // TechnoBoom serves product images from its Azure blob container, not
+      // from technoboom.ge — the storefront host never appears in an image URL.
+      { protocol: "https", hostname: "technoboomwebadmin.blob.core.windows.net" },
       // Retained for future stores / legacy offers.
       { protocol: "https", hostname: "alta.ge" },
       { protocol: "https", hostname: "**.alta.ge" },

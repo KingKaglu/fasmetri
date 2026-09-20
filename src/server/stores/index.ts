@@ -15,6 +15,7 @@ import { kaloStoreAdapter } from "./kalo.adapter";
 import { isurveStoreAdapter } from "./isurve.adapter";
 import { citrusStoreAdapter } from "./citrus.adapter";
 import { gamingLaptopsStoreAdapter } from "./gaming-laptops.adapter";
+import { technoboomStoreAdapter } from "./technoboom.adapter";
 
 const ADAPTER_REGISTRY: Record<string, StoreAdapter> = {
   zoommer:       zoommerStoreAdapter,
@@ -31,6 +32,7 @@ const ADAPTER_REGISTRY: Record<string, StoreAdapter> = {
   isurve:        isurveStoreAdapter,
   citrus:        citrusStoreAdapter,
   gaming_laptops: gamingLaptopsStoreAdapter,
+  technoboom:    technoboomStoreAdapter,
 };
 
 export function findStoreAdapter(key: string): StoreAdapter | undefined {

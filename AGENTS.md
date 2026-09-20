@@ -29,6 +29,11 @@ npm run catalog-coverage
 npm run import:store:full -- --shop=zoommer --category=mobiles --limit=300 --offset=0
 npm run import:store:full -- --shop=ee --category=mobiles --limit=300 --offset=0
 
+# TechnoBoom (JSON API store — no HTML scraping, no sitemap)
+npm run discover:technoboom              # read-only: fetch the catalogue, write a snapshot + report
+npm run scrape:technoboom:full           # listing + per-item spec dimensions, then promote raw offers
+npm run sync:technoboom                  # price/stock refresh (one API call, reuses stored specs)
+
 # Validation
 npm run validate-category-assignments
 npm run validate-variant-matching
@@ -89,6 +94,36 @@ recategorize-products.ts
 - **EE**: `fetchSitemapLocs()` called directly on per-category product sitemap URLs (NOT `loadProductUrlsFromIndexes` — that's two-stage and won't work on leaf sitemaps). Per-category sitemaps defined in `EE_CATEGORY_SITEMAPS`.
 
 `preferProductUrlsForCategory: true` + `listProductUrls(categorySlug)` triggers `scrapeProductMode` in runner.ts. With `--limit`/`--offset`, uses `stableBatch=true` → `uniqueUrls.slice(offset, offset+limit)` for deterministic pagination.
+
+### TechnoBoom: API-only ingestion
+
+`technoboom.ge` is a client-rendered Next.js storefront with **no sitemap and no
+product markup in the served HTML**, so neither `ShopAdapter` hook can see a
+product. `src/server/technoboom/sync.ts` reads the store's own public JSON API
+instead:
+
+- `GET /api/Items/web-items-short` — the entire catalogue (~684 items) in one call
+- `GET /api/Items/web/{id}` — one item plus its spec dimensions
+- `GET /api/Categories/web-categories` — taxonomy
+
+Notes that matter when changing it:
+
+- **There is no product-name field.** The storefront renders
+  category / brand / subcategory / `description`, where `description` holds the
+  model code. Titles are composed as `<Georgian noun> <BRAND> <MODEL>`.
+- **Product URLs** follow the storefront's four-segment route:
+  `/maincategory={m}/category={c}/subcategory={s}/item={id}`.
+- **Spec text is matcher input, not prose.** Values are sanitized and parts are
+  joined with `" | "`, because a trailing full stop turns `60HZ` into the token
+  `60HZ.`, which `modelCodes()` then prefers over the real model code and which
+  also breaks the screen-size regex after `inch`. An explicit `NN inch` token is
+  emitted so televisions get a parent key at all.
+- Only `televisions` maps to a public Fasmetri category; everything else
+  (fridges, washing machines, kitchen and personal-care appliances) is ingested
+  into internal classifier buckets and stays out of the public catalogue.
+- The module is **raw-only**: it writes `RawOffer` rows through the shared
+  `saveRawOffer` and leaves matching to normalize → match-offers-to-variants →
+  recategorize.
 
 ### Product Identity & Matching
 
