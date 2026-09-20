@@ -7,8 +7,18 @@ import { checkpointId, logProgress, parseBatchOptions, writeCheckpoint } from ".
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required.");
 
+// This script builds its own client instead of importing src/lib/prisma, so it
+// has to honour DATABASE_POOL_MAX itself. Without it the adapter opens its
+// default 10 connections, and the Supabase pooler runs in session mode with a
+// hard cap of 15 clients across everything — one un-capped script is enough to
+// starve a sync running at the same time and fail it outright.
+const poolMax = Number.parseInt(process.env.DATABASE_POOL_MAX ?? "1", 10);
+
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  adapter: new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+    max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 1,
+  }),
 });
 
 async function ensurePublicCategories() {
