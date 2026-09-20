@@ -1,3 +1,5 @@
+import { latinizeGeorgian } from "@/lib/georgian";
+
 const stopWords = new Set([
   "global",
   "version",
@@ -58,9 +60,18 @@ export function productVariantSignature(input: string) {
   };
 }
 
+// Slugs must stay ASCII. A product whose slug carries Georgian letters answers
+// 500 on the deployed site (it renders fine locally, so the break is in the
+// hosted route/ISR layer, not this code) — which silently took out every
+// Georgian-titled product. Transliterating instead of stripping keeps the slug
+// readable: "ტელევიზორი BBS 32BS8000" → "televizori-bbs-32bs8000".
 export function slugifyProduct(input: string) {
-  const normalized = normalizeProductName(input)
+  const normalized = normalizeProductName(latinizeGeorgian(input))
     .replace(/[^\p{L}\p{N}]+/gu, "-")
+    // Anything still outside ASCII (Cyrillic, Armenian, CJK in a store title)
+    // would hit the same failure, so it goes rather than riding along.
+    .replace(/[^\x20-\x7E]+/g, "-")
+    .replace(/-{2,}/g, "-")
     .replace(/^-|-$/g, "");
 
   return normalized || `product-${Date.now()}`;

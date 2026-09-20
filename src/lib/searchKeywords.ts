@@ -1,4 +1,5 @@
 import { ProductView } from "@/lib/catalog-types";
+import { transliterateGeorgianToken } from "@/lib/georgian";
 
 // Data-driven search with no keyword/alias/category tables. A query is
 // normalized into tokens and EVERY token must match the product (AND
@@ -86,20 +87,8 @@ function expandQueryToken(token: string): string[] {
 // standard: catalog text is English product titles, so "ინფინიქს" should head
 // toward "infiniks"/"infinix", not "inpiniksi". Returns null for tokens
 // without Georgian letters.
-const GEORGIAN_LATIN: Record<string, string> = {
-  ა: "a", ბ: "b", გ: "g", დ: "d", ე: "e", ვ: "v", ზ: "z", თ: "t",
-  ი: "i", კ: "k", ლ: "l", მ: "m", ნ: "n", ო: "o", პ: "p", ჟ: "zh",
-  რ: "r", ს: "s", ტ: "t", უ: "u", ფ: "f", ქ: "k", ღ: "gh", ყ: "q",
-  შ: "sh", ჩ: "ch", ც: "ts", ძ: "dz", წ: "ts", ჭ: "ch", ხ: "kh",
-  ჯ: "j", ჰ: "h",
-};
-
-function transliterateGeorgian(token: string): string | null {
-  if (!/[Ⴀ-ჿ]/.test(token)) return null;
-  let out = "";
-  for (const ch of token) out += GEORGIAN_LATIN[ch] ?? ch;
-  return out === token ? null : out;
-}
+// The map itself now lives in @/lib/georgian so slug generation can share it.
+const transliterateGeorgian = transliterateGeorgianToken;
 
 // Georgian phonetic spellings of common brands/product lines. Product titles
 // in the catalog are Latin, so a query like "აიფონი 15" only works if the
