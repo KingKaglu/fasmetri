@@ -118,9 +118,10 @@ Notes that matter when changing it:
   `60HZ.`, which `modelCodes()` then prefers over the real model code and which
   also breaks the screen-size regex after `inch`. An explicit `NN inch` token is
   emitted so televisions get a parent key at all.
-- Only `televisions` maps to a public Fasmetri category; everything else
-  (fridges, washing machines, kitchen and personal-care appliances) is ingested
-  into internal classifier buckets and stays out of the public catalogue.
+- The store's own category is trusted: `categorizeProduct` scores an explicitly
+  stated public category at 78, which clears the review threshold on its own.
+  Before that, Georgian appliance titles matched none of the mostly-English
+  keyword rules and fell through to `other`.
 - The module is **raw-only**: it writes `RawOffer` rows through the shared
   `saveRawOffer` and leaves matching to normalize → match-offers-to-variants →
   recategorize.
@@ -145,7 +146,12 @@ Canonical key format: `brand|model|ram|storage|color` (e.g. `xiaomi|poco_f7_ultr
 
 ### Store Configuration
 
-`src/config/enabledStores.ts` — `STORE_CONFIGS` array controls which stores are enabled. Currently enabled: zoommer, alta, ee, pcshop, extra, veli. Gorgia, domino, kontakt, primestore, kalo, isurve, citrus, gaming_laptops are disabled.
+`src/config/enabledStores.ts` — `STORE_CONFIGS` array controls which stores are enabled. Currently enabled: zoommer, ee, pcshop, technoboom, extra, veli, kontakt. Alta (Cloudflare), gorgia, domino, primestore, kalo, isurve, citrus, gaming_laptops are disabled.
+
+Public categories (`PUBLIC_CATEGORY_SLUGS`) are mobiles, laptops, gaming,
+televisions, audio, wearables plus the appliance scope opened for TechnoBoom:
+home-appliances, small-appliances, beauty, refrigerators, washing-machines,
+monitors, tv-mounts.
 
 `scrapeShop()` in runner.ts checks `effectiveShop.enabled` AND `process.env.SCRAPER_ENABLED === "true"` before proceeding.
 
@@ -154,6 +160,20 @@ Canonical key format: `brand|model|ram|storage|color` (e.g. `xiaomi|poco_f7_ultr
 - **EE outlet products**: URL path `/autleti/` → `breadcrumbs=["outlet"]`, `condition=outlet` — not compared as new-product prices
 - **Checkpoint bug**: `--resume` shares a single `.codex-logs/checkpoints/{jobName}.json` across ALL categories. When looping over multiple categories, always reset offset to 0 and use `--offset=N` explicitly — never `--resume` across category boundaries.
 - **grep on Windows**: `grep -P` fails on Windows Git-bash. Use `grep -Eo 'pattern'` (POSIX extended) instead.
+- **The self-hosted GE runner is Windows**, so every multi-line `run:` step in a
+  `runs-on: self-hosted` workflow executes in **PowerShell**, not bash. A bash
+  loop (`for shop in a b; do … done`) is a parse error on its first line and
+  kills the step immediately — this is what stopped `catalog-ingest.yml` from
+  ever ingesting anything. Only `sync-watchdog.yml` may use bash: it runs on
+  `ubuntu-latest`.
+- **`--limit` is capped at 300.** `job-utils.clampLimit` silently clamps every
+  batch script to 300 rows, so `--limit=800` processes 300 and looks like it
+  finished. Loop over `--offset=0,300,600,…` for a catalogue bigger than that.
+- **Connection pool**: the Supabase pooler runs session mode (port 5432) with a
+  hard cap of 15 clients across Vercel, CI and any local script. Vercel now uses
+  the transaction pooler (6543) so the syncs have headroom; CI stays on 5432
+  because the sync modules guard themselves with session-scoped
+  `pg_try_advisory_lock`. Always pass `DATABASE_POOL_MAX=1` from a local script.
 
 ### Safety Constraints
 

@@ -107,7 +107,14 @@ function scoreRule(
   const shopScore = shopMatches.length ? Math.min(20, 10 + shopMatches.length * 3) : 0;
   const mappingScore = explicitMatch ? 68 : mappedMatch ? 18 : 0;
   const score = Math.max(titleScore, contextScore + shopScore + mappingScore, mappingScore);
-  const confidenceScore = clampScore(titleScore ? score : Math.min(score, 64));
+  // A shop stating the category outright is first-party data, not a guess, so it
+  // has to clear the review threshold on its own. It previously topped out at 64
+  // — below the 72 needed — which meant a whole catalogue of Georgian-titled
+  // appliances sat in review forever: the keyword rules are mostly English, so
+  // "თმის საკრეჭი DSP 90346" matched nothing and fell through to "other".
+  // A matching title still wins, because `score` takes the max.
+  const explicitFloor = explicitMatch ? 78 : 0;
+  const confidenceScore = clampScore(Math.max(titleScore ? score : Math.min(score, 64), explicitFloor));
   const matchedRules = [
     ...titleMatches.map((keyword) => `title:${keyword}`),
     ...titleGroupMatches.map((keywords) => `title-group:${keywords}`),

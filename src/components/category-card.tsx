@@ -1,9 +1,15 @@
 import Link from "next/link";
 import {
+  AirVent,
   ArrowRight,
   Baby,
   BookOpen,
   CarFront,
+  Frame,
+  Microwave,
+  Monitor,
+  Refrigerator,
+  WashingMachine,
   Dumbbell,
   Footprints,
   Gamepad2,
@@ -32,6 +38,12 @@ const descriptions: Record<string, string> = {
   gaming: "კონსოლები, კონტროლერები და gaming აქსესუარები.",
   televisions: "ტელევიზორები და სახლის დიდი ეკრანები.",
   monitors: "სამუშაო და gaming მონიტორები.",
+  "home-appliances": "გაზქურები, ღუმელები, გამწოვები, მტვერსასრუტები და კონდიციონერები.",
+  "small-appliances": "სამზარეულოს წვრილი ტექნიკა — მიკროტალღურები, ბლენდერები, ჩაიდნები.",
+  beauty: "თმის საშრობები, სტაილერები, ეპილატორები და პირადი მოვლის ტექნიკა.",
+  refrigerators: "მაცივრები, საყინულეები და ღვინის მაცივრები.",
+  "washing-machines": "სარეცხი მანქანები, საშრობები და ჭურჭლის სარეცხი მანქანები.",
+  "tv-mounts": "ტელევიზორის საკიდები და კრონშტეინები.",
 };
 
 // Friendly variety: each category gets a distinct soft-pastel tile so the
@@ -45,6 +57,12 @@ const accentColors: Record<string, string> = {
   gaming: "bg-indigo-100 text-indigo-600",
   televisions: "bg-emerald-100 text-emerald-600",
   monitors: "bg-cyan-100 text-cyan-600",
+  "home-appliances": "bg-orange-100 text-orange-600",
+  "small-appliances": "bg-lime-100 text-lime-600",
+  beauty: "bg-rose-100 text-rose-600",
+  refrigerators: "bg-teal-100 text-teal-600",
+  "washing-machines": "bg-slate-100 text-slate-600",
+  "tv-mounts": "bg-stone-100 text-stone-600",
 };
 
 export function CategoryCard({
@@ -150,12 +168,18 @@ function categoryIcon(slug: string, size: "md" | "lg" = "md") {
   if (slug === "gaming") return <Gamepad2 className={cls} />;
   if (slug === "mobiles" || slug === "tablets" || slug === "tablet-accessories" || slug === "phone-accessories") return <Smartphone className={cls} />;
   if (slug === "computers" || slug === "computer-accessories" || slug === "cables-adapters" || slug === "laptops") return <Laptop className={cls} />;
-  if (slug === "televisions" || slug === "monitors") return <Tv className={cls} />;
+  if (slug === "televisions") return <Tv className={cls} />;
+  if (slug === "monitors") return <Monitor className={cls} />;
+  if (slug === "tv-mounts") return <Frame className={cls} />;
   if (slug === "clothing") return <Shirt className={cls} />;
   if (slug === "shoes") return <Footprints className={cls} />;
   if (slug === "beauty") return <Sparkles className={cls} />;
   if (slug === "furniture") return <Sofa className={cls} />;
-  if (slug === "home-garden" || slug === "home-appliances" || slug === "refrigerators" || slug === "washing-machines" || slug === "small-appliances" || slug === "kitchen-dishes" || slug === "air-conditioners") return <House className={cls} />;
+  if (slug === "refrigerators") return <Refrigerator className={cls} />;
+  if (slug === "washing-machines") return <WashingMachine className={cls} />;
+  if (slug === "small-appliances") return <Microwave className={cls} />;
+  if (slug === "home-appliances" || slug === "air-conditioners") return <AirVent className={cls} />;
+  if (slug === "home-garden" || slug === "kitchen-dishes") return <House className={cls} />;
   if (slug === "sport") return <Dumbbell className={cls} />;
   if (slug === "kids") return <Baby className={cls} />;
   if (slug === "auto-accessories") return <CarFront className={cls} />;

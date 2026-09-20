@@ -1,4 +1,4 @@
-import { PC_COOLING_NEGATIVE_KEYWORDS, COOKING_FREEZER_NEGATIVE_KEYWORDS } from "@/config/categoryRules";
+﻿import { PC_COOLING_NEGATIVE_KEYWORDS, COOKING_FREEZER_NEGATIVE_KEYWORDS } from "@/config/categoryRules";
 
 export type FasmetriCategorySlug =
   | "adult"
@@ -30,6 +30,7 @@ export type FasmetriCategorySlug =
   | "tablet-accessories"
   | "tech"
   | "televisions"
+  | "tv-mounts"
   | "tools"
   | "washing-machines"
   | "wearables";
@@ -54,7 +55,23 @@ export const FALLBACK_CATEGORY: FasmetriCategorySlug = "other";
 // high-traffic tech categories. Other classifier buckets stay internal and
 // must not re-enter public routes, sitemap output, seed data, or category
 // re-creation scripts.
-export const PUBLIC_CATEGORY_SLUGS = ["mobiles", "laptops", "gaming", "televisions", "audio", "wearables"] as const;
+export const PUBLIC_CATEGORY_SLUGS = [
+  "mobiles",
+  "laptops",
+  "gaming",
+  "televisions",
+  "audio",
+  "wearables",
+  // Appliance scope, opened when TechnoBoom brought a full white-goods and
+  // personal-care catalogue. Nav order follows this array.
+  "home-appliances",
+  "small-appliances",
+  "beauty",
+  "refrigerators",
+  "washing-machines",
+  "monitors",
+  "tv-mounts",
+] as const;
 export type PublicCategorySlug = (typeof PUBLIC_CATEGORY_SLUGS)[number];
 
 const PUBLIC_CATEGORY_SLUG_SET = new Set<string>(PUBLIC_CATEGORY_SLUGS);
@@ -70,7 +87,7 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   adult: { nameKa: "18+ პროდუქტები", nameEn: "Adult products", public: false },
   audio: { nameKa: "აუდიო", nameEn: "Audio", public: true },
   "auto-accessories": { nameKa: "ავტო აქსესუარები", nameEn: "Auto accessories", public: false },
-  beauty: { nameKa: "სილამაზე და მოვლა", nameEn: "Beauty", public: false },
+  beauty: { nameKa: "სილამაზე და მოვლა", nameEn: "Beauty", public: true },
   "books-stationery": { nameKa: "წიგნები და საკანცელარიო", nameEn: "Books and stationery", public: false },
   "cables-adapters": { nameKa: "კაბელები და ადაპტერები", nameEn: "Cables and adapters", public: false },
   clothing: { nameKa: "ტანსაცმელი", nameEn: "Clothing", public: false },
@@ -78,26 +95,30 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   computers: { nameKa: "კომპიუტერები და ნაწილები", nameEn: "Computers and parts", public: false },
   furniture: { nameKa: "ავეჯი", nameEn: "Furniture", public: false },
   gaming: { nameKa: "კონსოლები", nameEn: "Consoles", public: true },
-  "home-appliances": { nameKa: "საყოფაცხოვრებო ტექნიკა", nameEn: "Home appliances", public: false },
+  "home-appliances": { nameKa: "საყოფაცხოვრებო ტექნიკა", nameEn: "Home appliances", public: true },
   "home-garden": { nameKa: "სახლი და ბაღი", nameEn: "Home and garden", public: false },
   kids: { nameKa: "საბავშვო", nameEn: "Kids", public: false },
   "kitchen-dishes": { nameKa: "სამზარეულო და ჭურჭელი", nameEn: "Kitchen and dishes", public: false },
   laptops: { nameKa: "ლეპტოპები", nameEn: "Laptops", public: true },
   mobiles: { nameKa: "ტელეფონები", nameEn: "Phones", public: true },
-  monitors: { nameKa: "მონიტორები", nameEn: "Monitors", public: false },
+  monitors: { nameKa: "მონიტორები", nameEn: "Monitors", public: true },
   other: { nameKa: "სხვა", nameEn: "Other", public: false },
   pets: { nameKa: "ცხოველების მოვლა", nameEn: "Pet supplies", public: false },
   "phone-accessories": { nameKa: "ტელეფონის აქსესუარები", nameEn: "Phone accessories", public: false },
   "photo-video": { nameKa: "ფოტო/ვიდეო", nameEn: "Photo and video", public: false },
-  refrigerators: { nameKa: "მაცივრები", nameEn: "Refrigerators", public: false },
-  "small-appliances": { nameKa: "მცირე ტექნიკა", nameEn: "Small appliances", public: false },
+  refrigerators: { nameKa: "მაცივრები", nameEn: "Refrigerators", public: true },
+  "small-appliances": { nameKa: "მცირე ტექნიკა", nameEn: "Small appliances", public: true },
   sport: { nameKa: "სპორტი", nameEn: "Sport", public: false },
   tablets: { nameKa: "ტაბლეტები", nameEn: "Tablets", public: false },
   "tablet-accessories": { nameKa: "ტაბლეტის აქსესუარები", nameEn: "Tablet accessories", public: false },
   tech: { nameKa: "ტექნიკა", nameEn: "Electronics", public: false },
   televisions: { nameKa: "ტელევიზორები", nameEn: "Televisions", public: true },
+  // Wall brackets and stands. Kept apart from `televisions` so a 40 GEL bracket
+  // never sits in a price comparison next to a 4K set, and apart from the
+  // catch-all `tech` bucket so it can carry its own name in the nav.
+  "tv-mounts": { nameKa: "ტელევიზორის საკიდები", nameEn: "TV mounts", public: true },
   tools: { nameKa: "ხელსაწყოები", nameEn: "Tools", public: false },
-  "washing-machines": { nameKa: "სარეცხი მანქანები", nameEn: "Washing machines", public: false },
+  "washing-machines": { nameKa: "სარეცხი მანქანები", nameEn: "Washing machines", public: true },
   wearables: { nameKa: "სმარტ საათები", nameEn: "Wearables", public: true },
 };
 
@@ -160,6 +181,11 @@ export const KITCHEN_DISH_NEGATIVE_KEYWORDS = [
   "glass protector",
   "screen glass",
   "ეკრანის შუშა",
+  // "ქვაბი" is the word for both a cooking pot and a heating boiler, so a
+  // wall-mounted gas boiler was being filed as cookware.
+  "გათბობის ქვაბი",
+  "ბოილერი",
+  "combi boiler",
 ] as const;
 
 export const FURNITURE_NEGATIVE_KEYWORDS = [
@@ -190,6 +216,9 @@ export const FURNITURE_NEGATIVE_KEYWORDS = [
   "მანქანის დამტენი",
   "დამტენი",
   "კაბელი",
+  // A hob is a "ზედაპირი" (surface) in Georgian, which read as a table top.
+  "ზედაპირი",
+  "გაზქურის",
 ] as const;
 
 export const CATEGORY_RULES: readonly CategoryRule[] = [
@@ -1015,6 +1044,28 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
     contextKeywords: ["audio", "headphone", "headset", "speaker"],
     shopKeywords: ["audio", "yursasmen", "headsets", "speakers"],
     titleWeight: 84,
+  },
+  {
+    // Wall brackets read as computer accessories ("wall mount" matches there at
+    // 88), which outscored the shop's own stated category. They are their own
+    // public category, so they need a rule that speaks for them. Placed before
+    // `monitors` and weighted above the accessory rule.
+    slug: "tv-mounts",
+    titleKeywords: [
+      "tv wall mount",
+      "wall mount",
+      "tv mount",
+      "tv bracket",
+      "wall bracket",
+      "tv stand",
+      "ტელევიზორის საკიდი",
+      "კრონშტეინი",
+      "საკიდი",
+    ],
+    negativeKeywords: ["monitor mount", "monitor arm", "laptop stand", "phone holder", "მიკროფონის"],
+    contextKeywords: ["vesa", "tilt", "swivel", "ტელევიზორის საკიდი"],
+    titleWeight: 94,
+    requiresTitleMatch: true,
   },
   {
     slug: "monitors",

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BadgePercent, Flame, Gamepad2, Grid3X3, Headphones, Heart, Laptop, LineChart, Menu, Search, Smartphone, Store, Tv, Watch, X } from "lucide-react";
+import { AirVent, BadgePercent, Flame, Frame, Gamepad2, Grid3X3, Headphones, Heart, Laptop, LineChart, Menu, Microwave, Monitor, Refrigerator, Search, Smartphone, Sparkles, Store, Tv, WashingMachine, Watch, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -23,6 +23,13 @@ const CATEGORY_ICONS: Record<string, typeof Smartphone> = {
   televisions: Tv,
   audio: Headphones,
   wearables: Watch,
+  "home-appliances": AirVent,
+  "small-appliances": Microwave,
+  beauty: Sparkles,
+  refrigerators: Refrigerator,
+  "washing-machines": WashingMachine,
+  monitors: Monitor,
+  "tv-mounts": Frame,
 };
 
 // Shown only until the live list arrives, and only as a last resort if the

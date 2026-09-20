@@ -2,7 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Flame, Gamepad2, Headphones, Laptop, LayoutGrid, Menu, Smartphone, Tv, Watch } from "lucide-react";
+import {
+  AirVent,
+  ChevronDown,
+  Flame,
+  Frame,
+  Gamepad2,
+  Headphones,
+  Laptop,
+  LayoutGrid,
+  Menu,
+  Microwave,
+  Monitor,
+  Refrigerator,
+  Smartphone,
+  Sparkles,
+  Tv,
+  WashingMachine,
+  Watch,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type CategoryItem = { href: string; label: string; icon: LucideIcon };
@@ -17,6 +35,13 @@ const CATEGORY_ITEMS: CategoryItem[] = [
   { href: "/categories/televisions", label: "ტელევიზორები", icon: Tv },
   { href: "/categories/audio", label: "აუდიო", icon: Headphones },
   { href: "/categories/wearables", label: "სმარტ საათები", icon: Watch },
+  { href: "/categories/home-appliances", label: "საყოფაცხოვრებო ტექნიკა", icon: AirVent },
+  { href: "/categories/small-appliances", label: "მცირე ტექნიკა", icon: Microwave },
+  { href: "/categories/beauty", label: "სილამაზე და მოვლა", icon: Sparkles },
+  { href: "/categories/refrigerators", label: "მაცივრები", icon: Refrigerator },
+  { href: "/categories/washing-machines", label: "სარეცხი მანქანები", icon: WashingMachine },
+  { href: "/categories/monitors", label: "მონიტორები", icon: Monitor },
+  { href: "/categories/tv-mounts", label: "ტელევიზორის საკიდები", icon: Frame },
 ];
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -26,6 +51,13 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   televisions: Tv,
   audio: Headphones,
   wearables: Watch,
+  "home-appliances": AirVent,
+  "small-appliances": Microwave,
+  beauty: Sparkles,
+  refrigerators: Refrigerator,
+  "washing-machines": WashingMachine,
+  monitors: Monitor,
+  "tv-mounts": Frame,
 };
 
 // Module-level cache so the menu fetches the catalog once per page load,
