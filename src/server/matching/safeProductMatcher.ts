@@ -774,6 +774,10 @@ function normalizeBrand(value?: string | null) {
   const brand = normalizeValue(value);
   if (!brand) return undefined;
   if (brand === "redmi" || brand === "poco") return "xiaomi";
+  // nubia / RedMagic are ZTE sub-brands. One shop writes "ZTE Nubia Redmagic",
+  // the next writes "Nubia Redmagic", and a brand mismatch stopped the two ever
+  // being compared -- the same collapse redmi/poco already get.
+  if (brand === "nubia" || brand === "redmagic") return "zte";
   if (brand === "hewlett_packard" || brand === "hewlett-packard") return "hp";
   if (brand === "nothing_phone") return "nothing";
   return brand;
@@ -783,6 +787,7 @@ function detectBrand(signal: string) {
   if (/\biphone\b|\bmacbook\b/.test(signal)) return "apple";
   if (/\bgalaxy\b/.test(signal)) return "samsung";
   if (/\bredmi\b|\bpoco\b/.test(signal)) return "xiaomi";
+  if (/\bnubia\b|\bredmagic\b/.test(signal)) return "zte";
   if (/\bpixel\b/.test(signal)) return "google";
   const brands = [
     "apple",
@@ -838,8 +843,62 @@ function detectModel(signal: string, brand: string | undefined, kind: SafeProduc
   if (redmiPoco) return modelKey([redmiPoco[1], redmiPoco[2], redmiPoco[3]?.replace(/\s+/g, "_")]);
   const generic = phoneSignal.match(/\b(pixel|honor|realme|oppo|vivo|oneplus|nothing phone|motorola|moto|nokia|hmd|zte|nubia|oukitel)\s*([a-z]?\d+[a-z0-9]*)(?:\s*(pro max|pro|ultra|plus|fe|se|lite|max))?\b/);
   if (generic) return modelKey([generic[1].replace(/\s+/g, "_"), generic[2], generic[3]?.replace(/\s+/g, "_")]);
-  if (brand && phoneSignal.includes(brand)) return modelKey([brand, phoneSignal.split(/\s+/).slice(1, 3).join("_")]);
+  if (brand) return fallbackPhoneModel(phoneSignal, brand);
   return undefined;
+}
+
+// Words that are never part of a phone model name, only packaging around it.
+const PHONE_MODEL_NOISE =
+  /^(5g|4g|3g|lte|nfc|esim|sim|dual|ds|global|version|new|smartphone|mobile|phone|\d+(gb|tb|mb)|\d+_\d+|\d+\+\d+)$/;
+
+// Suffixes that belong to the model when they follow its number.
+const PHONE_MODEL_QUALIFIERS = new Set([
+  "pro",
+  "max",
+  "plus",
+  "ultra",
+  "air",
+  "lite",
+  "mini",
+  "neo",
+  "fe",
+  "se",
+  "power",
+  "prime",
+  "turbo",
+]);
+
+// The fallback used to take the two words after the brand whatever they were,
+// so "ZTE Nubia Redmagic 11s Pro" and "ZTE Nubia Redmagic 10 Air" both became
+// zte_nubia_redmagic. They then scored 80% against each other and the old
+// auto-triage merged a 2799 GEL phone into a 1599 GEL one. The model NUMBER is
+// what separates those two, so the fallback now walks forward to it and keeps
+// the qualifier behind it.
+function fallbackPhoneModel(signal: string, brand: string) {
+  const tokens = signal.split(/\s+/).filter(Boolean);
+  // The brand may be inferred rather than written ("Nubia Redmagic 10" is a
+  // ZTE), in which case the model name starts at the first word.
+  const brandIndex = tokens.findIndex((token) => token === brand || token.startsWith(brand));
+
+  // Look ahead over the words after the brand, ignoring packaging, and find the
+  // one carrying the model number ("11s", "a75"). Everything up to it is the
+  // family name, and a qualifier right behind it belongs to the model too.
+  const words = tokens.slice(brandIndex + 1).filter((token) => !PHONE_MODEL_NOISE.test(token));
+  const numberIndex = words.findIndex((token) => /\d/.test(token));
+
+  // No model number in reach: keep the two words the old fallback used rather
+  // than swallowing the whole title.
+  if (numberIndex < 0 || numberIndex > 3) {
+    const parts = words.slice(0, 2);
+    return parts.length ? modelKey(parts) : undefined;
+  }
+
+  const parts = words.slice(0, numberIndex + 1);
+  for (const token of words.slice(numberIndex + 1)) {
+    if (!PHONE_MODEL_QUALIFIERS.has(token)) break;
+    parts.push(token);
+  }
+  return modelKey(parts);
 }
 
 function detectLaptopFamily(signal: string, brand?: string) {
@@ -867,6 +926,9 @@ function normalizeModelCode(value?: string | null) {
   if (/^(rtx|gtx)_?\d+/.test(normalized)) return undefined;
   if (/^\d+(gb|tb|hz|mah)$/.test(normalized)) return undefined;
   if (/^\d+mm$/.test(normalized)) return undefined;
+  // "12/256GB" is the memory configuration, not a part number. Read as one it
+  // handed +25 "modelCode" to any two phones that happened to share storage.
+  if (/^\d+_\d+(gb|tb)?$/.test(normalized)) return undefined;
   return normalized;
 }
 

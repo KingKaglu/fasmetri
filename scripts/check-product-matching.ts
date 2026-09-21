@@ -328,6 +328,32 @@ const safeCases: SafeCase[] = [
     expectRejected: true,
   },
   {
+    // The fallback model parser took the two words after the brand, so two
+    // different Redmagic phones 1200 GEL apart both became zte_nubia_redmagic
+    // and scored 80% — which the old auto-triage merged.
+    label: "Redmagic 11s Pro != Redmagic 10 Air",
+    left: "ZTE Nubia Redmagic 11s Pro 5G 12/256 GB Nightfreeze",
+    right: "ZTE Nubia Redmagic 10 Air 5G 12/256GB Twilight",
+    categorySlug: "mobiles",
+    expectRejected: true,
+  },
+  {
+    // Same model through the same fallback still links (no over-correction).
+    label: "Redmagic 10 Air links to itself across title styles",
+    left: "ZTE Nubia Redmagic 10 Air 5G 12/256GB Twilight",
+    right: "Nubia Redmagic 10 Air 12/256GB",
+    categorySlug: "mobiles",
+    expectAutoOrReview: true,
+  },
+  {
+    // A qualifier behind the number is part of the model, not noise.
+    label: "Oukitel WP30 Pro != Oukitel WP30",
+    left: "Oukitel WP30 Pro 5G 12/512GB Black",
+    right: "Oukitel WP30 5G 12/512GB Black",
+    categorySlug: "mobiles",
+    expectRejected: true,
+  },
+  {
     // The screenshot case: a collab edition controller scored 84% against a
     // plain coloured one (family 60 + accessoryModel 30, capped for an unknown
     // colour) and auto-triage merged them. A named edition on one side only is
