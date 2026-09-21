@@ -161,7 +161,7 @@ export function CategoryCard({
   );
 }
 
-function categoryIcon(slug: string, size: "md" | "lg" = "md") {
+export function categoryIcon(slug: string, size: "md" | "lg" = "md") {
   const cls = size === "lg" ? "size-7" : "size-5";
   if (slug === "wearables") return <Watch className={cls} />;
   if (slug === "audio") return <Headphones className={cls} />;

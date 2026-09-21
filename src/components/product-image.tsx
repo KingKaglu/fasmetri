@@ -32,6 +32,7 @@ export function ProductImage({
   hero = false,
   categorySlug,
   shopName,
+  fixedWidth,
 }: {
   src?: string | null;
   alt: string;
@@ -41,6 +42,15 @@ export function ProductImage({
   hero?: boolean;
   categorySlug?: string | null;
   shopName?: string | null;
+  /**
+   * Fixed-width mode for rails whose card width never changes (homepage).
+   * next/image emits a srcset over every configured device/image size — with
+   * the wsrv URL repeated 16 times that is ~2.4 KB of markup per image, and
+   * the string is paid twice (HTML + RSC flight). A rail card is always the
+   * same CSS width, so 1x/2x is all the information a browser can act on.
+   * Same wsrv → direct → placeholder fallback chain as the default mode.
+   */
+  fixedWidth?: number;
 }) {
   // Hosts wsrv can't fetch (e.g. pcshop.ge) start in "direct" mode so they skip
   // the wsrv hop entirely and load the raw image unoptimized on first render.
@@ -55,6 +65,27 @@ export function ProductImage({
   // raw load of the original URL — never the Next optimizer.
   const useWsrv = isExternalImage && !direct;
   const shape = tall ? "h-full min-h-[16rem]" : "aspect-square";
+
+  if (fixedWidth && showImage) {
+    const oneX = useWsrv ? wsrvLoader({ src: src!, width: fixedWidth, quality: 68 }) : src!;
+    const twoX = useWsrv ? wsrvLoader({ src: src!, width: fixedWidth * 2, quality: 68 }) : null;
+    return (
+      <div className="relative isolate aspect-square overflow-hidden bg-[linear-gradient(145deg,#ffffff,#f4f4f5)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={oneX}
+          srcSet={twoX ? `${oneX} 1x, ${twoX} 2x` : undefined}
+          alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
+          decoding="async"
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 size-full object-contain p-2.5"
+          onError={() => (useWsrv ? setDirect(true) : setFailed(true))}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`relative isolate ${shape} overflow-hidden bg-[linear-gradient(145deg,#ffffff,#f4f4f5)]`}>

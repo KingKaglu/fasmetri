@@ -376,6 +376,24 @@ textarea {
   pointer-events: none;
 }
 
+/* Light "comparison portal" hero used by the homepage: an airy accent wash on
+   the page surface instead of a full ink band, so the search field and the
+   product prices stay the darkest things on screen. Tokens only. */
+.home-hero {
+  position: relative;
+  background:
+    radial-gradient(56rem 24rem at 50% -10rem, var(--accent-soft) 0%, rgba(239, 246, 255, 0) 72%),
+    linear-gradient(180deg, var(--surface) 0%, var(--background) 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Homepage stat column — light counterpart of .stat-rule */
+.home-stat {
+  border-left: 2px solid var(--line-strong);
+  padding-left: 0.9rem;
+  border-radius: 1px;
+}
+
 /* Marker-pen emphasis for a single heading word on the hero */
 .hero-highlight {
   position: relative;
@@ -670,4 +688,181 @@ textarea {
   border-left: 2px solid rgba(255, 255, 255, 0.25);
   padding-left: 0.9rem;
   border-radius: 1px;
+}
+
+/* ─── Homepage pass 2: compact rails + category band ─────
+   The homepage renders every product row as ONE horizontal rail and every
+   category as a small icon tile. Keeping the rules here instead of in long
+   Tailwind class strings matters for weight: the first-response HTML repeats
+   each class attribute once per card AND once more inside the RSC flight
+   payload, so a 250-character utility string on a card is paid ~16 times. */
+
+.home-rail {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
+  padding-bottom: 0.5rem;
+  margin-inline: -0.75rem;
+  padding-inline: 0.75rem;
+  scrollbar-width: none;
+}
+.home-rail::-webkit-scrollbar {
+  display: none;
+}
+.home-rail > * {
+  flex: 0 0 10.5rem;
+  scroll-snap-align: start;
+}
+@media (min-width: 768px) {
+  .home-rail {
+    gap: 1rem;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  .home-rail > * {
+    flex: 0 0 13rem;
+  }
+}
+
+.home-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.home-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card);
+}
+/* The card shell is an <article> so the compare/favorite buttons can sit
+   outside the navigating <a> (no <button> inside <a>); the link itself carries
+   the column layout the body's mt:auto price alignment depends on. */
+.home-card-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.home-card-media {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+.home-card-off {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  border-radius: 999px;
+  background: var(--price-deal);
+  padding: 0.1rem 0.4rem;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+.home-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0.625rem;
+}
+.home-card-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--brand);
+}
+.home-card-price {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+.home-card-was {
+  margin-left: 0.3rem;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.home-card-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+/* Category band — navigation, not content: 2 cols on phones (8 tiles),
+   4 from 480px, 6 from 1024px (12 tiles in 6x2). */
+.cat-band {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+@media (min-width: 480px) {
+  .cat-band {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+}
+@media (min-width: 1024px) {
+  .cat-band {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+.cat-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--brand);
+}
+.cat-tile:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cat-tile > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-ico {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 0.55rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* Tiles 9-12: desktop only. The cap and the order are derived from product
+   counts, never from a hardcoded slug list. */
+.cat-tile-wide {
+  display: none;
+}
+@media (min-width: 480px) {
+  .cat-tile-wide {
+    display: flex;
+  }
 }

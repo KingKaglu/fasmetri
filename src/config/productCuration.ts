@@ -188,7 +188,21 @@ const lowAttentionFeaturedTerms = [
   "",
 ];
 
+// Which categories a curation pass is allowed to keep.
+//   "priority" — PRIORITY_CATEGORIES only (the historical behaviour; every
+//                existing caller keeps it by default).
+//   "public"   — anything inside PUBLIC_CATEGORY_SLUGS. Used by the homepage
+//                so a product in a newly populated public category can surface
+//                without a code edit, while PRIORITY_CATEGORIES stays purely a
+//                ranking boost (calculateProductPriority) instead of a gate.
+export type CurationCategoryScope = "priority" | "public";
+
+function categoryInScope(slug: string | null | undefined, scope: CurationCategoryScope) {
+  return scope === "public" ? isPublicCategorySlug(slug) : isUsefulCategory(slug);
+}
+
 export type PublicCurationFilters = {
+  categoryScope?: CurationCategoryScope;
   popularOnly?: boolean;
   techOnly?: boolean;
   largeDiscountOnly?: boolean;
@@ -255,12 +269,13 @@ export function publicProducts(products: ProductView[]): ProductView[] {
 }
 
 export function filterCuratedProducts(products: ProductView[], filters: PublicCurationFilters = {}): ProductView[] {
+  const scope = filters.categoryScope ?? "priority";
   return publicProducts(products).filter((product) => {
     const offers = product.offers;
     if (filters.requireImage && !hasProductImage(product, offers)) return false;
-    if (filters.requireUsefulCategory && !isUsefulComparisonProduct(product, offers)) return false;
+    if (filters.requireUsefulCategory && !isUsefulComparisonProduct(product, offers, scope)) return false;
     if (filters.requireFeaturedComparison && !isFeaturedComparisonProduct(product, offers)) return false;
-    if (filters.requireDiscoveryQuality && !isDiscoveryQualityProduct(product, offers)) return false;
+    if (filters.requireDiscoveryQuality && !isDiscoveryQualityProduct(product, offers, scope)) return false;
     if (filters.popularOnly && calculateProductPriority(product, offers) < 58) return false;
     if (filters.techOnly && !isTechnologyCategory(product.category?.slug)) return false;
     if (filters.largeDiscountOnly && maxDiscount(offers) < 20) return false;
@@ -307,8 +322,12 @@ export function calculateProductPriority(product: ProductView, offers = product.
   return Math.round(score);
 }
 
-export function isUsefulComparisonProduct(product: ProductView, offers = product.offers) {
-  if (!isUsefulCategory(product.category?.slug)) return false;
+export function isUsefulComparisonProduct(
+  product: ProductView,
+  offers = product.offers,
+  scope: CurationCategoryScope = "priority",
+) {
+  if (!categoryInScope(product.category?.slug, scope)) return false;
   if (!offers.some((offer) => offer.currentPrice > 0)) return false;
   const normalizedName = normalizeSignal(product.name);
   const hasDemandSignal = highDemandTerms.some((term) => normalizedName.includes(normalizeSignal(term)));
@@ -334,8 +353,12 @@ export function isFeaturedComparisonProduct(product: ProductView, offers = produ
   return shopCount > 1 && cheapest >= priceFloor;
 }
 
-export function isDiscoveryQualityProduct(product: ProductView, offers = product.offers) {
-  if (!isUsefulComparisonProduct(product, offers) || !hasProductImage(product, offers)) return false;
+export function isDiscoveryQualityProduct(
+  product: ProductView,
+  offers = product.offers,
+  scope: CurationCategoryScope = "priority",
+) {
+  if (!isUsefulComparisonProduct(product, offers, scope) || !hasProductImage(product, offers)) return false;
   if (!offers.some((offer) => offer.availability === "IN_STOCK")) return false;
 
   const normalizedName = normalizeSignal(product.name);

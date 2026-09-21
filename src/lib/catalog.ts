@@ -933,3 +933,84 @@ export async function listScrapeRuns(): Promise<ScrapeRunView[]> {
     return scrapeRunFixtures;
   }
 }
+
+// ─── Popular brands ──────────────────────────────────────
+// The homepage brand strip is derived from live catalog counts instead of a
+// hardcoded list, so a brand that arrives with a new import shows up on the
+// front page without a code edit. Same cache contract as the category/shop
+// lists: one grouped query per revalidation window, flushed by the "catalog"
+// tag through revalidatePublicCatalog().
+export type PopularBrandView = { name: string; productCount: number };
+
+const cachedPopularBrands = unstable_cache(loadPopularBrands, ["popular-brands-v1"], {
+  revalidate: 600,
+  tags: ["catalog"],
+});
+
+export async function listPopularBrands(limit = 8): Promise<PopularBrandView[]> {
+  const brands = await cachedPopularBrands();
+  return limit > 0 ? brands.slice(0, limit) : brands;
+}
+
+async function loadPopularBrands(): Promise<PopularBrandView[]> {
+  if (!prisma) {
+    return mergeBrandCounts(
+      publicProducts(productFixtures).map((product) => ({ name: product.brand ?? "", productCount: 1 })),
+    );
+  }
+  try {
+    const groups = await prisma.product.groupBy({
+      by: ["brand"],
+      where: {
+        isPublic: true,
+        archivedAt: null,
+        needsReview: false,
+        categoryNeedsReview: false,
+        brand: { not: null },
+        OR: [
+          { category: { slug: { in: [...PUBLIC_CATEGORY_SLUGS] } } },
+          { categorySuggestedSlug: { in: [...PUBLIC_CATEGORY_SLUGS] } },
+        ],
+        offers: { some: publicOfferWhere },
+      },
+      _count: { _all: true },
+    });
+    return mergeBrandCounts(groups.map((group) => ({ name: group.brand ?? "", productCount: group._count._all })));
+  } catch (error) {
+    // A brand strip is decorative: an empty list hides the section rather than
+    // showing wrong data, so this failure does not need to take the page down.
+    console.error("[catalog] popular brand query failed", error);
+    return [];
+  }
+}
+
+// Brands are stored per-offer casing ("apple", "Apple", "APPLE"), so fold them
+// on a normalized key and keep the nicest-looking label for display.
+function mergeBrandCounts(rows: PopularBrandView[]): PopularBrandView[] {
+  const merged = new Map<string, PopularBrandView>();
+
+  for (const row of rows) {
+    const label = brandLabel(row.name);
+    if (!label) continue;
+    const key = label.toLowerCase();
+    const existing = merged.get(key);
+    if (existing) existing.productCount += row.productCount;
+    else merged.set(key, { name: label, productCount: row.productCount });
+  }
+
+  return [...merged.values()]
+    .filter((brand) => brand.productCount > 1)
+    .sort((left, right) => right.productCount - left.productCount || left.name.localeCompare(right.name));
+}
+
+function brandLabel(value: string) {
+  const trimmed = value.replace(/\s+/g, " ").trim();
+  // Skip placeholders and pure numbers/codes that are not really brand names.
+  if (trimmed.length < 2 || trimmed.length > 24) return "";
+  if (!/[a-zႠ-ჿ]/i.test(trimmed)) return "";
+  if (/^(unknown|other|n\/?a|none|null)$/i.test(trimmed)) return "";
+  if (trimmed === trimmed.toLowerCase()) {
+    return trimmed.replace(/(^|[\s-])([a-zა-ჺ])/g, (_match, prefix: string, letter: string) => prefix + letter.toUpperCase());
+  }
+  return trimmed;
+}
