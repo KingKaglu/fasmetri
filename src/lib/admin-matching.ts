@@ -256,8 +256,15 @@ export type AutoTriageResult = {
 //      including a matching model code, because a full conflict means the
 //      offers are physically different variants.
 //   2. Exact model code match (e.g. SM-S926B, D10KGEA) with no conflicts → APPROVE.
-//   3. No conflicts and recomputed confidence ≥ 70 (REVIEW band) → APPROVE.
+//   3. No conflicts and the recomputed decision is AUTO (≥85) → APPROVE.
 //   4. Everything else stays PENDING for a human.
+//
+// Rule 3 used to approve anything ≥ 70, which is the REVIEW band — the band
+// that exists precisely because the matcher is not sure. That made every soft
+// cap in the 70–84 range (the caps written to BLOCK an auto-merge) resolve as
+// an auto-merge anyway: a Genshin Impact DualSense capped at 84 for an unknown
+// colour was approved into "DualSense Red". A cap below AUTO now means what it
+// says, and a human sees the pair.
 export async function autoTriagePendingMatches(options: { limit?: number; dryRun?: boolean } = {}): Promise<AutoTriageResult> {
   const db = requireDb();
   const dryRun = options.dryRun ?? false;
@@ -303,11 +310,11 @@ export async function autoTriagePendingMatches(options: { limit?: number; dryRun
       } else if (identity.modelCode && candidateIdentity.modelCode && identity.modelCode === candidateIdentity.modelCode) {
         action = "approved";
         reason = `exact model code match (${identity.modelCode}), no conflicts`;
-      } else if (decision.confidence >= 70) {
+      } else if (decision.band === "AUTO") {
         action = "approved";
         reason = `no conflicts, confidence ${decision.confidence}`;
       } else {
-        reason = `kept for human review (confidence ${decision.confidence}, no conflicts but below 70)`;
+        reason = `kept for human review (confidence ${decision.confidence}, band ${decision.band}, no conflicts but below AUTO)`;
       }
     }
 

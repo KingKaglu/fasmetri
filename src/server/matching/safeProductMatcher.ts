@@ -3,7 +3,7 @@ import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalizat
 import { extractVariantIdentity } from "@/lib/variantMatching";
 import { extractLaptopSku } from "@/lib/laptopSku";
 
-export const SAFE_MATCHER_VERSION = "safe-products-v4";
+export const SAFE_MATCHER_VERSION = "safe-products-v5";
 
 export type SafeCategorySlug = "mobiles" | "laptops" | "gaming";
 export type SafeProductKind = "phone" | "laptop" | "console" | "accessory";
@@ -57,6 +57,7 @@ export type SafeProductIdentity = {
   consoleEdition?: string; // e.g. "disc", "digital"
   isBundle?: boolean;      // true when title includes bundled controllers/games
   accessoryModel?: string; // normalized accessory model (kind === "accessory")
+  editionName?: string;    // special/collab edition, e.g. "genshin_impact", "anniversary", "limited"
   source: {
     title: string;
     specsText?: string;
@@ -233,11 +234,22 @@ export function buildExactKey(identity: SafeProductIdentity) {
       identity.consoleVariant,
       identity.consoleEdition,
       identity.isBundle ? "bundle" : undefined,
+      identity.editionName,
     ]);
   }
   if (identity.kind === "accessory") {
     if (!identity.accessoryModel && !identity.consoleFamily) return undefined;
-    return key(["accessory", identity.brand, identity.consoleFamily, identity.accessoryModel, identity.color]);
+    // editionName is part of the key: a Genshin Impact DualSense is its own
+    // product, so it gets its own canonical and shows up under "other variants
+    // of this model" rather than being folded into the plain controller.
+    return key([
+      "accessory",
+      identity.brand,
+      identity.consoleFamily,
+      identity.accessoryModel,
+      identity.editionName,
+      identity.color,
+    ]);
   }
   if (!identity.modelFamily && !identity.modelCode) return undefined;
   const storage = identity.storageGb ? `${identity.storageGb}${identity.storageType ? `_${identity.storageType}` : ""}` : undefined;
@@ -452,12 +464,14 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
     }
   }
 
-  if (raw.cpu && candidate.cpu && raw.cpu === candidate.cpu) {
+  const rawCpu = cpuToken(raw.cpu);
+  const candidateCpu = cpuToken(candidate.cpu);
+  if (rawCpu && candidateCpu && rawCpu === candidateCpu) {
     confidence += 20;
     reasons.push("CPU +20");
   } else {
     caps.push({ value: 55, reason: "CPU max55" });
-    if (raw.cpu && candidate.cpu) hardConflicts.push(`laptop CPU differs: ${raw.cpu} vs ${candidate.cpu}`);
+    if (rawCpu && candidateCpu) hardConflicts.push(`laptop CPU differs: ${rawCpu} vs ${candidateCpu}`);
   }
 
   if (raw.gpu && candidate.gpu && raw.gpu === candidate.gpu) {
@@ -561,9 +575,12 @@ function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity):
     } else {
       hardConflicts.push(`console variant differs: ${raw.consoleVariant} vs ${candidate.consoleVariant}`);
     }
-  } else {
+  } else if (raw.kind === "console") {
     // Unknown variant on one side: soft cap — prevents AUTO when we have no
     // variant signal at all (no "Slim"/"Pro" word), but family alone = 60 (REVIEW).
+    // Accessories are exempt: a controller has no slim/pro variant, so the cap
+    // was firing on every accessory pair and printing a reason that described
+    // nothing about them.
     caps.push({ value: 84, reason: "consoleVariant unknown max84" });
   }
 
@@ -580,6 +597,22 @@ function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity):
   }
   // No cap when edition is unknown on one side — omitting "CD Version" is common
   // and should not prevent AUTO grouping when family+variant already agree.
+
+  // Special / collaboration edition: a hard conflict in BOTH directions,
+  // including "named on one side only". Unlike "CD Version", no shop omits the
+  // collab from the title — the artwork is the entire reason the product costs
+  // more — so a plain title genuinely means the standard product. This is the
+  // gate that separates "DualSense Genshin Impact Limited Edition" (259₾) from
+  // "DualSense Red" (219₾); they are now two products that list each other as
+  // similar, not one product with two prices.
+  if (raw.editionName !== candidate.editionName) {
+    hardConflicts.push(
+      `special edition differs: ${raw.editionName ?? "standard"} vs ${candidate.editionName ?? "standard"}`,
+    );
+  } else if (raw.editionName) {
+    confidence += 5;
+    reasons.push("specialEdition +5");
+  }
 
   // Bundle flag: a bundle and a bare console must NEVER merge.
   const rawBundle = Boolean(raw.isBundle);
@@ -608,7 +641,7 @@ function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity):
     // Policy:
     //   • Both known + same  → bonus (+5)
     //   • Both known + differ → HARD CONFLICT (different SKU; must not merge)
-    //   • One known, one unknown → cap at 84 (never auto-merge; human review only)
+    //   • One known, one unknown → cap at 69 (WEAK: "similar", never same)
     //   • Both unknown → no cap (match on accessoryModel alone)
     const rawColor = normalizeColor(raw.color);
     const candColor = normalizeColor(candidate.color);
@@ -621,9 +654,13 @@ function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity):
         hardConflicts.push(`accessory color differs: ${rawColor} vs ${candColor}`);
       }
     } else if (rawColor || candColor) {
-      // One side has a known color, the other doesn't.  We don't know if they
-      // match, so prevent AUTO to avoid collapsing distinct-color accessories.
-      caps.push({ value: 84, reason: "accessory color one-side-unknown max84" });
+      // One side has a known colour, the other doesn't. Colour IS the SKU for a
+      // controller, so an unnamed colour is missing identity, not agreement.
+      // The old cap of 84 sat inside the REVIEW band and above auto-triage's
+      // ≥70 approve rule, so "we don't know" was being resolved as "merge".
+      // 69 puts the pair in WEAK: offered as a similar product, never merged
+      // and never auto-approved.
+      caps.push({ value: 69, reason: "accessory color one-side-unknown max69" });
     }
     // If both colors are undefined: no cap — same accessoryModel line is likely the
     // same product when neither store reports a color.
@@ -969,6 +1006,15 @@ const EXTRA_COLOR_NAMES: Record<string, string> = {
   "titanium violet": "violet",
   "titanium yellow": "yellow",
   "titanium navy": "navy",
+  // Sony's Chroma collection for the DualSense. These are their own SKUs at
+  // their own price, so they map to their own tokens rather than to the plain
+  // colour they resemble — "Chroma Pearl" must not become "white".
+  camouflage: "camouflage",
+  "gray camouflage": "camouflage",
+  "grey camouflage": "camouflage",
+  "chroma pearl": "chroma_pearl",
+  "chroma indigo": "chroma_indigo",
+  "chroma teal": "chroma_teal",
   "cosmic gray": "gray",
   "cosmic grey": "gray",
   "cosmic silver": "silver",
@@ -1036,6 +1082,21 @@ function normalizeCpu(value?: string | null) {
   return normalized || undefined;
 }
 
+// One chip, several spellings: a spec field gives "Apple M5 Pro chip"
+// (apple_m5_pro) where a title gives "M5 Pro" (detectCpu → m5_pro), and
+// "AMD Ryzen 5 7520U" vs "Ryzen 5-7520U" split the same way. Compared verbatim
+// those are a hard CPU conflict, which SPLIT one machine into two products.
+//
+// The comparison — not the extraction — is what gets normalized: both sides go
+// through detectCpu's vocabulary only when they are judged. Writing it into
+// identity.cpu instead would rewrite exactKey for ~395 laptop offers and orphan
+// their canonical rows, which is a lot of catalogue churn to buy nothing: the
+// pair still links through scoring once the false conflict is gone.
+function cpuToken(value?: string) {
+  if (!value) return undefined;
+  return detectCpu(value.replace(/_/g, " ")) ?? value;
+}
+
 function detectCpu(signal: string) {
   const apple = signal.match(/\bm\s*([1-9])\s*(pro|max|ultra)?\b/);
   if (apple) return key(["m", apple[1], apple[2] ?? "base"]);
@@ -1043,7 +1104,10 @@ function detectCpu(signal: string) {
   if (snapdragon) return key(["snapdragon_x", snapdragon[1], snapdragon[2]]);
   const appleA = signal.match(/\bapple\s+a(\d{1,2})\s*(pro|max|ultra)?\b/);
   if (appleA) return key(["apple_a", appleA[1], appleA[2] ?? "base"]);
-  const coreUltra = signal.match(/\b(?:intel\s*)?core\s*ultra\s*([3579])\s*[- ]?(\d{3,5}[a-z]{0,2})\b/);
+  // "Core" is optional: shops write "Intel Core Ultra 5 125H", "Intel Ultra 5
+  // 125H" and "Ultra 5-125H" for the one chip, and the missing word was
+  // enough to make the same laptop hard-conflict with itself.
+  const coreUltra = signal.match(/\b(?:intel\s*)?(?:core\s*)?ultra\s*([3579])\s*[- ]?(\d{3,5}[a-z]{0,2})\b/);
   if (coreUltra) return key(["intel_core_ultra", coreUltra[1], coreUltra[2]]);
   const core = signal.match(/\b(?:intel\s*)?(?:core\s*)?(i[3579])[- ]?(\d{3,5}[a-z]{0,2})\b/);
   if (core) return key(["intel", core[1], core[2]]);
@@ -1107,7 +1171,13 @@ function detectScreen(signal: string, extractedScreen?: string, specs?: unknown)
   if (size) screen.sizeIn = Number(size);
   const hz = structuredRefresh?.match(/\d{2,3}/)?.[0] ?? signal.match(/\b(60|90|120|144|165|240)\s*hz\b/)?.[1];
   if (hz) screen.hz = Number(hz);
-  const resolutionSignal = normalizeProductTitle([structuredResolution, signal].filter(Boolean).join(" "));
+  // "Intel UHD Graphics" is a GPU, not a 4K panel. Left in, it gave every
+  // office laptop a UHD screen and hard-conflicted it with the same machine
+  // listed elsewhere as WUXGA.
+  const resolutionSignal = normalizeProductTitle([structuredResolution, signal].filter(Boolean).join(" ")).replace(
+    /\buhd_graphics\b|\buhd\s+graphics\b/g,
+    " ",
+  );
   if (/\bwuxga\b|1920\s*x\s*1200/.test(resolutionSignal)) screen.resolution = "wuxga";
   else if (/\bqhd\b|\b2k\b|2560\s*x\s*1440/.test(resolutionSignal)) screen.resolution = "qhd";
   else if (/\buhd\b|\b4k\b|3840\s*x\s*2160/.test(resolutionSignal)) screen.resolution = "uhd";
@@ -1270,6 +1340,9 @@ function detectConsoleFamily(signal: string): string | undefined {
   if (/\bps5\b|\bplaystation\s*5\b|\bplaystation5\b/.test(s)) return "ps5";
   if (/\bxbox\s+series\s+x\b/.test(s)) return "xbox_series_x";
   if (/\bxbox\s+series\s+s\b/.test(s)) return "xbox_series_s";
+  // PS4 hardware and PS4 games are still listed. Without a family the scorer
+  // capped them at 70 and compared them against PS5 consoles.
+  if (/\bps4\b|\bplaystation\s*4\b|\bplaystation4\b/.test(s)) return "ps4";
   if (/\bxbox\s+one\b/.test(s)) return "xbox_one";
   if (/\bnintendo\s+switch\s+2\b|\bswitch\s+2\b/.test(s)) return "switch_2";
   if (/\bnintendo\s+switch\b|\bswitch\s+oled\b/.test(s)) return "switch";
@@ -1296,6 +1369,69 @@ function detectConsoleEdition(signal: string): string | undefined {
   const s = signal.toLowerCase();
   if (/\bcd\s+version\b|\bdisc\s+version\b|\bwith\s+disc\b|\bdisc\s+edition\b/.test(s)) return "disc";
   if (/\bdigital\s+edition\b|\bdigital\s+version\b|\bdigital\b/.test(s)) return "digital";
+  return undefined;
+}
+
+// Special / collaboration editions are separate SKUs, not colourways.
+// "DualSense Genshin Impact Limited Edition" is not "DualSense Red": it has its
+// own part number, its own price, and its own artwork — and crucially it parses
+// NO colour at all, so the colour gate below cannot separate the two. Before
+// this list existed, that pair scored consoleFamily(60) + accessoryModel(30)
+// capped to 84, which cleared the auto-triage bar and merged them.
+//
+// "Digital Edition" / "Disc Edition" / "Standard Edition" are console editions
+// (detectConsoleEdition) and are deliberately NOT in here.
+const SPECIAL_EDITION_PATTERNS: Array<{ pattern: RegExp; edition: string }> = [
+  { pattern: /\bgenshin\s*impact\b/i, edition: "genshin_impact" },
+  { pattern: /\bastro\s*bot\b/i, edition: "astro_bot" },
+  { pattern: /\bgod\s+of\s+war\b/i, edition: "god_of_war" },
+  { pattern: /\bspider[-\s]?man\b/i, edition: "spider_man" },
+  { pattern: /\bthe\s+last\s+of\s+us\b/i, edition: "last_of_us" },
+  { pattern: /\bghost\s+of\s+(tsushima|yotei)\b/i, edition: "ghost_of" },
+  { pattern: /\bfinal\s+fantasy\b/i, edition: "final_fantasy" },
+  { pattern: /\bcall\s+of\s+duty\b/i, edition: "call_of_duty" },
+  { pattern: /\bgran\s+turismo\b/i, edition: "gran_turismo" },
+  { pattern: /\bhogwarts\b/i, edition: "hogwarts" },
+  { pattern: /\bstar\s+wars\b/i, edition: "star_wars" },
+  { pattern: /\bfortnite\b/i, edition: "fortnite" },
+  { pattern: /\bdeathloop\b/i, edition: "deathloop" },
+  { pattern: /\bmarvel'?s?\b/i, edition: "marvel" },
+  { pattern: /\blebron\b/i, edition: "lebron" },
+  { pattern: /\bea\s+(fc|sports)\b/i, edition: "ea_sports" },
+  { pattern: /\bnba\s*2k\b/i, edition: "nba_2k" },
+  { pattern: /\b\d{1,3}(?:th|st|nd|rd)\s+anniversary\b|\banniversary\s+edition\b/i, edition: "anniversary" },
+];
+
+// A named collab beats a generic wording, so the franchise list is checked first
+// and "limited" is only the fallback for an edition we cannot name.
+const GENERIC_SPECIAL_EDITION =
+  /\blimited\s+edition\b|\bspecial\s+edition\b|\bcollector'?s?\s+edition\b|\bexclusive\s+edition\b/i;
+
+// "<Word> Edition" where the word is not one of the ordinary packaging words is
+// a collab we have not listed yet ("Marathon Edition"). Naming it keeps the two
+// apart without waiting for the franchise to be added above.
+const NAMED_EDITION = /\b([a-z][a-z0-9']{2,})\s+edition\b/i;
+const ORDINARY_EDITION_WORDS = new Set([
+  "digital",
+  "disc",
+  "cd",
+  "standard",
+  "base",
+  "global",
+  "international",
+  "regular",
+  "new",
+  "this",
+  "the",
+]);
+
+function detectSpecialEdition(signal: string): string | undefined {
+  for (const entry of SPECIAL_EDITION_PATTERNS) {
+    if (entry.pattern.test(signal)) return entry.edition;
+  }
+  if (GENERIC_SPECIAL_EDITION.test(signal)) return "limited";
+  const named = signal.match(NAMED_EDITION)?.[1]?.toLowerCase();
+  if (named && !ORDINARY_EDITION_WORDS.has(named)) return named;
   return undefined;
 }
 
@@ -1378,6 +1514,11 @@ function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | 
 
   const consoleFamily = detectConsoleFamily(normalizedSignal);
   const color = detectColor(normalizedSignal);
+  // Read the edition from the TITLE only, for the same reason the accessory
+  // check does: a spec sheet or description that merely mentions a game
+  // ("works with Genshin Impact") must not turn a standard product into a
+  // collector's edition.
+  const editionName = detectSpecialEdition(accessorySignal);
 
   if (isAccessory) {
     // Accessories: brand required, accessoryModel required
@@ -1388,6 +1529,7 @@ function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | 
       brand,
       consoleFamily: consoleFamily ?? undefined,
       accessoryModel: accessoryModel ?? undefined,
+      editionName,
       color,
       normalizedTitle,
       cleanTitle,
@@ -1413,6 +1555,7 @@ function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | 
     consoleVariant,
     consoleEdition,
     isBundle,
+    editionName,
     color,
     normalizedTitle,
     cleanTitle,

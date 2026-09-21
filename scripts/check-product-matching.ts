@@ -238,6 +238,7 @@ type SafeCase = {
   categorySlug: string;
   expectAutoOrReview?: boolean; // true => band AUTO|REVIEW (same product); false => not auto-linked
   expectRejected?: boolean;
+  expectBandBelow?: number; // confidence must stay under this (auto-triage approves at ≥85)
   // assertions on the LEFT identity itself
   expectLeftRam?: number | undefined;
   expectLeftKeyEquals?: string;
@@ -326,6 +327,60 @@ const safeCases: SafeCase[] = [
     },
     expectRejected: true,
   },
+  {
+    // The screenshot case: a collab edition controller scored 84% against a
+    // plain coloured one (family 60 + accessoryModel 30, capped for an unknown
+    // colour) and auto-triage merged them. A named edition on one side only is
+    // a different SKU.
+    label: "Genshin Impact DualSense != plain DualSense Red",
+    left: "Playstation DualSense PS5 Wireless Controller Genshin Impact Limited Edition / PS5 /KIA",
+    right: "Sony PS5 Dualsense Red",
+    categorySlug: "gaming",
+    expectRejected: true,
+  },
+  {
+    // Same guard, generic wording and no colour on either side.
+    label: "Limited Edition DualSense != standard DualSense",
+    left: "Sony DualSense Wireless Controller Limited Edition",
+    right: "Sony PS5 DualSense Wireless Controller",
+    categorySlug: "gaming",
+    expectRejected: true,
+  },
+  {
+    // Two shops listing the SAME collab edition must still link.
+    label: "same collab edition links across shops",
+    left: "Playstation DualSense PS5 Wireless Controller Genshin Impact Limited Edition",
+    right: "Sony PS5 DualSense Genshin Impact Controller",
+    categorySlug: "gaming",
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Colour is the accessory SKU: an unnamed colour must not clear the
+    // auto-triage bar. WEAK = offered as similar, never merged.
+    label: "accessory with unknown colour stays below auto-triage",
+    left: "Sony PS5 DualSense Wireless Controller",
+    right: "Sony PS5 Dualsense Red",
+    categorySlug: "gaming",
+    expectBandBelow: 70,
+  },
+  {
+    // No over-correction: two plain controllers in the same named colour link.
+    label: "same colour DualSense still links across shops",
+    left: "Sony PS5 DualSense Wireless Controller White",
+    right: "Sony PlayStation 5 Dualsense Controller White",
+    categorySlug: "gaming",
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Different named colours were already a hard conflict — keep it that way.
+    label: "different accessory colours stay rejected",
+    left: "Sony PS5 DualSense Wireless Controller Black",
+    right: "Sony PS5 Dualsense Red",
+    categorySlug: "gaming",
+    expectRejected: true,
+  },
 ];
 
 for (const testCase of safeCases) {
@@ -349,6 +404,12 @@ for (const testCase of safeCases) {
   const decision = scoreSafeMatch(left!, right!);
   if (testCase.expectRejected) {
     assert.equal(decision.band, "REJECTED", `${testCase.label}: expected REJECTED, got ${decision.band} (${decision.confidence}) ${decision.reason}`);
+  }
+  if (testCase.expectBandBelow !== undefined) {
+    assert.ok(
+      decision.confidence < testCase.expectBandBelow,
+      `${testCase.label}: expected confidence < ${testCase.expectBandBelow}, got ${decision.confidence} (${decision.band}) ${decision.reason}`,
+    );
   }
   if (testCase.expectAutoOrReview) {
     assert.ok(
