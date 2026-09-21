@@ -451,7 +451,33 @@ function scorePhone(raw: SafeProductIdentity, candidate: SafeProductIdentity): S
     reasons.push("image +5");
   }
 
-  return finalize(confidence, reasons, hardConflicts, caps, { auto: 85, review: 70, weak: 60 });
+  // Everything that identifies a phone agrees: same model, same storage, same
+  // RAM, same named colour. What is left -- SIM wording, 5G mention, image --
+  // is how a shop writes its title, not what is in the box.
+  //
+  // Without this the arithmetic caps such a pair at 80 whenever the two shops
+  // word the SIM differently (35+20+10+10+5), so it could never reach AUTO at
+  // 85. That is why auto-triage used to approve the whole REVIEW band: it was
+  // papering over a ceiling in the scorer. With the ceiling gone, triage can
+  // stay strict and these pairs still link on their own -- 595 of them in a
+  // production dry run.
+  const identityPinned =
+    Boolean(raw.model && candidate.model && raw.model === candidate.model) &&
+    Boolean(raw.storageGb && candidate.storageGb && raw.storageGb === candidate.storageGb) &&
+    raw.ramGb === candidate.ramGb &&
+    Boolean(rawPhoneColor && candidatePhoneColor && rawPhoneColor === candidatePhoneColor);
+
+  if (identityPinned && !hardConflicts.length) {
+    confidence = Math.max(confidence, 90);
+    reasons.push("model+storage+RAM+colour all agree");
+  }
+
+  // The SIM caps exist to stop a merge guessed from a partial title. A pinned
+  // identity is not a guess, so they no longer apply -- every other cap still
+  // does, and a hard conflict still wins outright.
+  const effectiveCaps = identityPinned && !hardConflicts.length ? caps.filter((cap) => !cap.reason.startsWith("SIM")) : caps;
+
+  return finalize(confidence, reasons, hardConflicts, effectiveCaps, { auto: 85, review: 70, weak: 60 });
 }
 
 function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {

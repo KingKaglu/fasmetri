@@ -238,6 +238,7 @@ type SafeCase = {
   categorySlug: string;
   expectAutoOrReview?: boolean; // true => band AUTO|REVIEW (same product); false => not auto-linked
   expectRejected?: boolean;
+  expectAuto?: boolean; // must reach AUTO (>= 85), i.e. links without a human
   expectBandBelow?: number; // confidence must stay under this (auto-triage approves at ≥85)
   // assertions on the LEFT identity itself
   expectLeftRam?: number | undefined;
@@ -296,6 +297,25 @@ const safeCases: SafeCase[] = [
     categorySlug: "mobiles",
     expectKeysEqual: true,
     expectAutoOrReview: true,
+  },
+  {
+    // Model, storage, RAM and a named colour all agree: the SIM wording is how
+    // the shop writes its title, not what is in the box. This pair used to top
+    // out at 80 and sit in the review queue forever.
+    label: "identical phone with different SIM wording auto-links",
+    left: "SAMSUNG A57 8GB/256GB Dark Blue SM-A576BDBFCAU",
+    right: "Samsung Galaxy A57 A576BD 5G Dual Sim 8/256GB Dark Blue",
+    categorySlug: "mobiles",
+    expectAuto: true,
+  },
+  {
+    // The pinned-identity shortcut must not rescue a pair with an unknown
+    // colour on one side — that is the over-merge this whole pass is about.
+    label: "unknown colour is not a pinned identity",
+    left: "Samsung Galaxy A57 8/256GB",
+    right: "Samsung Galaxy A57 8/256GB Dark Blue",
+    categorySlug: "mobiles",
+    expectBandBelow: 85,
   },
   {
     // Safety: genuinely different colors must NOT merge (over-merge guard kept).
@@ -468,6 +488,13 @@ for (const testCase of safeCases) {
     assert.ok(
       decision.confidence < testCase.expectBandBelow,
       `${testCase.label}: expected confidence < ${testCase.expectBandBelow}, got ${decision.confidence} (${decision.band}) ${decision.reason}`,
+    );
+  }
+  if (testCase.expectAuto) {
+    assert.equal(
+      decision.band,
+      "AUTO",
+      `${testCase.label}: expected AUTO, got ${decision.band} (${decision.confidence}) ${decision.reason}`,
     );
   }
   if (testCase.expectAutoOrReview) {
