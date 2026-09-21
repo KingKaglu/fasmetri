@@ -16,8 +16,11 @@ export type StoreConfig = {
 export const STORE_CONFIGS: StoreConfig[] = [
   // High-priority stores — fully enabled
   { key: "zoommer",      name: "Zoommer",       baseUrl: "https://zoommer.ge",       enabled: true,  priority: "high"   },
-  // Alta is blocked by Cloudflare — disabled until official feed/API is available
-  { key: "alta", name: "Alta", baseUrl: "https://alta.ge", enabled: false, priority: "high", importMode: "disabled", blockReason: "blocked_by_cloudflare", notes: "Blocked by Cloudflare. Needs official partner feed, API, manual CSV import, or later adapter." },
+  // Alta is synced from its own public JSON API (npm run scrape:alta:full).
+  // The old "blocked_by_cloudflare" note was about the HTTP CLIENT, not the IP:
+  // Cloudflare fingerprints the TLS handshake, so Node fetch gets 403 where
+  // curl gets 200. src/server/alta/sync.ts goes through curl and works.
+  { key: "alta", name: "Alta", baseUrl: "https://alta.ge", enabled: true, priority: "high", notes: "Synced from the store's own public JSON API at api.alta.ge (npm run scrape:alta:full) — no HTML scraping. Carries previousPrice and real stock counts. Requires curl (Node fetch is 403'd by Cloudflare) and capitalised request headers." },
   { key: "ee",           name: "Elite Electronics", baseUrl: "https://ee.ge",         enabled: true,  priority: "high"   },
   { key: "pcshop",       name: "PCShop",         baseUrl: "https://pcshop.ge",        enabled: true,  priority: "high"   },
   // Medium-priority stores — enabled
@@ -27,7 +30,7 @@ export const STORE_CONFIGS: StoreConfig[] = [
   // Medium-priority stores — disabled until adapter is configured
   { key: "gorgia",       name: "Gorgia",         baseUrl: "https://gorgia.ge",        enabled: false, priority: "medium" },
   { key: "domino",       name: "Domino",         baseUrl: "https://domino.com.ge",    enabled: false, priority: "medium" },
-  { key: "kontakt",      name: "Kontakt",        baseUrl: "https://kontakt.ge",       enabled: true,  priority: "medium", notes: "New JSON-LD/sitemap adapter — validate with import-store --dry-run on the GE runner before first promote." },
+  { key: "kontakt",      name: "Kontakt",        baseUrl: "https://kontakt.ge",       enabled: true,  priority: "medium", notes: "Kontakt Home. Magento 2 (Swissup Breeze); sitemaps live at /media/sitemap/sitemap_ge.xml, not the conventional roots. Products are flat single-segment slugs parsed from JSON-LD Offer; brand hubs emit AggregateOffer in AZN and are rejected. Adapter verified against live pages 2026-09-20 — not yet promoted, run import-store --dry-run first." },
   { key: "primestore",   name: "PrimeStore",     baseUrl: "https://primestore.ge",    enabled: false, priority: "medium" },
   { key: "kalo",         name: "Kalo",           baseUrl: "https://kalo.ge",          enabled: false, priority: "medium" },
   // Low-priority stores — disabled until adapter is configured

@@ -1,4 +1,3 @@
-import { altaAdapter } from "@/server/scrapers/shops/alta";
 import { eeAdapter } from "@/server/scrapers/shops/ee";
 import { extraAdapter } from "@/server/scrapers/shops/extra";
 import { kontaktAdapter } from "@/server/scrapers/shops/kontakt";
@@ -8,7 +7,6 @@ import { veliAdapter } from "@/server/scrapers/shops/veli";
 import { zoommerAdapter } from "@/server/scrapers/shops/zoommer";
 
 export const adapters = [
-  altaAdapter,
   zoommerAdapter,
   eeAdapter,
   veliAdapter,

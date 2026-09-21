@@ -636,6 +636,12 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "lenovo loq",
       "lenovo legion",
       "ლეპტოპი",
+      // Georgian inflects, so a keyword written in the nominative singular
+      // ("ნოუთბუქი") misses the plural ("ნოუთბუქები") — `containsKeyword` is a
+      // substring test, and the plural suffix comes after the -ი. Storing the
+      // stem instead matches both. Alta's own category is "ნოუთბუქი", which
+      // was scoring zero and taking every laptop with it.
+      "ნოუთბუქ",
       // Gaming/premium notebook families that were missing (PCShop/Zoommer/EE carry them)
       "alienware",
       "dell g15",
@@ -973,6 +979,27 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "მიქსერი",
       "უთო",
       "ფენი",
+      // Georgian names that matched no rule at all and sent the whole group to
+      // `other`. Kontakt and Alta title in Georgian with no English fallback,
+      // so a missing word here is a product missing from the public catalogue,
+      // not just a mislabelled one. Purely additive: every term below scored
+      // zero before, so nothing already classified moves.
+      "წვენსაწურ",
+      "ჩოფერ",
+      "კომბაინ",
+      "პურის საცხობი",
+      "მულტისახარშ",
+      "მულტი სახარშ",
+      "ხორცსაკეპ",
+      "სენდვიჩ მეიქერ",
+      "ვაფლის მეიქერ",
+      "ჩირის აპარატი",
+      "ფრის აპარატი",
+      "ყავის მადუღარა",
+      "ყავის საფქვავი",
+      "ორთქლის გენერატორ",
+      "ელექტრო გრილ",
+      "სამზარეულოს სასწორ",
     ],
     negativeKeywords: ["coffee cup", "mug", "ჭიქა", "ფინჯანი", "nx-7015", "genius nx"],
     contextKeywords: ["small appliance"],
@@ -1013,6 +1040,19 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "კონდიციონერი",
       "გამათბობელი",
       "მტვერსასრუტი",
+      // See the note on the small-appliances list: additive Georgian terms
+      // that previously scored zero. "კონდენციონერ" is Kontakt's own
+      // misspelling of air conditioner and appears on ~9 live listings.
+      "გაზქურ",
+      "გაზქურის ზედაპირი",
+      "ვენტილატორ",
+      "კონდენციონერ",
+      "კონვექტორ",
+      "საკერავი მანქანა",
+      "ჰაერის გამწმენდი",
+      "ჰაერის გამაგრილებელ",
+      "წყლის გამაცხელებელ",
+      "წყლის დისპენსერ",
     ],
     contextKeywords: ["domestic appliance", "home appliance"],
     titleWeight: 88,
@@ -1031,6 +1071,10 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   {
     slug: "audio",
     titleKeywords: ["airpods", "earbuds", "buds", "colorbuds", "redmi buds", "freebuds", "galaxy buds", "nothing ear", "amazon echo", "echo dot", "echo spot", "jbl", "edifier", "klipsch", "soundcore", "crosley", "genius sw", "headphone", "headset", "earphone", "on-ear", "in-ear", "in ear", "true in ear", "tws", "speaker", "soundbar", "microphone", "microphonr", "lavalier", "turntable", "beoplay", "freearc", "eo-hs", "wf-c500", "wh-g500", "bh-t19", "h111", "h151", "stereo epn", "defender spk", "microlab", "sven", "trust avora", "trust primo", "ყურსასმენი", "დინამიკი", "მიკროფონი",
+      // Stems, for the same inflection reason as "ნოუთბუქ" above: Alta files
+      // headphones under "უსადენო ყურსასმენები" / "სადენიანი ყურსასმენები",
+      // neither of which contains the singular "ყურსასმენი".
+      "ყურსასმენ", "საუნდბარ", "აუდიო სისტემ",
       "poly blackwire", "poly voyager", "jabra evolve", "jabra engage", "logitech zone", "sennheiser",
       "open-ear headset", "wired headset", "bluetooth headset",
     ],
@@ -1449,7 +1493,14 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   },
   {
     slug: "beauty",
-    titleKeywords: ["beauty", "skincare", "skin care", "cosmetic", "perfume", "personal care", "face toner", "toner face", "ampoule", "ესენცია", "სახის შრატი", "სახის გელ-კრემი", "moisturizer", "დამატენიანებელი", "highlighting powder", "ჰაილაითერი", "foundation", "სახის ტონალური", "body lotion", "ტანის ლოსიონი", "წამწამები", "ბლაში", "ტუჩსაცხი", "lipliner", "ტუჩის ფანქარი", "სუნამო", "trimmer", "ტრიმერი", "philips mg", "braun bg", "braun xt", "braun pl", "rowenta cv", "rowenta cf", "rowenta tn", "rowenta ub", "sollex", "bathroom scale", "bodygroom", "multigroom", "multi groomer", "toothbrush", "oneblade", "supersonic", "airwrap", "airstrait", "airstyle", "dreame pocket", "hair styler", "shampoo", "kerastase", "elizabeth", "elizavecca", "patches", "პაჩები", "შრატი", "შამპუნი", "თმის ცვილი", "თმის ბალზამი", "თმისსამაგრი", "თავსაბანი", "თვალის ბალიში", "ლავანდის", "სახის გამწმენდი", "body retreat", "nail file", "glass file", "სილამაზე", "კოსმეტიკა", "პარფიუმ"],
+    titleKeywords: ["beauty", "skincare", "skin care", "cosmetic", "perfume", "personal care", "face toner", "toner face", "ampoule", "ესენცია", "სახის შრატი", "სახის გელ-კრემი", "moisturizer", "დამატენიანებელი", "highlighting powder", "ჰაილაითერი", "foundation", "სახის ტონალური", "body lotion", "ტანის ლოსიონი", "წამწამები", "ბლაში", "ტუჩსაცხი", "lipliner", "ტუჩის ფანქარი", "სუნამო", "trimmer", "ტრიმერი", "philips mg", "braun bg", "braun xt", "braun pl", "rowenta cv", "rowenta cf", "rowenta tn", "rowenta ub", "sollex", "bathroom scale", "bodygroom", "multigroom", "multi groomer", "toothbrush", "oneblade", "supersonic", "airwrap", "airstrait", "airstyle", "dreame pocket", "hair styler", "shampoo", "kerastase", "elizabeth", "elizavecca", "patches", "პაჩები", "შრატი", "შამპუნი", "თმის ცვილი", "თმის ბალზამი", "თმისსამაგრი", "თავსაბანი", "თვალის ბალიში", "ლავანდის", "სახის გამწმენდი", "body retreat", "nail file", "glass file", "სილამაზე", "კოსმეტიკა", "პარფიუმ",
+      // Additive Georgian personal-care terms; each scored zero before, so no
+      // product that already has a category moves. "თმის უთო" and "ფენი" are
+      // deliberately NOT here — small-appliances already claims them, and
+      // moving them would split the same hair dryer across two categories
+      // depending on which shop listed it, which is what matching relies on.
+      "წვერსაპარს", "თმის საკრეჭ", "თმის სახვევ", "ეპილატორ", "სტაილერ",
+      "კბილის ჯაგრის", "ირიგატორ", "მასაჟორ"],
     titleKeywordGroups: [
       ["electric", "shaver"],
       ["xiaomi", "shaver"],

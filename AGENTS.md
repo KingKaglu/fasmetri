@@ -34,6 +34,11 @@ npm run discover:technoboom              # read-only: fetch the catalogue, write
 npm run scrape:technoboom:full           # listing + per-item spec dimensions, then promote raw offers
 npm run sync:technoboom                  # price/stock refresh (one API call, reuses stored specs)
 
+# Alta (JSON API store — no HTML scraping; requires curl, see note below)
+npm run discover:alta                    # read-only: walk the listing API, count usable offers
+npm run scrape:alta:full                 # whole catalogue, then promote raw offers
+npm run sync:alta                        # price/stock refresh
+
 # Validation
 npm run validate-category-assignments
 npm run validate-variant-matching
@@ -125,6 +130,89 @@ Notes that matter when changing it:
 - The module is **raw-only**: it writes `RawOffer` rows through the shared
   `saveRawOffer` and leaves matching to normalize → match-offers-to-variants →
   recategorize.
+
+### Alta: API-only ingestion
+
+`alta.ge` is a Next.js storefront over its own public JSON API at
+`api.alta.ge`, which publishes a Swagger document at `/swagger/v1/swagger.json`.
+Reading that API costs ~510 calls instead of ~8,150 page fetches, so Alta is
+ingested like TechnoBoom (`src/server/alta/sync.ts`), not through the HTML
+runner. There is no `src/server/scrapers/shops/alta.ts` — the old CS-Cart
+selector adapter was deleted, since the site has not been CS-Cart for a while
+and every one of its selectors matched nothing.
+
+- `GET /v1/Categories/all-categories` — 18 roots and their children
+- `GET /v1/Products/v4?CategoryId=&Limit=16&Page=` — the listing, richest source
+
+Things that matter when changing it:
+
+- **It must be fetched with curl, not `fetch`.** Cloudflare fingerprints the
+  TLS/HTTP2 handshake in front of both hosts: with byte-identical headers curl
+  gets 200 and Node's undici gets 403, every time. This is what the old
+  `blockReason: "blocked_by_cloudflare"` was really describing — the client,
+  not the IP.
+- **Request header names must stay capitalised.** `Origin:`/`Accept:` return
+  JSON; `origin:`/`accept:` earn a "Just a moment" JS challenge.
+- **`Accept-Language: ka-GE` is required**, or the API answers in English and
+  returns English routes that do not match the Georgian storefront.
+- **`Limit` is pinned to 16.** 24 and above return 403.
+- **Only the 18 root categories are walked.** A parent listing already returns
+  every descendant, so walking all ~292 nodes re-fetches the same products once
+  per level for no extra coverage.
+- **`/v1/Products/fb-commerce` must not be used.** It returns the whole
+  catalogue in one call and looks ideal, but it is a stale Facebook feed:
+  49,982 rows against ~8,150 live products, `route` null on every row and
+  `availability` "out of stock" on all of them.
+- Listing rows carry `previousPrice`, so Alta is one of the few shops with a
+  real old price without a second request, and `storageQuantity` for stock.
+- **Alta Outlet** (`altas-autleti-c301`) is reduced-condition stock and is held
+  out of the public category map, the same way EE's `/autleti/` path is.
+- **The sync must emit `categorySlug`, and it must be a Fasmetri slug.** Alta
+  titles are bare `Brand ModelCode` — "Samsung RB29FERNDSA/WR" has no word any
+  category rule can match, so it scored 28 and fell into `other`, out of the
+  public catalogue. Passing the store's Georgian category as a *breadcrumb* is
+  not enough: `categorizeProduct` caps a context-only match at 64, under the 72
+  needed to leave review. Only `scrapedShopCategory` (fed from
+  `RawOffer.rawCategory`, which is `ScrapedOffer.categorySlug`) carries
+  first-party weight. `resolveCategoryName` in the sync resolves the label by
+  running it through the same classifier, so Alta's "თმის ფენი" lands wherever
+  every other shop's hair dryer lands — cross-store matching depends on that.
+  Two of Alta's roots are named "<thing> და აქსესუარები", so the accessory
+  exclusion is matched against the LEAF name only; testing the parent too
+  silently dropped მობილური ტელეფონები and ნოუთბუქი.
+
+### Category keywords: Georgian inflects
+
+`containsKeyword` is a substring test, so a keyword written in the nominative
+singular misses the plural: "ყურსასმენი" does not appear inside
+"ყურსასმენები", and "ნოუთბუქი" does not appear inside "ნოუთბუქები". Store the
+**stem** ("ყურსასმენ", "ნოუთბუქ") in `CATEGORY_RULES` for any Georgian noun.
+This is not cosmetic — Kontakt and Alta title in Georgian with no English
+fallback, so a missing form is a product missing from the public catalogue.
+Before changing `CATEGORY_RULES`, snapshot `categorizeProduct` over every
+`RawOffer` and diff after; the bar is *rescued > 0, lost to `other` = 0*.
+
+### Kontakt: sitemap quirks
+
+`kontakt.ge` is Magento 2 (Swissup Breeze). Its sitemaps are **not** at any
+conventional root — `/sitemap.xml` 302s into a 404 — they live at
+`/media/sitemap/sitemap_ge.xml`, advertised only in robots.txt. Products are
+flat single-segment slugs; all multi-segment paths are category listings.
+
+- Brand hubs (`/xiaomi`, `/canon`) and promo pages also emit `@type: Product`,
+  but wrapped in an `AggregateOffer` priced in **AZN** (a leftover from the
+  Azerbaijani parent chain). Real products always carry a plain `Offer` in GEL,
+  and the adapter rejects anything else.
+- **`availability` is unreliable**: the same URL returns `OutOfStock` on one
+  fetch and omits the field on the next (Magento full-page cache variants). A
+  missing value maps to UNKNOWN, never OUT_OF_STOCK.
+- Titles arrive as the SEO meta title with a ` | Kontakt.ge` suffix, stripped
+  before matching.
+- There is **no `BreadcrumbList` JSON-LD**, so category comes from the title
+  alone. Georgian titles classify well; English ones often fall to `other`.
+- The resolved URL list is cached to `.codex-logs/cache/` for 6h. The cached
+  list is the **filtered** one, because parallel offset windows must page
+  through an identical, identically-ordered list.
 
 ### Product Identity & Matching
 
