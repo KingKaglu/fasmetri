@@ -175,11 +175,13 @@ async function main() {
         // For phones/laptops: model or modelCode required.
         // For consoles: consoleFamily required.
         // For accessories: accessoryModel or consoleFamily required.
+        // For games: the disc's own name plus the platform it runs on.
         const hasModel =
           identity.model ||
           identity.modelCode ||
           (identity.kind === "console" && identity.consoleFamily) ||
-          (identity.kind === "accessory" && (identity.accessoryModel || identity.consoleFamily));
+          (identity.kind === "accessory" && (identity.accessoryModel || identity.consoleFamily)) ||
+          (identity.kind === "game" && identity.gameTitle && identity.consoleFamily);
         if (!hasModel) {
           report.rejected += 1;
           addFailure(report, raw, "Missing model/modelCode/consoleFamily after safe normalization.");

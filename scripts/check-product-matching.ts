@@ -328,6 +328,39 @@ const safeCases: SafeCase[] = [
     expectRejected: true,
   },
   {
+    // Games were keyed on their platform alone, so every variant-less PS5
+    // listing shared one canonical: 187 different discs inside one product.
+    label: "two different PS5 games are not one product",
+    left: "Sony PS5 Game RIDE 6",
+    right: "Call of Duty Modern Warfare III Game for PS5",
+    categorySlug: "gaming",
+    expectRejected: true,
+  },
+  {
+    label: "a game is never the console it runs on",
+    left: "Lego Horizon Adventures For PS5",
+    right: "Sony PlayStation PS5 Slim 825GB Digital Edition White",
+    categorySlug: "gaming",
+    expectRejected: true,
+  },
+  {
+    // The same disc across two shops is exactly what should merge.
+    label: "same game across shops links",
+    left: "Sony PS5 Game STALKER 2 Heart of Chornobyl",
+    right: "STALKER 2 Heart of Chornobyl Game for PS5",
+    categorySlug: "gaming",
+    expectKeysEqual: true,
+    expectAutoOrReview: true,
+  },
+  {
+    // Platform is part of the product: the PS4 disc is a different SKU.
+    label: "PS4 and PS5 copies of one game stay apart",
+    left: "God of War Ragnarok Game for PS4",
+    right: "God of War Ragnarok Game for PS5",
+    categorySlug: "gaming",
+    expectRejected: true,
+  },
+  {
     // The fallback model parser took the two words after the brand, so two
     // different Redmagic phones 1200 GEL apart both became zte_nubia_redmagic
     // and scored 80% — which the old auto-triage merged.

@@ -6,7 +6,7 @@ import { extractLaptopSku } from "@/lib/laptopSku";
 export const SAFE_MATCHER_VERSION = "safe-products-v5";
 
 export type SafeCategorySlug = "mobiles" | "laptops" | "gaming";
-export type SafeProductKind = "phone" | "laptop" | "console" | "accessory";
+export type SafeProductKind = "phone" | "laptop" | "console" | "accessory" | "game";
 export type SafeMatchBand = "AUTO" | "REVIEW" | "WEAK" | "NO_MATCH" | "REJECTED";
 
 export type SafeOfferInput = {
@@ -58,6 +58,7 @@ export type SafeProductIdentity = {
   isBundle?: boolean;      // true when title includes bundled controllers/games
   accessoryModel?: string; // normalized accessory model (kind === "accessory")
   editionName?: string;    // special/collab edition, e.g. "genshin_impact", "anniversary", "limited"
+  gameTitle?: string;      // normalized game name (kind === "game")
   source: {
     title: string;
     specsText?: string;
@@ -182,7 +183,11 @@ export function readSafeIdentity(value: unknown): SafeProductIdentity | undefine
   if (!value || typeof value !== "object") return undefined;
   const identity = value as Partial<SafeProductIdentity>;
   if (
-    (identity.kind === "phone" || identity.kind === "laptop" || identity.kind === "console" || identity.kind === "accessory") &&
+    (identity.kind === "phone" ||
+      identity.kind === "laptop" ||
+      identity.kind === "console" ||
+      identity.kind === "accessory" ||
+      identity.kind === "game") &&
     (identity.categorySlug === "mobiles" || identity.categorySlug === "laptops" || identity.categorySlug === "gaming") &&
     typeof identity.normalizedTitle === "string" &&
     typeof identity.cleanTitle === "string" &&
@@ -207,6 +212,10 @@ export function buildFamilyKey(identity: SafeProductIdentity) {
   if (identity.kind === "accessory") {
     if (!identity.consoleFamily && !identity.accessoryModel) return undefined;
     return key(["accessory", identity.brand, identity.consoleFamily, identity.accessoryModel]);
+  }
+  if (identity.kind === "game") {
+    if (!identity.consoleFamily) return undefined;
+    return key(["game", identity.consoleFamily]);
   }
   if (!identity.modelFamily && !identity.modelCode) return undefined;
   return key(["laptop", identity.brand, identity.modelFamily ?? identity.modelCode]);
@@ -236,6 +245,12 @@ export function buildExactKey(identity: SafeProductIdentity) {
       identity.isBundle ? "bundle" : undefined,
       identity.editionName,
     ]);
+  }
+  if (identity.kind === "game") {
+    if (!identity.consoleFamily || !identity.gameTitle) return undefined;
+    // The disc's name IS the product. Platform stays in the key because a PS4
+    // copy and a PS5 copy are sold separately at different prices.
+    return key(["game", identity.consoleFamily, identity.gameTitle]);
   }
   if (identity.kind === "accessory") {
     if (!identity.accessoryModel && !identity.consoleFamily) return undefined;
@@ -281,6 +296,7 @@ export function scoreSafeMatch(raw: SafeProductIdentity, candidate: SafeProductI
   }
   if (raw.kind === "phone") return scorePhone(raw, candidate);
   if (raw.kind === "laptop") return scoreLaptop(raw, candidate);
+  if (raw.kind === "game") return scoreGame(raw, candidate);
   if (raw.kind === "console" || raw.kind === "accessory") return scoreConsole(raw, candidate);
   return rejected("unknown kind", [`unsupported kind: ${raw.kind}`]);
 }
@@ -314,10 +330,14 @@ export function identitySummary(identity: SafeProductIdentity) {
       identity.brand,
       identity.consoleFamily,
       identity.accessoryModel,
+      identity.editionName,
       identity.color,
     ]
       .filter(Boolean)
       .join(" ");
+  }
+  if (identity.kind === "game") {
+    return [identity.gameTitle, identity.consoleFamily, identity.editionName].filter(Boolean).join(" ");
   }
   return [
     identity.brand,
@@ -540,6 +560,39 @@ function scoreLaptop(raw: SafeProductIdentity, candidate: SafeProductIdentity): 
   if (skuExact) reasons.push("exact manufacturer SKU — spec caps lifted");
 
   return finalize(confidence, reasons, hardConflicts, effectiveCaps, { auto: 85, review: 70, weak: 65 });
+}
+
+// Games match on their name and their platform, and on nothing else. There is
+// no partial credit: two discs are either the same title on the same console
+// or they are different products.
+function scoreGame(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {
+  const hardConflicts: string[] = [];
+  const reasons: string[] = [];
+  let confidence = 0;
+
+  if (!raw.consoleFamily || !candidate.consoleFamily) {
+    return rejected("game platform unknown", ["game platform could not be read from the title"]);
+  }
+  if (raw.consoleFamily !== candidate.consoleFamily) {
+    hardConflicts.push(`game platform differs: ${raw.consoleFamily} vs ${candidate.consoleFamily}`);
+  } else {
+    confidence += 40;
+    reasons.push("gamePlatform +40");
+  }
+
+  if (!raw.gameTitle || !candidate.gameTitle) {
+    return rejected("game title unknown", ["game title could not be read"]);
+  }
+  if (raw.gameTitle !== candidate.gameTitle) {
+    hardConflicts.push(`game title differs: ${raw.gameTitle} vs ${candidate.gameTitle}`);
+  } else {
+    confidence += 55;
+    reasons.push("gameTitle +55");
+  }
+
+  // "GTA V Premium Edition" is not "GTA V": the edition words stay inside
+  // gameTitle, so the comparison above already separates them.
+  return finalize(confidence, reasons, hardConflicts, [], { auto: 85, review: 70, weak: 60 });
 }
 
 function scoreConsole(raw: SafeProductIdentity, candidate: SafeProductIdentity): SafeMatchDecision {
@@ -1347,6 +1400,24 @@ const GAMING_ACCESSORY_PATTERNS: Array<{ pattern: RegExp; model: string }> = [
   { pattern: /\bshifter\b/i, model: "racing_shifter" },
   // Keyboard attachments.
   { pattern: /\bkeyboard\b/i, model: "keyboard_attachment" },
+  // Pointing devices and surfaces.
+  { pattern: /\bmouse\s*pad\b|\bmousepad\b/i, model: "mousepad" },
+  { pattern: /\bmouse\b/i, model: "mouse" },
+  // Grips, caps and skins that sit on a controller.
+  { pattern: /\btrigger\b|\bthumb\s*grip\b|\bjoystick\s+cap\b|\bgrip\s+cap\b/i, model: "controller_grips" },
+  { pattern: /\bskin\b|\bsticker\b|\bdecal\b/i, model: "skin" },
+  { pattern: /\bscreen\s+protector\b|\btempered\s+glass\b/i, model: "screen_protector" },
+  // Power and storage add-ons.
+  { pattern: /\bmemory\s+card\b/i, model: "memory_card" },
+  { pattern: /\bbattery\s+pack\b|\bpower\s+bank\b/i, model: "battery_pack" },
+  { pattern: /\bcooling\s+fan\b|\bcooler\b/i, model: "cooling_fan" },
+  { pattern: /\bcarry\s+case\b|\bcarrying\s+case\b|\btravel\s+bag\b/i, model: "carry_case" },
+  { pattern: /\bwebcam\b/i, model: "webcam" },
+  { pattern: /\barcade\s+stick\b|\bfight\s*stick\b/i, model: "arcade_stick" },
+  { pattern: /\bdriving\s+force\b|\bsteering\s+wheel\b/i, model: "racing_wheel" },
+  // "Quick Charging Black Stand" puts a word between the two halves, which the
+  // strict charging-station pattern above misses.
+  { pattern: /\bcharging\b[^,]{0,20}\b(stand|dock|station|base)\b/i, model: "charging_station" },
   // Console shells / faceplates / cases.
   { pattern: /\bbottom\s+shell\b|\bfaceplate\b|\bsilicone\s+case\b|\bprotective\s+case\b/i, model: "shell_accessory" },
   // HD camera and media remote.
@@ -1364,6 +1435,8 @@ const GAMING_ACCESSORY_PATTERNS: Array<{ pattern: RegExp; model: string }> = [
   { pattern: /\bpulse\s*3d\b|\bpulse3d\b/i, model: "pulse_3d_headset" },
   { pattern: /\bpulse\s*explore\b/i, model: "pulse_explore" },
   { pattern: /\bpulse\s*elite\b/i, model: "pulse_elite" },
+  // Generic audio, AFTER Sony's named Pulse lines so those keep their own model.
+  { pattern: /\bheadset\b|\bheadphones?\b|\bearbuds?\b/i, model: "headset" },
   { pattern: /\bxbox\s+controller\b|\bxbox\s+wireless\s+controller\b/i, model: "xbox_controller" },
   { pattern: /\bjoy.?con\b/i, model: "joycon" },
   { pattern: /\bpro\s+controller\b/i, model: "pro_controller" },
@@ -1497,6 +1570,60 @@ function detectSpecialEdition(signal: string): string | undefined {
   return undefined;
 }
 
+// A disc is not a console. Games live in the same "gaming" category as the
+// hardware and name the platform in their title, and the console scorer keyed
+// them purely on that platform -- so every variant-less PS5 listing collapsed
+// into one canonical. On production that put 187 different games, from GTA V
+// to Final Fantasy VII, inside a single product called "Sony PS5 Pro Digital".
+//
+// A game is a title that names a platform but describes no hardware.
+const GAME_PLATFORM_MARKER =
+  /\bfor\s+(ps[45]|playstation\s*[45]|xbox|nintendo\s+switch|switch)\b|\b(ps[45]|xbox|switch)\s+game\b|\bgame\s+for\b/i;
+
+const GAME_HARDWARE_WORDS =
+  /\bconsole\b|\bdualsense\b|\bdualshock\b|\bcontroller\b|\bgamepad\b|\bjoy.?con\b|\bheadset\b|\bheadphone\b|\bstand\b|\bdock\b|\bcamera\b|\bremote\b|\bdisc\s+drive\b|\bdisk\s+drive\b|\bvr\b|\bkeyboard\b|\bmouse\b|\bcharging\b|\bbundle\b|\bslim\b|\bportal\b|\bfaceplate\b|\bcover\b|\bcase\b|\bcable\b|\bmemory\s+card\b/i;
+
+function isGameListing(signal: string): boolean {
+  if (GAME_HARDWARE_WORDS.test(signal)) return false;
+  return GAME_PLATFORM_MARKER.test(signal);
+}
+
+// Only these five make consoles. Anything else in the gaming aisle is a
+// peripheral, whatever words its title uses.
+const FIRST_PARTY_CONSOLE_BRANDS = new Set(["sony", "microsoft", "nintendo", "valve", "asus", "msi"]);
+
+// Words that describe the platform or the packaging rather than the game.
+const GAME_TITLE_NOISE = new Set([
+  "sony",
+  "playstation",
+  "microsoft",
+  "nintendo",
+  "ps4",
+  "ps5",
+  "xbox",
+  "series",
+  "switch",
+  "game",
+  "games",
+  "for",
+  "the",
+  "video",
+  "disc",
+  "cd",
+  "new",
+]);
+
+// The game's own name, which is the only thing that separates one disc from
+// another. Edition words are deliberately KEPT: "GTA V Premium Edition" and
+// "GTA V" are different SKUs at different prices.
+function detectGameTitle(signal: string): string | undefined {
+  const tokens = signal
+    .split(/\s+/)
+    .map((token) => token.replace(/[^a-z0-9]/g, ""))
+    .filter((token) => token && !GAME_TITLE_NOISE.has(token));
+  return tokens.length ? modelKey(tokens) : undefined;
+}
+
 // Detect bundle: "with N controllers", "Two DualSense", "bundle", "N controller(s)"
 // bundled WITH the console. Standalone controller titles are handled by isGamingAccessory.
 function detectGamingBundle(signal: string): boolean {
@@ -1508,7 +1635,7 @@ function detectGamingBundle(signal: string): boolean {
 function detectConsoleBrand(rawBrand?: string | null, signal?: string): string | undefined {
   const b = (rawBrand ?? "").toLowerCase();
   const s = (signal ?? "").toLowerCase();
-  if (b.includes("sony") || s.includes("sony") || /\bplaystation\b|\bps5\b/.test(s)) return "sony";
+  if (b.includes("sony") || s.includes("sony") || /\bplaystation\b|\bps[45]\b/.test(s)) return "sony";
   if (b.includes("microsoft") || s.includes("microsoft") || /\bxbox\b/.test(s)) return "microsoft";
   if (b.includes("nintendo") || s.includes("nintendo") || /\bnintendo\b|\bswitch\b/.test(s)) return "nintendo";
   if (b.includes("valve") || s.includes("valve") || /\bsteam\s*deck\b/.test(s)) return "valve";
@@ -1574,13 +1701,41 @@ function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | 
   }
   if (!brand) return undefined;
 
-  const consoleFamily = detectConsoleFamily(normalizedSignal);
+  // The console family comes from the TITLE first. "Cyberpunk 2077 for PS4"
+  // carries "PS5" somewhere in its description (the free upgrade), and because
+  // the family patterns test PS5 before PS4 over one merged signal, a PS4 game
+  // was being identified as PS5 hardware and compared against PS5 consoles.
+  // The description is only consulted when the title names no console at all.
+  const titleSignal = normalizeProductTitle(accessorySignal);
+  const consoleFamily = detectConsoleFamily(titleSignal) ?? detectConsoleFamily(normalizedSignal);
   const color = detectColor(normalizedSignal);
   // Read the edition from the TITLE only, for the same reason the accessory
   // check does: a spec sheet or description that merely mentions a game
   // ("works with Genshin Impact") must not turn a standard product into a
   // collector's edition.
   const editionName = detectSpecialEdition(accessorySignal);
+
+  // Games are checked before the console path, on the title alone, for the same
+  // reason the family is: a game's description is full of console words.
+  if (!isAccessory && isGameListing(accessorySignal)) {
+    const gameTitle = detectGameTitle(titleSignal);
+    if (!gameTitle || !consoleFamily) return undefined;
+    const identity: SafeProductIdentity = {
+      kind: "game",
+      categorySlug,
+      brand,
+      consoleFamily,
+      gameTitle,
+      // No editionName: for a disc the franchise IS the title, and the edition
+      // words ("Premium Edition") are already inside gameTitle.
+      normalizedTitle,
+      cleanTitle,
+      source: { title: input.title, specsText: specsText || undefined },
+    };
+    identity.familyKey = buildFamilyKey(identity);
+    identity.exactKey = buildExactKey(identity);
+    return identity;
+  }
 
   if (isAccessory) {
     // Accessories: brand required, accessoryModel required
@@ -1602,11 +1757,41 @@ function normalizeSafeGamingOffer(input: SafeOfferInput): SafeProductIdentity | 
     return identity;
   }
 
+  // Nobody but Sony, Microsoft, Nintendo, Valve, Asus and MSI sells a console.
+  // A HyperX headset or a Trust gaming chair that names PS5 in its title was
+  // being typed as a console, and with no slim/pro variant to key on, every
+  // such product from one brand collapsed into a single canonical — the same
+  // failure the games had. Anything else is a peripheral, keyed by its own
+  // name when no known peripheral type matches.
+  if (!FIRST_PARTY_CONSOLE_BRANDS.has(brand)) {
+    const fallbackModel = accessoryModel ?? detectGameTitle(titleSignal);
+    if (!fallbackModel) return undefined;
+    const identity: SafeProductIdentity = {
+      kind: "accessory",
+      categorySlug,
+      brand,
+      consoleFamily: consoleFamily ?? undefined,
+      accessoryModel: fallbackModel,
+      editionName,
+      color,
+      normalizedTitle,
+      cleanTitle,
+      source: { title: input.title, specsText: specsText || undefined },
+    };
+    identity.familyKey = buildFamilyKey(identity);
+    identity.exactKey = buildExactKey(identity);
+    return identity;
+  }
+
   // Console: consoleFamily required
   if (!consoleFamily) return undefined;
 
-  const consoleVariant = detectConsoleVariant(normalizedSignal, consoleFamily);
-  const consoleEdition = detectConsoleEdition(normalizedSignal);
+  // Same rule for variant and edition: the title decides, the description is a
+  // fallback. A spec sheet that mentions "Slim" or "Digital Edition" in passing
+  // should not rename the box being sold.
+  const consoleVariant =
+    detectConsoleVariant(titleSignal, consoleFamily) ?? detectConsoleVariant(normalizedSignal, consoleFamily);
+  const consoleEdition = detectConsoleEdition(titleSignal) ?? detectConsoleEdition(normalizedSignal);
   const isBundle = detectGamingBundle(signalText);
 
   const identity: SafeProductIdentity = {
