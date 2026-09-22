@@ -111,6 +111,78 @@ const cases: MatchCase[] = [
     categorySlug: "audio",
     expected: "REJECTED",
   },
+  // iSpace ingest audit, 2026-09-22. The band is the price on an Apple Watch:
+  // an Ultra 3 on an Alpine Loop is 2,699 GEL and the same watch on a Titanium
+  // Milanese Loop is 3,449 GEL, and the site was showing the Milanese unit with
+  // the Alpine price as its "cheapest offer".
+  {
+    label: "Apple Watch Milanese Loop is not the Alpine Loop",
+    left: "Apple Watch Ultra 3, 49mm, Black, Black Titanium Milanese Loop, M",
+    right: "Apple Watch Ultra 3 GPS + Cellular 49mm Black Titanium Case with Black Alpine Loop - Large",
+    categorySlug: "wearables",
+    expected: "REJECTED",
+  },
+  {
+    label: "Apple Watch S/M is not M/L",
+    left: "Apple Watch Series 11 GPS 42mm Jet Black Aluminium Case with Black Sport Band - S/M",
+    right: "Apple Watch Series 11 GPS 42mm Jet Black Aluminium Case With Black Sport Band - M/L",
+    categorySlug: "wearables",
+    expected: "REJECTED",
+  },
+  {
+    // A watch title names TWO colours. Reading the BAND's colour as the case
+    // colour merged Alta's Space Grey unit into iSpace's Jet Black one.
+    label: "Apple Watch case colour beats band colour",
+    left: "Apple Watch Series 11 GPS, 46mm, Jet Black Aluminium, Black Sport Band, M/L",
+    right: "Apple Watch Series 11 GPS 46mm Space Grey Aluminium Case with Black Sport Band - M/L (MEV44RK/A)",
+    categorySlug: "wearables",
+    expected: "REJECTED",
+  },
+  {
+    // No over-correction: the SAME band, spelled two ways, still links.
+    label: "same Apple Watch band links across shops",
+    left: "Apple Watch Ultra 3, 49mm, Black, Black Titanium Milanese Loop, M",
+    right: "Apple Watch Ultra 3 GPS + Cellular 49mm Black Titanium Case with Black Titanium Milanese Loop - Medium",
+    categorySlug: "wearables",
+    expected: "CONFIRMED",
+    expectedLeftKey: "apple|apple_watch_ultra_3|49mm|black_titanium|milanese_loop|m",
+    expectedRightKey: "apple|apple_watch_ultra_3|49mm|black_titanium|milanese_loop|m",
+  },
+  {
+    // The generation sits behind the connectivity words at iSpace, so it was
+    // never read and a 2026 SE Gen 3 shared a price with a 2023 SE Gen 2.
+    label: "Apple Watch SE Gen 3 is not SE Gen 2",
+    left: "Apple Watch SE GPS Gen.3, 40mm, Starlight, Starlight Sport Band, S/M",
+    right: "Apple Watch SE GPS 40 mm Starlight Aluminium Case (MR9U3QI/A)",
+    categorySlug: "wearables",
+    expected: "REJECTED",
+  },
+  // Tablets: 301 RawOffers were stranded because modelFamily() knew no tablet.
+  {
+    label: "iPad Air 11 M4 is not iPad Air 13 M4",
+    left: "iPad Air 11 M4, 256 GB Wi-Fi 2026, Blue",
+    right: "iPad Air 13 M4, 256 GB Wi-Fi 2026, Blue",
+    categorySlug: "tablets",
+    expected: "REJECTED",
+    expectedLeftKey: "apple|ipad_air_11_m4|256gb|blue",
+    expectedRightKey: "apple|ipad_air_13_m4|256gb|blue",
+  },
+  {
+    label: "Redmi Pad SE is not Redmi Pad 2",
+    left: "Xiaomi Redmi Pad SE 4GB/128GB Graphite Gray",
+    right: "Xiaomi Redmi Pad 2 4GB/128GB Graphite Gray",
+    categorySlug: "tablets",
+    expected: "REJECTED",
+  },
+  {
+    // "4GB" must not be read as the cellular "4G" model.
+    label: "Wi-Fi Redmi Pad 2 is not the 4G Redmi Pad 2",
+    left: "Xiaomi Redmi Pad 2 4GB/128GB Graphite Gray",
+    right: "Xiaomi Redmi Pad 2 4G 4GB/128GB Graphite Gray",
+    categorySlug: "tablets",
+    expected: "REJECTED",
+    expectedLeftKey: "xiaomi|redmi_pad_2|4gb|128gb|graphite",
+  },
   {
     label: "phone case must not match phone",
     left: "Spigen Samsung Galaxy S26 Ultra Case Black",
@@ -235,6 +307,11 @@ type SafeCase = {
   label: string;
   left: string;
   right: string;
+  // Some shops carry the manufacturer part number outside the title (iSpace
+  // puts the Apple MPN in `model`), so a title-only case cannot reproduce
+  // their identity.
+  leftModel?: string;
+  rightModel?: string;
   categorySlug: string;
   expectAutoOrReview?: boolean; // true => band AUTO|REVIEW (same product); false => not auto-linked
   expectRejected?: boolean;
@@ -460,11 +537,44 @@ const safeCases: SafeCase[] = [
     categorySlug: "gaming",
     expectRejected: true,
   },
+  {
+    // iSpace regression (2026-09-22): iSpace spells the screen size
+    // "13.6-inch", which normalised to the part-number "136_inch" and took the
+    // modelCode slot in the laptop key, so the SAME Apple MPN never matched
+    // Zoommer/EE/Alta. All 86 iSpace laptops had zero cross-store offers.
+    label: "iSpace MacBook links to the same Apple MPN at another shop",
+    left: "MacBook Air 13.6-inch  M4 (10C CPU/10C GPU), 16 GB, 512 GB, Sky Blue",
+    leftModel: "MC6U4RU/A",
+    right: "Apple MacBook Air 13 inch 2025 MC6U4RU/A M4 Chip 10c CPU 10c GPU 16GB/512GB SSD Sky Blue",
+    categorySlug: "laptops",
+    expectAuto: true,
+  },
+  {
+    // "Citrus" was not in the colour table, so it normalised to undefined —
+    // and an unknown colour never hard-conflicts, which let a Citrus MacBook
+    // Neo score 89 against an Indigo one.
+    label: "Citrus MacBook Neo is not the Indigo MacBook Neo",
+    left: "Apple Macbook Neo 13 inch 2026 Z1TQ00020 A18 Pro Chip 6c CPU 5c GPU 8GB/256GB Citrus",
+    right: "Apple Macbook Neo 13 inch 2026 Z1TS00022 A18 Pro Chip 6c CPU 5c GPU 8GB/256GB Indigo",
+    categorySlug: "laptops",
+    expectRejected: true,
+  },
+  {
+    // The flip side of the same gap: with "Citrus" unknown, the colour slot of
+    // the exact key was simply dropped, so two identical Citrus units keyed
+    // differently from each other AND from every other colour.
+    label: "Citrus reaches the laptop exact key",
+    left: "Apple MacBook Neo 13 A18 Pro Citrus",
+    right: "Apple MacBook Neo 13 A18 Pro Citrus",
+    categorySlug: "laptops",
+    expectLeftKeyEquals: "laptop|apple|macbook_neo_13_a18_pro|citrus",
+    expectKeysEqual: true,
+  },
 ];
 
 for (const testCase of safeCases) {
-  const left = normalizeSafeOffer({ title: testCase.left, categorySlug: testCase.categorySlug });
-  const right = normalizeSafeOffer({ title: testCase.right, categorySlug: testCase.categorySlug });
+  const left = normalizeSafeOffer({ title: testCase.left, model: testCase.leftModel, categorySlug: testCase.categorySlug });
+  const right = normalizeSafeOffer({ title: testCase.right, model: testCase.rightModel, categorySlug: testCase.categorySlug });
   assert.ok(left, `${testCase.label}: left identity should normalize`);
   assert.ok(right, `${testCase.label}: right identity should normalize`);
 

@@ -3,7 +3,11 @@ import { normalizeProductTitle, removeNoiseWords } from "@/lib/productNormalizat
 import { extractVariantIdentity } from "@/lib/variantMatching";
 import { extractLaptopSku } from "@/lib/laptopSku";
 
-export const SAFE_MATCHER_VERSION = "safe-products-v5";
+// v6 (2026-09-22, iSpace ingest audit): Apple MPN/CTO part numbers are now
+// detected for laptops, dimension/core/voltage tokens can no longer occupy the
+// modelCode slot, and Citrus/Watermelon are real colours. Cached identities
+// must be re-evaluated for those three changes to take effect.
+export const SAFE_MATCHER_VERSION = "safe-products-v6";
 
 export type SafeCategorySlug = "mobiles" | "laptops" | "gaming";
 export type SafeProductKind = "phone" | "laptop" | "console" | "accessory" | "game";
@@ -1005,6 +1009,15 @@ function normalizeModelCode(value?: string | null) {
   if (/^(rtx|gtx)_?\d+/.test(normalized)) return undefined;
   if (/^\d+(gb|tb|hz|mah)$/.test(normalized)) return undefined;
   if (/^\d+mm$/.test(normalized)) return undefined;
+  // Physical dimensions, core counts and supply voltages are not part numbers.
+  // iSpace spells the screen size as "13.6-inch", which normalised to
+  // "136_inch" and was then used as the laptop key's modelCode slot — so an
+  // iSpace MacBook Air could never key-match the SAME Apple MPN at
+  // Zoommer/EE/Alta, and all 86 iSpace laptops sat with zero cross-store
+  // offers. pcshop's spec sheets did the same with "100-240V" and "10 Core".
+  if (/^\d+(_\d+)?_?(inch|in|cm|core|cores)$/.test(normalized)) return undefined;
+  if (/(^|_)(cpu|gpu|core|cores|inch)(_|$)/.test(normalized)) return undefined;
+  if (/^\d+(_\d+)?v$/.test(normalized)) return undefined;
   // "12/256GB" is the memory configuration, not a part number. Read as one it
   // handed +25 "modelCode" to any two phones that happened to share storage.
   if (/^\d+_\d+(gb|tb)?$/.test(normalized)) return undefined;
@@ -1020,6 +1033,12 @@ function detectModelCode(signal: string, kind: SafeProductKind) {
           /\b(cph\d{4}|v\d{4}|rmx\d{4}|xt\d{4})\b/,
         ]
       : [
+          // Apple manufacturer part numbers ("MC6U4RU/A", "MHFD4ZP/A") and CTO
+          // configuration codes ("Z1TQ00020") are checked FIRST: they are the
+          // only identifier iSpace, Zoommer, EE and Alta all agree on for Macs,
+          // and none of the generic patterns below can match them.
+          /\b(m[a-z0-9]{3,5}\d?[a-z]{2}\/a)\b/,
+          /\b(z1[a-z0-9]{6,8})\b/,
           /\b(\d{2}(?:irx|iah|iax|irh|iru|itl|alc|arp)\d{1,2})\b/,
           /\b([a-z]{1,3}\d{3,4}[a-z]{0,3})\b/,
           /\b(\d{2}[-_](?:fd|r|dw|dy|cn)\d{0,4}[a-z0-9]*)\b/,

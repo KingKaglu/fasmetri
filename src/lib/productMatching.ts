@@ -145,6 +145,11 @@ function conflicts(left: ProductIdentity, right: ProductIdentity) {
   if (differentKnown(left.capacity, right.capacity)) mismatches.push(`Capacity differs: ${left.capacity} / ${right.capacity}.`);
   if (differentKnown(left.compatibleDevice, right.compatibleDevice)) mismatches.push(`Compatible device differs: ${left.compatibleDevice} / ${right.compatibleDevice}.`);
   if (differentKnown(left.color, right.color) && colorMatters(left.productType, right.productType)) mismatches.push(`Color differs: ${left.color} / ${right.color}.`);
+  // Stated-vs-stated only (differentKnown): a shop that does not name the band
+  // must never be split away from one that does, but two DIFFERENT stated bands
+  // are two different products at two different prices.
+  if (differentKnown(left.bandType, right.bandType)) mismatches.push(`Watch band differs: ${left.bandType} / ${right.bandType}.`);
+  if (differentKnown(left.bandSize, right.bandSize)) mismatches.push(`Watch band size differs: ${left.bandSize} / ${right.bandSize}.`);
   const simConflict = Boolean(left.simType && right.simType && !compatibleSim(left.simType, right.simType));
   if (simConflict) mismatches.push(`SIM variant differs: ${left.simType} / ${right.simType}.`);
   return mismatches;

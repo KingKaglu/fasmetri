@@ -1,4 +1,4 @@
-﻿import { PC_COOLING_NEGATIVE_KEYWORDS, COOKING_FREEZER_NEGATIVE_KEYWORDS } from "@/config/categoryRules";
+﻿import { ACCESSORY_FORM_NEGATIVE_KEYWORDS, PC_COOLING_NEGATIVE_KEYWORDS, COOKING_FREEZER_NEGATIVE_KEYWORDS } from "@/config/categoryRules";
 
 export type FasmetriCategorySlug =
   | "adult"
@@ -10,6 +10,7 @@ export type FasmetriCategorySlug =
   | "clothing"
   | "computer-accessories"
   | "computers"
+  | "drones"
   | "furniture"
   | "gaming"
   | "home-appliances"
@@ -25,6 +26,7 @@ export type FasmetriCategorySlug =
   | "photo-video"
   | "refrigerators"
   | "small-appliances"
+  | "smart-home"
   | "sport"
   | "tablets"
   | "tablet-accessories"
@@ -58,6 +60,7 @@ export const FALLBACK_CATEGORY: FasmetriCategorySlug = "other";
 export const PUBLIC_CATEGORY_SLUGS = [
   "mobiles",
   "laptops",
+  "tablets",
   "gaming",
   "televisions",
   "audio",
@@ -71,9 +74,36 @@ export const PUBLIC_CATEGORY_SLUGS = [
   "washing-machines",
   "monitors",
   "tv-mounts",
+  // Opened for iSpace's non-Apple-phone catalogue (2026-09-22): DJI drones and
+  // Aqara/smart-device gear didn't fit any existing shelf.
+  "drones",
+  "smart-home",
+  // Accessory scope, opened 2026-09-22. iSpace ships ~470 accessories and Alta
+  // and Kontakt together were sitting on several thousand more that had been
+  // ingested but never shown. These are real, comparable products — a case or a
+  // charger is exactly the kind of thing a shopper price-checks across stores.
+  // "other" stays internal on purpose: it is the unclassified bucket, not a shelf.
+  "phone-accessories",
+  "computer-accessories",
+  "tablet-accessories",
+  "cables-adapters",
+  "photo-video",
 ] as const;
 export type PublicCategorySlug = (typeof PUBLIC_CATEGORY_SLUGS)[number];
 
+// STANDING RULE (2026-09-22): a category that doesn't map to anything in
+// CATEGORY_RULES must NEVER cause a product to be dropped. categorizeProduct()
+// always resolves to a slug (falling back to "other" rather than
+// undefined/null — see FALLBACK_CATEGORY below), and every raw offer is
+// persisted regardless of whether that slug lands in PUBLIC_CATEGORY_SLUGS —
+// non-public-category offers are simply excluded from the *public* site, not
+// discarded. If you touch ingestion (importPipeline.ts, runner.ts) or the
+// matching pipeline (match-offers-to-variants.ts), keep it that way: "not
+// public yet" and "silently skipped" must stay two different things. Audit
+// trail: 158 iPad/tablet RawOffers were sitting fully ingested but invisible
+// because match-offers-to-variants.ts only ever promotes PUBLIC_CATEGORY_SLUGS
+// and no admin page listed un-promoted RawOffers — see the "Ingested, not yet
+// promoted" panel on /admin/categories/review for the fix.
 const PUBLIC_CATEGORY_SLUG_SET = new Set<string>(PUBLIC_CATEGORY_SLUGS);
 
 export function isPublicCategorySlug(slug?: string | null): slug is PublicCategorySlug {
@@ -89,10 +119,11 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   "auto-accessories": { nameKa: "ავტო აქსესუარები", nameEn: "Auto accessories", public: false },
   beauty: { nameKa: "სილამაზე და მოვლა", nameEn: "Beauty", public: true },
   "books-stationery": { nameKa: "წიგნები და საკანცელარიო", nameEn: "Books and stationery", public: false },
-  "cables-adapters": { nameKa: "კაბელები და ადაპტერები", nameEn: "Cables and adapters", public: false },
+  "cables-adapters": { nameKa: "კაბელები და ადაპტერები", nameEn: "Cables and adapters", public: true },
   clothing: { nameKa: "ტანსაცმელი", nameEn: "Clothing", public: false },
-  "computer-accessories": { nameKa: "კომპიუტერის აქსესუარები", nameEn: "Computer accessories", public: false },
+  "computer-accessories": { nameKa: "კომპიუტერის აქსესუარები", nameEn: "Computer accessories", public: true },
   computers: { nameKa: "კომპიუტერები და ნაწილები", nameEn: "Computers and parts", public: false },
+  drones: { nameKa: "დრონები", nameEn: "Drones", public: true },
   furniture: { nameKa: "ავეჯი", nameEn: "Furniture", public: false },
   gaming: { nameKa: "კონსოლები", nameEn: "Consoles", public: true },
   "home-appliances": { nameKa: "საყოფაცხოვრებო ტექნიკა", nameEn: "Home appliances", public: true },
@@ -104,13 +135,14 @@ export const PUBLIC_CATEGORY_TAXONOMY: Record<
   monitors: { nameKa: "მონიტორები", nameEn: "Monitors", public: true },
   other: { nameKa: "სხვა", nameEn: "Other", public: false },
   pets: { nameKa: "ცხოველების მოვლა", nameEn: "Pet supplies", public: false },
-  "phone-accessories": { nameKa: "ტელეფონის აქსესუარები", nameEn: "Phone accessories", public: false },
-  "photo-video": { nameKa: "ფოტო/ვიდეო", nameEn: "Photo and video", public: false },
+  "phone-accessories": { nameKa: "ტელეფონის აქსესუარები", nameEn: "Phone accessories", public: true },
+  "photo-video": { nameKa: "ფოტო/ვიდეო", nameEn: "Photo and video", public: true },
   refrigerators: { nameKa: "მაცივრები", nameEn: "Refrigerators", public: true },
   "small-appliances": { nameKa: "მცირე ტექნიკა", nameEn: "Small appliances", public: true },
+  "smart-home": { nameKa: "სმარტ სახლი", nameEn: "Smart home", public: true },
   sport: { nameKa: "სპორტი", nameEn: "Sport", public: false },
-  tablets: { nameKa: "ტაბლეტები", nameEn: "Tablets", public: false },
-  "tablet-accessories": { nameKa: "ტაბლეტის აქსესუარები", nameEn: "Tablet accessories", public: false },
+  tablets: { nameKa: "ტაბლეტები", nameEn: "Tablets", public: true },
+  "tablet-accessories": { nameKa: "ტაბლეტის აქსესუარები", nameEn: "Tablet accessories", public: true },
   tech: { nameKa: "ტექნიკა", nameEn: "Electronics", public: false },
   televisions: { nameKa: "ტელევიზორები", nameEn: "Televisions", public: true },
   // Wall brackets and stands. Kept apart from `televisions` so a 40 GEL bracket
@@ -371,13 +403,24 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "კაბელი",
       "ადაპტერი",
     ],
-    negativeKeywords: ["phone cable", "iphone cable", "car charger", "magsafe", "power bank", "phone case", "headphone", "headset", "on-ear"],
+    // Apple's Studio Display / Pro Display XDR titles say "VESA mount adapter"
+    // — that's an adapter for the STAND, not a cable accessory; the product
+    // itself is a $10k+ monitor. Without this guard the generic "adapter"
+    // keyword above wins on title score alone and files it as a cable.
+    negativeKeywords: ["phone cable", "iphone cable", "car charger", "magsafe", "power bank", "phone case", "headphone", "headset", "on-ear", "studio display", "pro display xdr"],
     contextKeywords: ["cables", "adapters", "adapter", "cable"],
     titleWeight: 95,
   },
   {
     slug: "computer-accessories",
     titleKeywords: [
+      // iSpace 2026-09-22: Satechi keypads/hubs and Apple's own desk kit had
+      // no rule at all and landed in "other".
+      "keypad",
+      "polishing cloth",
+      "usb hub",
+      "usb-c hub",
+      "thunderbolt",
       "mouse pad",
       "mousepad",
       "keyboard",
@@ -470,13 +513,43 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       ["hp 350", "bluetooth"],
       ["logitech", "wireless"],
       ["logitech", "bluetooth"],
+      // Carry/protect gear NAMED for the machine it fits. Conjunctions, not
+      // bare keywords: a lone "bag" is a handbag (it was scoring `clothing`
+      // at 82 and putting a 129 GEL Tucano sleeve on the laptops shelf), and
+      // a lone "case" is half the catalogue.
+      ["bag", "macbook"],
+      ["bag", "notebook"],
+      ["bag", "laptop"],
+      ["sleeve", "macbook"],
+      ["sleeve", "notebook"],
+      ["sleeve", "laptop"],
+      ["case", "macbook"],
+      ["hardshell", "macbook"],
+      ["protective film", "macbook"],
+      ["stand", "macbook"],
     ],
     contextKeywords: ["pc accessory", "computer accessory", "peripheral"],
+    // Left at 88 on purpose. A group match already clears `clothing` (82),
+    // which is what the bag/sleeve conjunctions above needed; raising it to 92
+    // started outranking `gaming` on a PS5 controller keyboard and
+    // `small-appliances` on a steam-iron filter.
     titleWeight: 88,
   },
   {
     slug: "phone-accessories",
     titleKeywords: [
+      // iSpace 2026-09-22: these 43 fell through to "other" because no rule
+      // named the form. "airtag" is deliberately NOT here -- the bare tracker
+      // is mapped to `tech` by the iSpace breadcrumb slug, and only the
+      // third-party holders/keyrings belong on the phone-accessories shelf.
+      "crossbody strap",
+      "car cradle",
+      "magez grip",
+      "secure holder",
+      "smart tracker",
+      "ontag",
+      "luggage tag",
+      "safety glass",
       "screen protector",
       "tempered glass",
       "privacy",
@@ -692,7 +765,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "msi creator",
       "msi vector",
     ],
-    negativeKeywords: ["laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station", "dock", "usb-c dock", "universal usb-c", "microphone", "desk microphone", "mouse", "gaming mouse", "keyboard", "usb combo", "m100 rgb", "gy50z71902", "legion m600", "m600s", "legion go", "cpg-001", "cpg-003", "am5", "am4", "lga1700", "lga1851", "lga1200", "lga1151", "motherboard", "mainboard", "gaming geforce", "gaming radeon", "graphics card", "video card"],
+    negativeKeywords: [...ACCESSORY_FORM_NEGATIVE_KEYWORDS, "laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station", "dock", "usb-c dock", "universal usb-c", "microphone", "desk microphone", "mouse", "gaming mouse", "keyboard", "usb combo", "m100 rgb", "gy50z71902", "legion m600", "m600s", "legion go", "cpg-001", "cpg-003", "am5", "am4", "lga1700", "lga1851", "lga1200", "lga1151", "motherboard", "mainboard", "gaming geforce", "gaming radeon", "graphics card", "video card"],
     contextKeywords: ["portable computer", "leptopebi", "laptop"],
     shopKeywords: ["laptop", "leptop"],
     titleWeight: 90,
@@ -700,6 +773,13 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   {
     slug: "tablet-accessories",
     titleKeywords: [
+      // Apple's own iPad covers are branded "Smart Folio", which matched no
+      // rule -- so 39 of them scored as `tablets` off the word "iPad" and were
+      // queued for promotion onto the tablet shelf.
+      "smart folio",
+      "apple pencil",
+      "stand for ipad",
+      "ipad stand",
       "ipad case",
       "ipad cover",
       "ipad flip cover",
@@ -723,6 +803,13 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       ["ipad", "ქეისი"],
       ["ipad", "tempered glass"],
       ["ipad", "screen protector"],
+      // The device rules now veto these forms (ACCESSORY_FORM_NEGATIVE_KEYWORDS),
+      // so without a home here an iPad screen protector fell through to
+      // "other" -- or, for Paperlike, to books-stationery on the brand name.
+      ["ipad", "safety glass"],
+      ["ipad", "protective film"],
+      ["ipad", "bag"],
+      ["ipad", "sleeve"],
       ["galaxy tab", "tempered glass"],
       ["galaxy tab", "screen protector"],
       ["galaxy tab", "case"],
@@ -752,9 +839,12 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "idea tab",
       "samsung tab",
       "tablet",
-      "ტაბლეტი",
+      // Stem, not the nominative singular "ტაბლეტი": Georgian inflects
+      // ("ტაბლეტები" for plural), and a full-word keyword misses every plural
+      // title the same way "ნოუთბუქი" missed "ნოუთბუქები" for laptops.
+      "ტაბლეტ",
     ],
-    negativeKeywords: ["case", "cover", "screen protector", "tempered glass", "keyboard case", "tablet case", "ქეისი", "პლანშეტის ქეისი", "ტაბლეტის ქეისი"],
+    negativeKeywords: [...ACCESSORY_FORM_NEGATIVE_KEYWORDS, "case", "cover", "screen protector", "tempered glass", "keyboard case", "tablet case", "apple pencil", "ქეისი", "პლანშეტის ქეისი", "ტაბლეტის ქეისი"],
     contextKeywords: ["tablet", "tablets"],
     shopKeywords: ["tablet", "planchet"],
     titleWeight: 96,
@@ -890,7 +980,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   },
   {
     slug: "wearables",
-    titleKeywords: ["apple watch", "galaxy watch", "samsung watch", "pixel watch", "cmf watch", "garmin watch", "amazfit", "huawei band", "smartwatch", "smart watch", "fitness band", "smart band", "watch strap", "watch film", "watch screen protector", "სმარტ საათი"],
+    titleKeywords: ["apple watch", "galaxy watch", "samsung watch", "pixel watch", "cmf watch", "garmin watch", "amazfit", "canyon sw-", "canyon sw", "huawei band", "smartwatch", "smart watch", "fitness band", "smart band", "watch strap", "watch film", "watch screen protector", "სმარტ საათი"],
     titleKeywordGroups: [
       ["watch", "screen", "film"],
       ["watch", "tempered", "glass"],
@@ -909,7 +999,9 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   },
   {
     slug: "televisions",
-    titleKeywords: ["smart tv", "oled tv", "qled", "led tv", "television", "fire tv stick", "lg tv", "samsung tv", "sony tv", "toshiba tv", "blaupunkt tv", "tcl tv", "vestel tv", "sony kd-", "sony xr-", "sony k-", "bravia", "ტელევიზორი"],
+    // "apple remote"/"siri remote", not a generic "remote control": Aqara
+    // sells a "Smart Remote Control Module" that belongs in smart-home.
+    titleKeywords: ["apple remote", "siri remote", "smart tv", "oled tv", "qled", "led tv", "television", "fire tv stick", "lg tv", "samsung tv", "sony tv", "toshiba tv", "blaupunkt tv", "tcl tv", "vestel tv", "sony kd-", "sony xr-", "sony k-", "bravia", "apple tv", "ტელევიზორი"],
     titleKeywordGroups: [
       ["xiaomi", "tv"],
       ["mini", "led"],
@@ -1058,8 +1150,32 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
     titleWeight: 88,
   },
   {
+    // Actual flying drones (DJI Mavic/Air/Mini/Avata/Neo etc.) — deliberately
+    // narrower than "dji"/"gimbal", both of which stay in photo-video below so
+    // DJI's handheld gimbals and Osmo action cameras aren't pulled in here.
+    slug: "drones",
+    titleKeywords: [
+      "drone", "quadcopter", "fpv drone",
+      "dji mavic", "dji mini", "dji air", "dji avata", "dji neo", "dji flip", "dji fpv",
+      "დრონი",
+    ],
+    contextKeywords: ["drone", "dji"],
+    titleWeight: 92,
+  },
+  {
+    slug: "smart-home",
+    titleKeywords: [
+      "aqara", "smart plug", "smart bulb", "smart lock", "smart hub", "matter hub",
+      "motion sensor", "door sensor", "window sensor", "water leak sensor", "smoke sensor",
+      "smart home", "homekit",
+      "ჭკვიანი როზეტი", "ჭკვიანი განათება", "ჭკვიანი საკეტი", "ჭკვიანი კარი", "მოძრაობის სენსორი",
+    ],
+    contextKeywords: ["smart home", "aqara", "ჭკვიან"],
+    titleWeight: 88,
+  },
+  {
     slug: "photo-video",
-    titleKeywords: ["action camera", "camera", "webcam", "indoorcam", "domecam", "bulletcam", "turretcam", "canyon c2", "canyon c5", "cne-hwc", "cns-cwc", "projector", "portable projector", "laser projector", "yaber", "scanner", "epson perfection", "fujifilm instax", "ugreen cm778", "canon eos", "sony ilce", "sony ilme", "sony sel", "dji", "gopro", "digital photo frame", "on-camera microphone", "on camera microphone", "shotgun microphone", "lens", "tripod", "gimbal", "camera light", "კამერა", "შტატივი", "გიმბალი"],
+    titleKeywords: ["snapstand", "snappocket", "snap studio", "action camera", "camera", "webcam", "indoorcam", "domecam", "bulletcam", "turretcam", "canyon c2", "canyon c5", "cne-hwc", "cns-cwc", "projector", "portable projector", "laser projector", "yaber", "scanner", "epson perfection", "fujifilm instax", "ugreen cm778", "canon eos", "sony ilce", "sony ilme", "sony sel", "dji", "gopro", "digital photo frame", "on-camera microphone", "on camera microphone", "shotgun microphone", "lens", "tripod", "gimbal", "camera light", "კამერა", "შტატივი", "გიმბალი"],
     titleKeywordGroups: [
       ["photo", "printer"],
       ["portable", "photo", "printer"],
@@ -1070,7 +1186,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   },
   {
     slug: "audio",
-    titleKeywords: ["airpods", "earbuds", "buds", "colorbuds", "redmi buds", "freebuds", "galaxy buds", "nothing ear", "amazon echo", "echo dot", "echo spot", "jbl", "edifier", "klipsch", "soundcore", "crosley", "genius sw", "headphone", "headset", "earphone", "on-ear", "in-ear", "in ear", "true in ear", "tws", "speaker", "soundbar", "microphone", "microphonr", "lavalier", "turntable", "beoplay", "freearc", "eo-hs", "wf-c500", "wh-g500", "bh-t19", "h111", "h151", "stereo epn", "defender spk", "microlab", "sven", "trust avora", "trust primo", "ყურსასმენი", "დინამიკი", "მიკროფონი",
+    titleKeywords: ["airpods", "homepod", "earbuds", "buds", "colorbuds", "redmi buds", "freebuds", "galaxy buds", "nothing ear", "amazon echo", "echo dot", "echo spot", "jbl", "edifier", "klipsch", "soundcore", "crosley", "genius sw", "headphone", "headset", "earphone", "on-ear", "in-ear", "in ear", "true in ear", "tws", "speaker", "soundbar", "microphone", "microphonr", "lavalier", "turntable", "beoplay", "freearc", "eo-hs", "wf-c500", "wh-g500", "bh-t19", "h111", "h151", "stereo epn", "defender spk", "microlab", "sven", "trust avora", "trust primo", "ყურსასმენი", "დინამიკი", "მიკროფონი",
       // Stems, for the same inflection reason as "ნოუთბუქ" above: Alta files
       // headphones under "უსადენო ყურსასმენები" / "სადენიანი ყურსასმენები",
       // neither of which contains the singular "ყურსასმენი".
@@ -1116,7 +1232,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
     titleKeywords: [
       "gaming monitor", "office monitor", "monitor", "thinkvision", "acer nitro xf", "acer nitro vg",
       "acer ek251", "alienware aw", "asus rog strix 27", "philips 273", "dell u3425", "dell s2425",
-      "benq gw", "msi g274f", "მონიტორი",
+      "benq gw", "msi g274f", "studio display", "pro display xdr", "მონიტორი",
       // LG monitor series
       "ultragear", "ultrafine", "ultrawide",
       // ASUS monitor series (any size)
@@ -1154,6 +1270,13 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
   {
     slug: "computers",
     titleKeywords: [
+      // External/removable memory lives on the computers shelf (the iSpace
+      // breadcrumb "external-memory" already maps there); the three Kingston
+      // Canvas Go! cards had no title rule and fell to "other".
+      "canvas go",
+      "memory card",
+      "microsd",
+      "sd card",
       "desktop pc",
       "tower desktop",
       "tower pc",
@@ -1163,6 +1286,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "minisforum",
       "acemagic",
       "mac mini",
+      "mac studio",
       "intel nuc",
       "kamrui",
       "ssd",
@@ -1341,6 +1465,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "note plus",
       "artist 12",
       "deco mini",
+      "airtag",
       "battery charger",
       "panasonic bq",
       "hearing aid",

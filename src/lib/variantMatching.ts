@@ -113,7 +113,10 @@ export function buildVariantKey(identity: ProductIdentity) {
   }
 
   if (identity.productType === "wearable") {
-    return key([parentKey, identity.screenSize, identity.color]);
+    // See buildCanonicalProductKey: the band is the price on an Apple Watch, so
+    // two bands are two variants of one parent, not one product with a fake
+    // "cheapest" price taken from the cheapest band.
+    return key([parentKey, identity.screenSize, identity.color, identity.bandType, identity.bandSize]);
   }
 
   if (identity.productType === "appliance" || identity.productType === "small_appliance" || identity.productType === "television" || identity.productType === "monitor") {

@@ -6,14 +6,50 @@ import { AdminCodeBlock, AdminEmptyState, AdminKeyValue, AdminLoginShell, AdminM
 import { ProductImage } from "@/components/public-ui";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { listCategories, listProducts } from "@/lib/catalog";
+import { isPublicCategorySlug } from "@/config/categoryMapping";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+// STANDING RULE: a RawOffer must never be silently unreachable. Ingestion
+// (importPipeline.ts, runner.ts) always persists it, but match-offers-to-
+// variants.ts only ever promotes rows whose categorySlug is in
+// PUBLIC_CATEGORY_SLUGS — anything else (a non-public-but-real category like
+// "tablet-accessories", or the "other" fallback) used to sit in the RawOffer
+// table with no admin page ever listing it, which is functionally the same
+// as being dropped. This panel is that missing surface — see the audit trail
+// note next to PUBLIC_CATEGORY_SLUGS in categoryMapping.ts.
+async function listUnpromotedRawOffers() {
+  if (!prisma) return [];
+  return prisma.rawOffer.findMany({
+    where: {
+      status: { in: ["IMPORTED", "NORMALIZED", "NEEDS_REVIEW"] },
+      productId: null,
+      parentProductId: null,
+      variantId: null,
+    },
+    orderBy: { scrapedAt: "desc" },
+    take: 60,
+    select: {
+      id: true,
+      originalTitle: true,
+      originalUrl: true,
+      rawPrice: true,
+      categorySlug: true,
+      categoryNeedsReview: true,
+      status: true,
+      scrapedAt: true,
+      shop: { select: { name: true, slug: true } },
+    },
+  });
+}
+
 export default async function AdminCategoryReviewPage() {
   if (!(await isAdminRequest())) return <AdminLoginShell><AdminLogin /></AdminLoginShell>;
-  const [products, categories] = await Promise.all([
+  const [products, categories, unpromotedRawOffers] = await Promise.all([
     listProducts({ needsCategoryReview: true, sort: "updated", pageSize: 80 }),
     listCategories(),
+    listUnpromotedRawOffers(),
   ]);
 
   return (
@@ -27,7 +63,11 @@ export default async function AdminCategoryReviewPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <AdminMetricCard label="Review queue" value={products.length} tone={products.length ? "warn" : "good"} />
         <AdminMetricCard label="კატეგორიები" value={categories.length} />
-        <AdminMetricCard label="შემოწმების ლინკები" value="Public + Offers" tone="info" />
+        <AdminMetricCard
+          label="Ingested, not yet promoted"
+          value={unpromotedRawOffers.length}
+          tone={unpromotedRawOffers.length ? "warn" : "good"}
+        />
       </div>
 
       <div className="grid gap-3">
@@ -85,6 +125,38 @@ export default async function AdminCategoryReviewPage() {
           </AdminPanel>
         ))}
         {!products.length ? <AdminEmptyState title="Category review queue ცარიელია" description="ამ ეტაპზე დაბალი confidence პროდუქტები არ ჩანს." /> : null}
+      </div>
+
+      <AdminPageHeader
+        title="Ingested, not yet promoted"
+        description="RawOffer-ები, რომლებიც სკრაპერმა შეინახა, მაგრამ არასდროს გახდნენ Product/Variant — ან იმიტომ, რომ category არაპუბლიკური/other-ია, ან იდენტობის ველები აკლია. აქამდე ეს ჩანაწერები არსად ჩანდა; ეს პანელი არსებობს იმისთვის, რომ ვერასდროს დაიკარგოს პროდუქტი მხოლოდ იმიტომ, რომ კატეგორია არ დამემთხვა."
+      />
+      <div className="grid gap-2">
+        {unpromotedRawOffers.map((raw) => (
+          <AdminPanel key={raw.id}>
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-[var(--brand)]">{raw.originalTitle}</p>
+                <p className="mt-1 text-xs font-bold text-[var(--muted)]">
+                  {raw.shop.name} · categorySlug: {raw.categorySlug ?? "(none)"}
+                  {raw.categorySlug && !isPublicCategorySlug(raw.categorySlug) ? " (non-public)" : ""}
+                  {" "}· status: {raw.status} · {raw.rawPrice ? `${raw.rawPrice} GEL` : "no price"}
+                </p>
+              </div>
+              <a
+                href={raw.originalUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#0a0a0a]"
+              >
+                წყარო <ExternalLink className="size-3.5" />
+              </a>
+            </div>
+          </AdminPanel>
+        ))}
+        {!unpromotedRawOffers.length ? (
+          <AdminEmptyState title="ყველაფერი დამუშავებულია" description="დაუმუშავებელი RawOffer არ არის." />
+        ) : null}
       </div>
     </AdminShell>
   );

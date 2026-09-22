@@ -35,6 +35,23 @@ export type ProductAttributes = {
   screenSize?: string;
   sim?: string;
   color?: string;
+  /**
+   * Apple Watch case colour, read from the words immediately before
+   * "Aluminium/Titanium/Stainless Steel Case". Watch titles name TWO colours
+   * ("Space Grey Aluminium Case with Black Sport Band"), and plain colorValue()
+   * returned whichever alias was longest — so Alta's Space Grey case was filed
+   * under the BAND's black and merged with iSpace's Jet Black unit.
+   */
+  caseColor?: string;
+  /**
+   * Apple Watch band type ("sport_band", "milanese_loop", …) and band size
+   * ("s_m", "m_l", "s", "m", "l"). The band is the price: an Ultra 3 on an
+   * Alpine Loop is 2,699 ₾ and the same watch on a Titanium Milanese Loop is
+   * 3,449 ₾, and before these existed the site showed the Milanese unit with
+   * the Alpine price as its "cheapest".
+   */
+  bandType?: string;
+  bandSize?: string;
   os?: string;
   capacity?: string;
   compatibleDevice?: string;
@@ -102,6 +119,9 @@ export function extractProductAttributes(input: ProductAttributeInput): ProductA
     screenSize: screenSize(extractionSignal),
     sim: simType(extractionSignal),
     color: colorValue(extractionSignal),
+    caseColor: watchCaseColor(extractionSignal),
+    bandType: watchBandType(extractionSignal),
+    bandSize: watchBandSize(extractionSignal),
     os: osValue(extractionSignal),
     capacity: capacityValue(extractionSignal),
     compatibleDevice: compatibleDevice(extractionSignal),
@@ -127,7 +147,7 @@ function explicitBrand(brand: string | null | undefined, signal: string) {
   const normalizedBrand = brand ? normalizeProductTitle(brand) : undefined;
   if (normalizedBrand === "redmi" || normalizedBrand === "poco") return "xiaomi";
   if (normalizedBrand) return normalizedBrand;
-  if (/\biphone\b|\bmacbook\b|\bairpods\b|\bapple watch\b/.test(signal)) return "apple";
+  if (/\biphone\b|\bmacbook\b|\bairpods\b|\bapple watch\b|\bipad\b/.test(signal)) return "apple";
   if (/\bgalaxy\b/.test(signal)) return "samsung";
   if (/\bpixel\b/.test(signal)) return "google";
   if (/\bredmi\b|\bpoco\b/.test(signal)) return "xiaomi";
@@ -143,6 +163,59 @@ function explicitBrand(brand: string | null | undefined, signal: string) {
 function modelFamily(signal: string) {
   for (const [pattern, alias] of MODEL_ALIASES) {
     if (pattern.test(signal)) return alias;
+  }
+
+  // ── Tablets ──────────────────────────────────────────────────────────
+  // These MUST run before the phone families: "Galaxy Tab A11" otherwise falls
+  // into the generic /galaxy\s*(s|z|a)\s*-?(\d+)/ phone pattern and becomes
+  // "galaxy_a11", a phone that does not exist. 301 tablet RawOffers were
+  // stranded in NEEDS_REVIEW ("No reliable model identity was extracted")
+  // because nothing in this function knew what a tablet was.
+  //
+  // For iPads the diagonal is a DISTINGUISHING DIMENSION, not a part number:
+  // an iPad Air 11 M4 and an iPad Air 13 M4 are two products at two prices.
+  // It may lead ("11-inch iPad Pro", Kontakt) or follow ("iPad Pro 11 M5",
+  // iSpace). The chip generation is part of the model for the same reason.
+  const ipadTier = signal.match(
+    /\b(?:(\d{2})[\s-]*inch\s+)?ipad\s+(pro|air|mini)\b\s*(\d{2})?\s*\(?\s*((?:m|a)\d{1,2}(?:\s+pro|\s+max)?)?\)?/,
+  );
+  if (ipadTier) {
+    const size = ipadTier[1] ?? ipadTier[3];
+    const chip = ipadTier[4]?.replace(/\s+/g, "_");
+    return compactModel("ipad", [ipadTier[2], size, chip].filter(Boolean).join("_"));
+  }
+  // Base iPad: "iPad 11 (A16)", "iPad (10th generation)", "iPad A16".
+  const ipadBase = signal.match(/\bipad\b\s*(\d{1,2})?\s*(?:′′|''|["”])?\s*\(?\s*(a\d{2})?\)?/);
+  if (ipadBase && (ipadBase[1] || ipadBase[2])) {
+    return compactModel("ipad", [ipadBase[1], ipadBase[2]].filter(Boolean).join("_"));
+  }
+
+  // Samsung tablets. "A11+" is a distinct SKU from "A11" and must not collapse.
+  const galaxyTab = signal.match(/\b(?:samsung\s*)?galaxy\s+tab\s+([a-z]{1,2})\s*-?\s*(\d{1,2})\s*(\+|plus)?\s*(fe|ultra|lite)?/);
+  if (galaxyTab) {
+    const suffix = [galaxyTab[3] ? "plus" : undefined, galaxyTab[4]].filter(Boolean).join("_");
+    return compactModel("galaxy_tab", `${galaxyTab[1]}${galaxyTab[2]}`, suffix || undefined);
+  }
+
+  // Redmi/Xiaomi Pad. The generic redmi|poco matcher below reads only the word
+  // "pad" and threw the rest away, so "Redmi Pad 2", "Redmi Pad 2 4G",
+  // "Redmi Pad SE" and "Redmi Pad SE 8.7" were ONE product — four different
+  // tablets sharing one price. The digit guard keeps "SE 8GB/256GB" from
+  // reading its RAM as a generation.
+  const redmiPad = signal.match(
+    // The (?![a-z]) after the connectivity group matters: without it "4GB"
+    // reads as "4G" and a Wi-Fi Redmi Pad 2 becomes the cellular one.
+    /\b(?:xiaomi\s*)?redmi\s+pad\s*(se)?\s*(\d{1,2}(?:\.\d)?)?(?![a-z0-9])\s*(pro)?\s*((?:5g|4g)(?![a-z]))?/,
+  );
+  if (redmiPad) {
+    return compactModel("redmi_pad", [redmiPad[1], redmiPad[2], redmiPad[3], redmiPad[4]].filter(Boolean).join("_") || "base");
+  }
+  const xiaomiPad = signal.match(/\bxiaomi\s+pad\s*(\d{1,2})?(?![a-z0-9])\s*(pro|max)?/);
+  if (xiaomiPad) return compactModel("xiaomi_pad", [xiaomiPad[1], xiaomiPad[2]].filter(Boolean).join("_") || "base");
+
+  const lenovoTab = signal.match(/\blenovo\s+(?:idea\s*)?tab\s*(pro|plus|m\d{1,2}|y700)?\s*(\d{1,2}(?:\.\d)?)?(?![a-z0-9])/);
+  if (lenovoTab && (lenovoTab[1] || lenovoTab[2])) {
+    return compactModel("lenovo_tab", [lenovoTab[1], lenovoTab[2]].filter(Boolean).join("_"));
   }
 
   // iPhone "<n>e" budget models (16e) — the trailing letter is part of the model.
@@ -223,7 +296,14 @@ function modelFamily(signal: string) {
   if (appleWatchUltra) return compactModel("apple_watch", appleWatchUltra[1] ? `ultra_${appleWatchUltra[1]}` : "ultra");
   const appleWatchSeries = signal.match(/\bapple\s+watch\s+series\s*(\d+)\b/i);
   if (appleWatchSeries) return compactModel("apple_watch", `series_${appleWatchSeries[1]}`);
-  const appleWatchSE = signal.match(/\bapple\s+watch\s+se(?:\s+gen\.?\s*(\d+)|\s+(\d+(?:nd|rd|st|th)?))?\b/i);
+  // The generation may sit BEHIND the connectivity words: iSpace writes
+  // "Apple Watch SE GPS Gen.3" and Kontakt writes "Apple Watch SE GPS 40mm".
+  // Without skipping GPS/Cellular the Gen.3 was never read, so a 2026 SE Gen 3
+  // (MEH34RK/A) and a 2023 SE Gen 2 (MR9U3QI/A) became one product with one
+  // price. Generation belongs in the MODEL, not the colour.
+  const appleWatchSE = signal.match(
+    /\bapple\s+watch\s+se\b(?:\s+(?:gps|cellular|wifi|\+))*(?:\s+gen\.?\s*(\d+)|\s+(\d+(?:nd|rd|st|th))\b)?/i,
+  );
   if (appleWatchSE) {
     const gen = appleWatchSE[1] ?? appleWatchSE[2]?.replace(/\D/g, "");
     return gen ? compactModel("apple_watch", `se_${gen}`) : compactModel("apple_watch", "se");
@@ -478,6 +558,62 @@ function screenSize(signal: string) {
   // Watch sizes (38–49 mm)
   const mm = signal.match(/\b([34]\d)\s*mm\b/)?.[1];
   return mm ? `${mm}mm` : undefined;
+}
+
+// ── Apple Watch band identity ────────────────────────────────────────────
+// Every shop that sells Apple Watch in Georgia (iSpace, Alta, Kontakt) names
+// the band in the title, because the band is what the customer is paying the
+// difference for. Longest spelling first: "braided solo loop" must win over
+// "solo loop", and "titanium milanese loop" collapses to "milanese_loop"
+// because the case metal is already carried by caseColor.
+const WATCH_BAND_TYPES: Array<[RegExp, string]> = [
+  [/\bbraided\s+solo\s+loop\b/, "braided_solo_loop"],
+  [/\bmilanese\s+loop\b/, "milanese_loop"],
+  [/\balpine\s+loop\b/, "alpine_loop"],
+  [/\btrail\s+loop\b/, "trail_loop"],
+  [/\bocean\s+band\b/, "ocean_band"],
+  [/\bsolo\s+loop\b/, "solo_loop"],
+  [/\bsport\s+loop\b/, "sport_loop"],
+  [/\bnike\s+sport\s+band\b/, "sport_band"],
+  [/\bsport\s+band\b/, "sport_band"],
+  [/\blink\s+bracelet\b/, "link_bracelet"],
+  [/\bmagnetic\s+link\b/, "magnetic_link"],
+  [/\bmodern\s+buckle\b/, "modern_buckle"],
+  [/\bleather\s+link\b/, "leather_link"],
+];
+
+function watchBandType(signal: string) {
+  if (!/\bwatch\b/.test(signal)) return undefined;
+  return WATCH_BAND_TYPES.find(([pattern]) => pattern.test(signal))?.[1];
+}
+
+// Two separate vocabularies that never mix: sport bands ship in S/M and M/L,
+// loops and bracelets ship in Small/Medium/Large. iSpace abbreviates to a bare
+// trailing letter ("Milanese Loop, M"), Kontakt and Alta spell it out.
+function watchBandSize(signal: string) {
+  if (!/\bwatch\b/.test(signal)) return undefined;
+  if (/\bs\/m\b/.test(signal)) return "s_m";
+  if (/\bm\/l\b/.test(signal)) return "m_l";
+  if (/\bsmall\b/.test(signal)) return "s";
+  if (/\bmedium\b/.test(signal)) return "m";
+  if (/\blarge\b/.test(signal)) return "l";
+  // Bare trailing size letter, e.g. "... black titanium milanese loop m".
+  const trailing = signal.match(/\b(?:loop|band|bracelet|buckle|link)\s+([sml])(?![a-z0-9])/)?.[1];
+  return trailing;
+}
+
+// The case colour sits immediately before the case material. Capture up to
+// three words so "jet black", "space grey" and "natural titanium" all survive,
+// then reuse the normal colour table on just that fragment.
+function watchCaseColor(signal: string) {
+  if (!/\bwatch\b/.test(signal)) return undefined;
+  // "case" is an anchor of its own: the multi-word colour aliases glue the
+  // metal into the colour token ("Black Titanium Case" → "black_titanium
+  // case"), which leaves no bare \btitanium\b to anchor on. iSpace omits the
+  // word "case" entirely ("42mm, Jet Black Aluminium, Black Sport Band"), so
+  // the material spellings have to stay too.
+  const fragment = signal.match(/((?:[a-z_0-9]+\s+){0,2}[a-z_0-9]+)\s+(?:aluminium|aluminum|titanium|stainless\s+steel|ceramic|case)\b/)?.[1];
+  return fragment ? colorValue(fragment) : undefined;
 }
 
 function simType(signal: string) {

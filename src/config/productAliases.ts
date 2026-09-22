@@ -54,7 +54,9 @@ export const TEXT_ALIASES: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bpink[\s-]?titanium\b/gi, "pink_titanium"],
   [/\bcosmic[\s-]?orange\b/gi, "cosmic_orange"],
   [/\bspace[\s-]?black\b/gi, "space_black"],
-  [/\bspace[\s-]?gray\b/gi, "space_gray"],
+  // Alta writes the British spelling; without it a Space Grey Apple Watch case
+  // collapsed to plain "gray" and stopped being distinguishable from Jet Black.
+  [/\bspace[\s-]?gr[ae]y\b/gi, "space_gray"],
   [/\brose[\s-]?gold\b/gi, "rose_gold"],
   [/\bsky[\s-]?blue\b/gi, "sky_blue"],
   [/\bdark[\s-]?blue\b/gi, "blue"],
@@ -206,6 +208,12 @@ export const COLOR_ALIASES: Record<string, string> = {
   turquoise: "turquoise",
   mint: "mint",
   lime: "lime",
+  // Apple 2026 MacBook Neo / iPad finishes. Missing from this table they
+  // normalised to undefined, which made a Citrus unit "unknown colour" — and an
+  // unknown colour never hard-conflicts, so a Citrus MacBook Neo scored 89
+  // against an Indigo one while two Citrus units split into separate keys.
+  citrus: "citrus",
+  watermelon: "watermelon",
   // Apple Watch colors
   starlight: "starlight",
   midnight: "midnight",

@@ -30,6 +30,10 @@ export type ProductIdentity = {
   ram?: string;
   color?: string;
   simType?: string;
+  // Apple Watch band identity. Kept OUT of colour so that a stated-vs-stated
+  // band mismatch is a hard conflict while an unstated band never splits.
+  bandType?: string;
+  bandSize?: string;
   modelCode?: string;
   sku?: string;
   cpu?: string;
@@ -72,6 +76,8 @@ export function mergeProductIdentities(base: ProductIdentity, supplement: Produc
     ram: base.ram ?? supplement.ram,
     color: base.color ?? supplement.color,
     simType: base.simType ?? supplement.simType,
+    bandType: base.bandType ?? supplement.bandType,
+    bandSize: base.bandSize ?? supplement.bandSize,
     modelCode: base.modelCode ?? supplement.modelCode,
     sku: base.sku ?? supplement.sku,
     cpu: base.cpu ?? supplement.cpu,
@@ -96,6 +102,9 @@ export function mergeProductIdentities(base: ProductIdentity, supplement: Produc
       screenSize: base.attributes.screenSize ?? supplement.attributes.screenSize,
       sim: base.attributes.sim ?? supplement.attributes.sim,
       color: base.attributes.color ?? supplement.attributes.color,
+      caseColor: base.attributes.caseColor ?? supplement.attributes.caseColor,
+      bandType: base.attributes.bandType ?? supplement.attributes.bandType,
+      bandSize: base.attributes.bandSize ?? supplement.attributes.bandSize,
       os: base.attributes.os ?? supplement.attributes.os,
       capacity: base.attributes.capacity ?? supplement.attributes.capacity,
       compatibleDevice: base.attributes.compatibleDevice ?? supplement.attributes.compatibleDevice,
@@ -155,7 +164,9 @@ export function buildCanonicalProductKey(identity: Omit<ProductIdentity, "canoni
   }
   if (identity.productType === "wearable") {
     if (!brand || !model) return undefined;
-    return key([brand, model, identity.screenSize, identity.color]);
+    // Band type and size are part of the purchasable variant: same watch, same
+    // case colour, Alpine Loop 2,699 GEL vs Titanium Milanese Loop 3,449 GEL.
+    return key([brand, model, identity.screenSize, identity.color, identity.bandType, identity.bandSize]);
   }
   if (brand && (identity.modelCode || model)) {
     return key([brand, identity.modelCode ?? model, identity.productForm, identity.color]);
@@ -181,8 +192,12 @@ function identityFromAttributes(attributes: ProductAttributes, productType: Prod
     variant: attributes.variant,
     storage: chooseStorage(attributes.storage),
     ram: chooseRam(attributes.ram),
-    color: attributes.color,
+    // A watch title names the case colour AND the band colour; for wearables the
+    // case colour is the one that identifies the product.
+    color: productType === "wearable" ? attributes.caseColor ?? attributes.color : attributes.color,
     simType: attributes.sim,
+    bandType: attributes.bandType,
+    bandSize: attributes.bandSize,
     modelCode: attributes.modelCodes[0],
     sku: attributes.skuCodes[0],
     cpu: attributes.cpu,

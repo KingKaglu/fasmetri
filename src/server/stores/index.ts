@@ -9,6 +9,7 @@ import { extraStoreAdapter } from "./extra.adapter";
 import { veliStoreAdapter } from "./veli.adapter";
 import { gorgiaStoreAdapter } from "./gorgia.adapter";
 import { dominoStoreAdapter } from "./domino.adapter";
+import { ispaceStoreAdapter } from "./ispace.adapter";
 import { kontaktStoreAdapter } from "./kontakt.adapter";
 import { primestoreStoreAdapter } from "./primestore.adapter";
 import { kaloStoreAdapter } from "./kalo.adapter";
@@ -27,6 +28,7 @@ const ADAPTER_REGISTRY: Record<string, StoreAdapter> = {
   gorgia:        gorgiaStoreAdapter,
   domino:        dominoStoreAdapter,
   kontakt:       kontaktStoreAdapter,
+  ispace:        ispaceStoreAdapter,
   primestore:    primestoreStoreAdapter,
   kalo:          kaloStoreAdapter,
   isurve:        isurveStoreAdapter,
