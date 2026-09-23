@@ -64,7 +64,10 @@ const COLLECTIONS_URL = `${SITE_BASE}/collections.json`;
 
 const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+Fasmetri@gmail.com)";
 const PAGE_SIZE = 250; // Shopify's documented maximum for these endpoints
-const REQUEST_DELAY_MS = 400;
+// At 400 ms a full run tripped Shopify's per-IP throttle near the end and the
+// throttle then outlived a 2-minute backoff. A full run is only ~400 requests,
+// so a 1 s pace costs a few minutes and stays under the limit.
+const REQUEST_DELAY_MS = 1000;
 // Shopify throttles full 250-row pages of the big umbrella shelves hard, and a
 // full run reaches them last, after thousands of requests. Three quick retries
 // (14 s of backoff in total) gave up on ten of them in a row on 2026-09-24, so
