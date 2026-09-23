@@ -65,7 +65,12 @@ const COLLECTIONS_URL = `${SITE_BASE}/collections.json`;
 const DEFAULT_USER_AGENT = "FasmetriPriceBot/0.1 (+Fasmetri@gmail.com)";
 const PAGE_SIZE = 250; // Shopify's documented maximum for these endpoints
 const REQUEST_DELAY_MS = 400;
-const MAX_RETRIES = 3;
+// Shopify throttles full 250-row pages of the big umbrella shelves hard, and a
+// full run reaches them last, after thousands of requests. Three quick retries
+// (14 s of backoff in total) gave up on ten of them in a row on 2026-09-24, so
+// the budget is sized for a throttle window, not a blip.
+const MAX_RETRIES = 6;
+const MAX_BACKOFF_MS = 60_000;
 // Shopify answers HTTP 400 past page 100 on these endpoints regardless of the
 // collection, so this is the platform ceiling, not a politeness cap. It applies
 // to the collection list and to per-collection product listings alike: a lower
@@ -174,8 +179,18 @@ async function apiGet<T>(url: string): Promise<ApiResult<T>> {
       if (response.status === 400 || response.status === 404) return { status: "ceiling" };
       if (response.status === 429 || response.status >= 500) {
         // Back off rather than hammer — Shopify rate-limits storefront JSON.
+        // Honour Retry-After when it is sent; otherwise back off exponentially.
         // On the last attempt there is nothing left to retry, so do not sleep.
-        if (attempt < MAX_RETRIES) await sleep(2000 * 2 ** attempt);
+        const retryAfterMs = Number(response.headers.get("retry-after")) * 1000;
+        const backoffMs = Math.min(
+          MAX_BACKOFF_MS,
+          Number.isFinite(retryAfterMs) && retryAfterMs > 0 ? retryAfterMs : 2000 * 2 ** attempt,
+        );
+        console.warn(
+          `[isurve] GET ${url} -> HTTP ${response.status} (attempt ${attempt + 1}/${MAX_RETRIES + 1}` +
+            (attempt < MAX_RETRIES ? `, retrying in ${Math.round(backoffMs / 1000)}s)` : ", giving up)"),
+        );
+        if (attempt < MAX_RETRIES) await sleep(backoffMs);
         continue;
       }
       if (!response.ok) {
