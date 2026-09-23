@@ -110,8 +110,11 @@ export function extractProductAttributes(input: ProductAttributeInput): ProductA
     modelFamily: family,
     productLine: productLineFor(brand, family),
     variant: variantValue(family, extractionSignal),
-    modelCodes: modelCodes(extractionSignal).filter((code) => !isModelFamilyCode(code, family)),
-    skuCodes: skuCodes(extractionSignal).filter((code) => !isModelFamilyCode(code, family)),
+    // A brand whose own name contains a digit ("a4tech", "3m", "4smarts") passes
+    // every modelCodes() filter, so it could take the model-code slot of the
+    // canonical key and collapse the shop's whole brand range into one product.
+    modelCodes: modelCodes(extractionSignal).filter((code) => !isModelFamilyCode(code, family) && !isBrandToken(code, brand)),
+    skuCodes: skuCodes(extractionSignal).filter((code) => !isModelFamilyCode(code, family) && !isBrandToken(code, brand)),
     cpu: cpuValue(extractionSignal),
     gpu: gpuValue(extractionSignal),
     ram: memoryValues(extractionSignal, "ram"),
@@ -439,9 +442,34 @@ function modelCodes(signal: string) {
         !/^(i[3579]-?\d{3,5}[a-z]{0,2}|ryzen[3579]?[-_]?\d{3,5}[a-z]{0,2}|\d{3,5}[a-z]{0,2}|m\d(?:pro|max|ultra)?)$/.test(token) &&
         !/^\d-\d{3,5}[a-z]{0,2}$/.test(token) &&
         !/^core[-_]?\d[-_]?\d{3,5}[a-z]{0,2}$/.test(token) &&
+        !isSpecRangeToken(token) &&
         (!/^\w+\d+$/.test(token) || /[_/-]/.test(token)),
       ),
   );
+}
+
+// Spec-sheet strings such as "220-240v", "100v-240v", "20hz-20khz", "80-320c",
+// "12v-1.67a" or "380v/50hz/3ph" look exactly like a model code to the filters
+// above (letters + digits + a separator). Stores that put an electrical or
+// temperature spec block in the description therefore had that block win over
+// the real model code in the canonical key, merging unrelated products
+// (e.g. a Franko oven and a Franko microwave both keyed "franko|220_240v").
+const SPEC_UNIT = "(?:v|va|hz|khz|kw|w|a|ma|ph|rpm|db|bar|psi|c)";
+const SPEC_PART = new RegExp(`^\\d+(?:\\.\\d+)?${SPEC_UNIT}?$`);
+// A bare "a" (amps) is also the most common model-code suffix letter — Midea's
+// "NDK 20-21A" heater is a real code — so an amp figure alone never marks a
+// token as a spec range; "12v-1.67a" is still caught through its "v".
+const SPEC_PART_WITH_UNIT = new RegExp(`^\\d{2,}(?:\\.\\d+)?(?:v|va|hz|khz|kw|w|ma|ph|rpm|db|bar|psi|c)$`);
+
+function isSpecRangeToken(token: string) {
+  const parts = token.split(/[-_/]/).filter(Boolean);
+  if (parts.length < 2) return false;
+  return parts.every((part) => SPEC_PART.test(part)) && parts.some((part) => SPEC_PART_WITH_UNIT.test(part));
+}
+
+function isBrandToken(code: string, brand?: string) {
+  if (!brand) return false;
+  return code.replace(/[-\s/_]+/g, "") === brand.replace(/[-\s/_]+/g, "");
 }
 
 function isModelFamilyCode(code: string, family?: string) {
@@ -459,7 +487,8 @@ function skuCodes(signal: string) {
         /\d/.test(token) &&
         !/^i[3579][_-]\d+/.test(token) &&
         !/^ryzen[3579]?[_-]?\d+/.test(token) &&
-        !/^\d+gb?[_-]\d+gb?$/.test(token),
+        !/^\d+gb?[_-]\d+gb?$/.test(token) &&
+        !isSpecRangeToken(token),
       ),
   );
 }

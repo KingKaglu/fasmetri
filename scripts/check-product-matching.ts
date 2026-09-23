@@ -298,6 +298,120 @@ for (const testCase of televisionCases) {
 console.log(`Verified ${televisionCases.length} television variant-key cases.`);
 
 // ---------------------------------------------------------------------------
+// Appliance variant keys (isurve regression, 2026-09-23). isurve ships a
+// spec block in the description ("ძაბვა: 220-240V", "ტემპერატურა: 80-320C",
+// "380V/50Hz/3Ph"). Those tokens satisfy every modelCodes() filter, and
+// buildParentKey prefers modelCode over the stated model, so a Franko oven and
+// a Franko microwave both keyed "franko|220_240v" and were merged into one
+// product with one (wrong) cheapest price. A brand whose own name carries a
+// digit ("a4tech") reached the same slot.
+// ---------------------------------------------------------------------------
+
+type ApplianceCase = {
+  label: string;
+  input: { title: string; brand?: string; model?: string; description?: string; categorySlug: string };
+  expectedParentKey: string;
+  expectedVariantKey?: string;
+};
+
+const applianceCases: ApplianceCase[] = [
+  {
+    label: "voltage spec must not become the model code (Franko oven)",
+    input: {
+      title: "ელექტრო ღუმელი FRANKO FCO-1193 კონვექციით",
+      brand: "Franko",
+      model: "FCO-1193",
+      description: "მოდელი: FCO-1193 | ძაბვა: 220-240V | ტემპერატურა: 80-320C | ფერი: შავი",
+      categorySlug: "small-appliances",
+    },
+    expectedParentKey: "franko|fco_1193",
+  },
+  {
+    label: "a microwave on the same mains voltage is a different product",
+    input: {
+      title: "მიკროტალღური ღუმელი FRANKO FMO-1124",
+      brand: "Franko",
+      model: "FMO-1124",
+      description: "მოდელი: FMO-1124 | ძაბვა: 220-240V | ფერი: შავი",
+      categorySlug: "home-appliances",
+    },
+    expectedParentKey: "franko|fmo_1124",
+  },
+  {
+    label: "two Panasonic shavers sharing a 100V-240V spec stay apart (1/2)",
+    input: {
+      title: "წვერსაპარსი PANASONIC ES-LT8N-S820",
+      brand: "Panasonic",
+      description: "ძაბვა: 100V-240V | ფერი: ვერცხლისფერი",
+      categorySlug: "beauty",
+    },
+    expectedParentKey: "panasonic|es_lt8n_s820",
+  },
+  {
+    label: "two Panasonic shavers sharing a 100V-240V spec stay apart (2/2)",
+    input: {
+      title: "წვერსაპარსი PANASONIC ES-LV9N-S820",
+      brand: "Panasonic",
+      description: "ძაბვა: 100V-240V | ფერი: ვერცხლისფერი",
+      categorySlug: "beauty",
+    },
+    expectedParentKey: "panasonic|es_lv9n_s820",
+  },
+  {
+    label: "a frequency response range is not a model code",
+    input: {
+      title: "ყურსასმენი A4TECH MK-650-B",
+      brand: "A4tech",
+      model: "MK-650-B",
+      description: "სიხშირე: 20Hz-20KHz | ფერი: შავი",
+      categorySlug: "audio",
+    },
+    expectedParentKey: "a4tech|mk_650_b",
+  },
+  {
+    label: "a three-phase mains spec is not a model code",
+    input: {
+      title: "დასადგამი კონდიციონერი 150მ2 Millen MAC-48K-on/off FL set",
+      brand: "millen",
+      model: "MAC-48K-on/off FL set",
+      description: "კვება: 380V/50Hz/3Ph",
+      categorySlug: "home-appliances",
+    },
+    expectedParentKey: "millen|mac_48k_on_off",
+  },
+  {
+    // No over-correction: a genuine code that merely looks numeric must survive.
+    label: "a real appliance model code is still the key",
+    input: { title: "გაზქურა BEKO FBE63331XCS", brand: "Beko", model: "FBE63331XCS", categorySlug: "home-appliances" },
+    expectedParentKey: "beko|fbe63331xcs",
+  },
+  {
+    label: "a dotted appliance model code is still the key",
+    input: { title: "ჩოპერი Kenwood CHP61.100WH", brand: "Kenwood", model: "CHP61.100WH", categorySlug: "small-appliances" },
+    expectedParentKey: "kenwood|chp61100wh",
+  },
+  {
+    // An "A" suffix is a model letter as often as it is amps: this code must
+    // not be discarded as an electrical spec range (Kontakt, 2026-09-24).
+    label: "an amp-looking model suffix is still the key (Midea NDK 20-21A)",
+    input: { title: "Midea NDK 20-21A", brand: "Midea", model: "NDK 20-21A", categorySlug: "home-appliances" },
+    expectedParentKey: "midea|20_21a",
+  },
+];
+
+for (const testCase of applianceCases) {
+  const identity = extractVariantIdentity(testCase.input);
+  assert.equal(
+    identity.canonicalParentKey,
+    testCase.expectedParentKey,
+    `${testCase.label}: expected parent key ${testCase.expectedParentKey}, received ${identity.canonicalParentKey}`,
+  );
+  console.log(`APPLIANCE KEY ${testCase.label}: ${identity.canonicalParentKey}`);
+}
+
+console.log(`Verified ${applianceCases.length} appliance variant-key cases.`);
+
+// ---------------------------------------------------------------------------
 // Safe cross-store matcher cases (src/server/matching/safeProductMatcher.ts) —
 // this is the code path npm run match:phones / match:laptops actually uses.
 // Regression guards for the v2 fixes: RAM=1 noise, SIM demotion, exactKey.

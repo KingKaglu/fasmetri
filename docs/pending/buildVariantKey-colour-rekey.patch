@@ -1,0 +1,21 @@
+diff --git a/src/lib/variantMatching.ts b/src/lib/variantMatching.ts
+index 0bfa419..10651d5 100644
+--- a/src/lib/variantMatching.ts
++++ b/src/lib/variantMatching.ts
+@@ -120,7 +120,15 @@ export function buildVariantKey(identity: ProductIdentity) {
+   }
+ 
+   if (identity.productType === "appliance" || identity.productType === "small_appliance" || identity.productType === "television" || identity.productType === "monitor") {
+-    return key([parentKey, identity.color]);
++    // An appliance / TV model code already encodes the finish (BEKO FBE63131WCS
++    // is the white one, FBE6330GXDSN the inox one), so colour is descriptive
++    // here, not a purchasable axis — which is exactly what
++    // productTypeNeedsSeparateColorVariant() says. Including it split the SAME
++    // model code into two products whenever one shop happened to state the
++    // colour (in a title or a spec block) and another did not: 48 of 300 isurve
++    // offers landed on an existing parent product but a colour-suffixed variant
++    // key, so their price never reached the shopper.
++    return key([parentKey]);
+   }
+ 
+   return key([parentKey, identity.color]);
