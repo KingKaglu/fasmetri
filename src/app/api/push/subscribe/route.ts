@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { isSafePushEndpoint } from "@/lib/request-ip";
 
 const input = z.object({
   subscription: z.object({
-    endpoint: z.string().trim().url().max(1000),
+    endpoint: z.string().trim().url().max(1000).refine(isSafePushEndpoint),
     keys: z.object({
       p256dh: z.string().trim().min(1).max(500),
       auth: z.string().trim().min(1).max(500),

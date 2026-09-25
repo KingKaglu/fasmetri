@@ -45,10 +45,17 @@ export function stripIpPort(value: string) {
 }
 
 export function isPublicHttpHost(hostname: string) {
-  const host = hostname.toLowerCase();
+  // URL.hostname keeps IPv6 brackets ("[::1]"); header IPs arrive bare.
+  const host = hostname.toLowerCase().replace(/^\[(.*)\]$/, "$1");
   if (!host || host === "localhost" || host.endsWith(".localhost")) return false;
-  if (host === "::1" || host === "[::1]" || host === "::" || host === "0.0.0.0") return false;
-  if (host.startsWith("fe80:") || host.startsWith("fc") || host.startsWith("fd")) return false;
+  if (host === "::1" || host === "::" || host === "0.0.0.0") return false;
+  // The fc/fd/fe80 prefixes are IPv6 ranges only. Tested on every host they
+  // also refused real domains such as fcm.googleapis.com.
+  if (host.includes(":")) {
+    if (host.startsWith("fe80:") || host.startsWith("fc") || host.startsWith("fd")) return false;
+    // IPv4-mapped (::ffff:7f00:1) would smuggle a private v4 address through.
+    if (host.startsWith("::ffff:")) return false;
+  }
 
   const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (!ipv4) return !host.includes(":") || isPublicIpv6(host);
@@ -60,6 +67,22 @@ export function isPublicHttpHost(hostname: string) {
   if (a === 192 && b === 168) return false;
   if (a === 100 && b >= 64 && b <= 127) return false;
   return ipv4.slice(1).every((part) => Number(part) >= 0 && Number(part) <= 255);
+}
+
+// A Web Push endpoint is a URL the browser hands us and the alert job later
+// POSTs to, so an unchecked one turns the job's host into an open proxy for
+// internal addresses. Real push services (FCM, Mozilla, Apple, WNS) are all
+// HTTPS on public, dotted hostnames.
+export function isSafePushEndpoint(value: string) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:" || url.username || url.password) return false;
+  if (!url.hostname.includes(".")) return false;
+  return isPublicHttpHost(url.hostname);
 }
 
 function isPublicIpv6(host: string) {

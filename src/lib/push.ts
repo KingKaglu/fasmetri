@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
 import { sendExpoPushToEmail } from "@/lib/push-expo";
+import { isSafePushEndpoint } from "@/lib/request-ip";
 
 // Web Push for price alerts. Fully optional: when the VAPID env vars are not
 // configured, every function here is a graceful no-op so nothing breaks in a
@@ -53,6 +54,8 @@ async function sendWebPushToEmail(email: string, payload: PushPayload): Promise<
   let delivered = 0;
   await Promise.all(
     subscriptions.map(async (sub) => {
+      // Rows stored before the subscribe route validated endpoints.
+      if (!isSafePushEndpoint(sub.endpoint)) return;
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
