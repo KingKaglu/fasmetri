@@ -866,3 +866,365 @@ textarea {
     display: flex;
   }
 }
+
+/* ─── Homepage: explainer + density sections ──────────────
+   Same rule as the rail cards above: classes here, not long utility strings,
+   because every repeated class attribute is paid again in the RSC flight. */
+
+/* Below-the-fold sections skip layout/paint until they approach the viewport.
+   The intrinsic size keeps the scrollbar honest while they are skipped. */
+.home-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 26rem;
+}
+
+.home-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.25rem 0.7rem;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+.home-live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--aqua);
+  box-shadow: 0 0 0 3px var(--aqua-soft);
+}
+
+.home-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.2rem 0.7rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+.home-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  max-width: 42rem;
+}
+.home-stats .home-stat {
+  min-width: 0;
+  padding-left: 0.55rem;
+}
+@media (min-width: 640px) {
+  .home-stats {
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .home-stats .home-stat {
+    padding-left: 0.9rem;
+  }
+}
+
+/* Popular-search chips: one swipeable line on phones, wrapping from sm up */
+.home-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: -0.75rem;
+  padding-inline: 0.75rem;
+}
+.home-chips::-webkit-scrollbar {
+  display: none;
+}
+.home-chips > * {
+  flex: none;
+}
+@media (min-width: 640px) {
+  .home-chips {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}
+
+/* Hero live comparison card */
+.home-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: var(--surface);
+  padding: 1.1rem;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease;
+}
+.home-compare:hover {
+  border-color: var(--accent);
+}
+.home-compare-kicker {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  padding: 0.15rem 0.6rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.home-compare-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--brand);
+}
+.home-compare-list {
+  display: grid;
+  gap: 0.35rem;
+}
+.home-compare-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-strong);
+}
+.home-compare-list li[data-best] {
+  border-color: var(--savings);
+  background: var(--savings-soft);
+  color: var(--brand);
+}
+.home-compare-best {
+  flex: none;
+  border-radius: 999px;
+  background: var(--savings);
+  padding: 0.05rem 0.45rem;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+.home-compare-price {
+  margin-left: auto;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--brand);
+}
+.home-compare-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--savings);
+}
+.home-compare-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 0.65rem;
+  background: var(--accent);
+  padding: 0.6rem;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+.home-compare:hover .home-compare-cta {
+  background: var(--accent-strong);
+}
+
+/* Shop strip */
+.home-shop,
+.home-brand {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.3rem 0.75rem;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand);
+  white-space: nowrap;
+}
+.home-shop:hover,
+.home-brand:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.home-shop-count {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.home-shop-all {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* How it works */
+.home-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: var(--surface);
+  padding: 0.7rem;
+}
+@media (min-width: 640px) {
+  .home-step {
+    flex-direction: row;
+    gap: 0.75rem;
+    padding: 0.9rem;
+  }
+}
+.home-step-ico {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.7rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Category tiles now carry a count line */
+.cat-name,
+.cat-count {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cat-count {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Rail card additions */
+.home-card-from {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.home-card-save {
+  width: fit-content;
+  margin-block: 0.15rem;
+  border-radius: 999px;
+  background: var(--savings-soft);
+  padding: 0.05rem 0.45rem;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--savings);
+}
+.home-card-meta[data-multi] {
+  font-weight: 600;
+  color: var(--savings);
+}
+
+/* Recent price changes */
+.home-changes {
+  display: grid;
+  gap: 0.4rem;
+}
+.home-change {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface);
+  padding: 0.6rem 0.75rem;
+}
+.home-change:hover {
+  border-color: var(--accent);
+}
+.home-change-ico {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+}
+.home-change-ico.is-down {
+  background: var(--savings-soft);
+  color: var(--savings);
+}
+.home-change-ico.is-up {
+  background: #fef2f2;
+  color: var(--price-deal);
+}
+
+/* FAQ — native <details>, no client JS */
+.home-faq {
+  display: grid;
+  gap: 0.5rem;
+}
+.home-faq details {
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface);
+}
+.home-faq summary {
+  display: flex;
+  cursor: pointer;
+  list-style: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.home-faq summary::-webkit-details-marker {
+  display: none;
+}
+.home-faq details[open] summary svg {
+  transform: rotate(180deg);
+}
+.home-faq details p {
+  padding: 0 0.95rem 0.9rem;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-strong);
+}
