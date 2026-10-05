@@ -38,7 +38,11 @@ import { explainMatchDecision } from "@/lib/productMatching";
 // Product pages depend only on the slug (no searchParams) and the catalog
 // refreshes daily — serve them via ISR so each product is cached at the edge
 // after the first render instead of re-querying Supabase on every visit.
-export const revalidate = 600;
+// Freshness comes from on-demand revalidation (every sync curls
+// /api/revalidate), so the time-based window is only a backstop. At 600s a
+// crawler walking ~3,000 product URLs re-rendered nearly every one of them,
+// which is what burned the Hobby plan's Fluid CPU allowance.
+export const revalidate = 3600;
 
 // A dynamic segment only joins the ISR cache when it declares
 // generateStaticParams; without it Next serves the route fully dynamic

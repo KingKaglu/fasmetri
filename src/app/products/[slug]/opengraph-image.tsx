@@ -11,7 +11,19 @@ export const runtime = "nodejs";
 export const alt = "ფასმეტრი — ფასების შედარება";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const revalidate = 3600;
+// Satori + PNG encode is the most CPU-expensive render on the site, and
+// crawlers fetch og:image for every product page they visit. A day-old price
+// on a share card is acceptable; re-rendering ~3,000 of them hourly is not.
+export const revalidate = 86400;
+// Same trap as the product page: without generateStaticParams the route
+// builds as fully dynamic and `revalidate` is ignored, so every og:image
+// fetch ran Satori and a catalogue query from scratch. The empty list keeps
+// deploys from prerendering the catalogue; images render on first request
+// and are cached from then on.
+export const dynamicParams = true;
+export function generateStaticParams() {
+  return [];
+}
 
 type OgFont = NonNullable<ConstructorParameters<typeof ImageResponse>[1]>["fonts"];
 

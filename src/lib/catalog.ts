@@ -498,12 +498,20 @@ function publicListingKey(filters: ProductFilters): string {
   ]);
 }
 
+// Catalog caches: 1h, not 5-10 min. Every cache using this is tagged
+// "catalog", which every sync (via /api/revalidate) and every admin edit
+// invalidates on demand, so the TTL is only a backstop. It also sets the ceiling on every ISR page that reads
+// them — at 300s the product pages' own revalidate was clamped to 5 min, and
+// crawlers re-rendered the catalogue until the Vercel Hobby plan ran out of
+// Fluid CPU (deployments paused 2026-09-29).
+const PUBLIC_LISTING_TTL_SECONDS = 3600;
+
 export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
     ["public-products-v12", publicListingKey(filters)],
-    { revalidate: 300, tags: ["catalog"] },
+    { revalidate: PUBLIC_LISTING_TTL_SECONDS, tags: ["catalog"] },
   );
   return cached();
 }
@@ -514,7 +522,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const cached = unstable_cache(
     () => listProducts(scoped),
     ["public-product-matches-v10", publicListingKey(unpagedFilters)],
-    { revalidate: 300, tags: ["catalog"] },
+    { revalidate: PUBLIC_LISTING_TTL_SECONDS, tags: ["catalog"] },
   );
   return cached();
 }
@@ -538,7 +546,7 @@ function productIdentifiers(identifier: string) {
 // catalog is re-scraped. Uncached, loadCategories runs an unbounded
 // "all discounted products" scan on every category/deals render.
 const cachedCategories = unstable_cache(loadCategories, ["categories-v9"], {
-  revalidate: 600,
+  revalidate: PUBLIC_LISTING_TTL_SECONDS,
   tags: ["catalog"],
 });
 
@@ -604,7 +612,7 @@ export async function listPublicCategories(): Promise<CategoryView[]> {
 // summary anyway. Caching keeps that scan off the per-request path of every
 // category/product/deals render.
 const cachedShops = unstable_cache(loadShops, ["shops-v5"], {
-  revalidate: 600,
+  revalidate: PUBLIC_LISTING_TTL_SECONDS,
   tags: ["catalog"],
 });
 
@@ -755,7 +763,7 @@ async function loadRecentPriceChanges(): Promise<RecentPriceChange[]> {
 }
 
 const cachedRecentPriceChanges = unstable_cache(loadRecentPriceChanges, ["recent-price-changes-v2"], {
-  revalidate: 300,
+  revalidate: PUBLIC_LISTING_TTL_SECONDS,
   tags: ["catalog"],
 });
 
@@ -885,7 +893,7 @@ async function loadPublicCatalogSummary(): Promise<PublicCatalogSummary> {
 const cachedPublicCatalogSummary = unstable_cache(
   loadPublicCatalogSummary,
   ["public-catalog-summary-v10"],
-  { revalidate: 600, tags: ["catalog"] },
+  { revalidate: PUBLIC_LISTING_TTL_SECONDS, tags: ["catalog"] },
 );
 
 let pendingPublicCatalogSummary: Promise<PublicCatalogSummary> | null = null;
@@ -943,7 +951,7 @@ export async function listScrapeRuns(): Promise<ScrapeRunView[]> {
 export type PopularBrandView = { name: string; productCount: number };
 
 const cachedPopularBrands = unstable_cache(loadPopularBrands, ["popular-brands-v1"], {
-  revalidate: 600,
+  revalidate: PUBLIC_LISTING_TTL_SECONDS,
   tags: ["catalog"],
 });
 
