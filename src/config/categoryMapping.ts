@@ -528,6 +528,10 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       ["protective film", "macbook"],
       ["stand", "macbook"],
     ],
+    // Peripheral brands (Bloody, A4Tech) also sell headphones: "Bloody G521
+    // Cable On-ear" matched the bare "bloody" brand keyword at 88 and outranked
+    // audio's 84. A headphone form word hands it back to audio.
+    negativeKeywords: ["headphone", "headset", "on-ear", "over-ear", "earphone"],
     contextKeywords: ["pc accessory", "computer accessory", "peripheral"],
     // Left at 88 on purpose. A group match already clears `clothing` (82),
     // which is what the bag/sleeve conjunctions above needed; raising it to 92
@@ -765,7 +769,7 @@ export const CATEGORY_RULES: readonly CategoryRule[] = [
       "msi creator",
       "msi vector",
     ],
-    negativeKeywords: [...ACCESSORY_FORM_NEGATIVE_KEYWORDS, "laptop bag", "laptop backpack", "laptop sleeve", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station", "dock", "usb-c dock", "universal usb-c", "microphone", "desk microphone", "mouse", "gaming mouse", "keyboard", "usb combo", "m100 rgb", "gy50z71902", "legion m600", "m600s", "legion go", "cpg-001", "cpg-003", "am5", "am4", "lga1700", "lga1851", "lga1200", "lga1151", "motherboard", "mainboard", "gaming geforce", "gaming radeon", "graphics card", "video card"],
+    negativeKeywords: [...ACCESSORY_FORM_NEGATIVE_KEYWORDS, "laptop bag", "laptop backpack", "laptop sleeve", "ჩანთა", "ქეისი", "laptop stand", "laptop charger", "laptop cooler", "tower desktop", "tower pc", "aspire dust master", "aspire home", "backpack", "briefcase", "shoulder bag", "handbag", "cooling stand", "cooling pad", "notebook cooling", "laptop case", "notebook case", "notebook bag", "power bank", "toploader", "sleeve", "surge protector", "slim case", "mobile desk", "desk for laptop", "projector", "docking station", "dock", "usb-c dock", "universal usb-c", "microphone", "desk microphone", "mouse", "gaming mouse", "keyboard", "usb combo", "m100 rgb", "gy50z71902", "legion m600", "m600s", "legion go", "cpg-001", "cpg-003", "am5", "am4", "lga1700", "lga1851", "lga1200", "lga1151", "motherboard", "mainboard", "gaming geforce", "gaming radeon", "graphics card", "video card"],
     contextKeywords: ["portable computer", "leptopebi", "laptop"],
     shopKeywords: ["laptop", "leptop"],
     titleWeight: 90,
