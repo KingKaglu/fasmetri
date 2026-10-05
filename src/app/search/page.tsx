@@ -82,7 +82,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
         />
       ) : null}
       <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-        <aside className="hidden lg:sticky lg:top-[4.5rem] lg:block lg:h-fit">
+        <aside className="hidden lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:block lg:h-fit">
           <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} />
         </aside>
         <div className="min-w-0">

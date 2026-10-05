@@ -84,7 +84,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
 
       <section className="shell py-6 sm:py-8">
         <div className="grid min-w-0 gap-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
-          <aside className="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
+          <aside className="hidden lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:block lg:h-fit">
             <CatalogFilters action="/deals" resetHref="/deals" values={filters} categories={categories} shops={shops} dealsOnly dealShortcuts />
           </aside>
           <div className="min-w-0">

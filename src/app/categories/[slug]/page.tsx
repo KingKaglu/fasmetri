@@ -142,7 +142,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
       {/* Main layout: sidebar + content */}
       <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="hidden lg:sticky lg:top-[4.5rem] lg:block lg:h-fit">
+        <div className="hidden lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:block lg:h-fit">
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} />
         </div>
         <div className="min-w-0">

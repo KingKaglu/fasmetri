@@ -56,7 +56,7 @@ export default async function ReviewsPage() {
         </div>
 
         {/* Form — first on mobile, where the point of the page is to write one. */}
-        <div className="order-1 lg:sticky lg:top-24 lg:order-2">
+        <div className="order-1 lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:order-2">
           <ReviewForm />
           <p className="mt-3 text-xs leading-5 text-gray-500">
             კომენტარები საჯაროა. სპამის, შეურაცხყოფის ან სარეკლამო ბმულების შემცველი ჩანაწერი იშლება.

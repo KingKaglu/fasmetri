@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AirVent, BadgePercent, Flame, Frame, Gamepad2, Grid3X3, Headphones, Heart, Laptop, LineChart, Menu, Microwave, Monitor, Refrigerator, Search, Smartphone, Sparkles, Store, Tv, WashingMachine, Watch, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { SearchBar } from "@/components/search-bar";
 import { useFavorites } from "@/lib/use-favorites";
@@ -41,9 +41,31 @@ const FALLBACK_CATEGORY_NAV = [
 
 export type HeaderCategory = { slug: string; nameKa: string };
 
+// Pages that render their own search field. On phones the header's search row
+// is hidden there, so a page never shows more than one search input.
+function pageHasOwnSearch(pathname: string) {
+  return pathname === "/" || pathname === "/search" || /^\/categories\/[^/]+/.test(pathname);
+}
+
 export function SiteHeader({ categories = [] }: { categories?: HeaderCategory[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Publish the real header height as --header-h so sticky sidebars can sit
+  // just below it (globals.css carries a static fallback for first paint).
+  // The header changes height with the breakpoint, the open mobile menu and
+  // the per-page search row, so it is observed rather than computed.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty("--header-h", `${Math.round(el.getBoundingClientRect().height)}px`);
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Driven by the live catalog (same source as the dropdown and /categories),
   // so a category with no products never appears here. The strip used to be a
@@ -58,7 +80,7 @@ export function SiteHeader({ categories = [] }: { categories?: HeaderCategory[] 
     : FALLBACK_CATEGORY_NAV;
 
   return (
-    <header className="sticky top-0 z-40 site-header">
+    <header ref={headerRef} className="sticky top-0 z-40 site-header">
       {/* Announcement bar — dark ink top strip (newspaper folio line) */}
       <div className="hidden bg-[var(--ink-surface)] md:block">
         <div className="shell flex h-[2.375rem] items-center justify-between">
@@ -79,7 +101,7 @@ export function SiteHeader({ categories = [] }: { categories?: HeaderCategory[] 
       </div>
 
       {/* Main navbar */}
-      <div className="shell flex h-[3.75rem] items-center gap-4">
+      <div className="shell flex h-14 items-center gap-4 md:h-[3.75rem]">
         {/* Logo (BrandLogo renders its own link — nesting another <a> breaks hydration) */}
         <div className="shrink-0">
           <BrandLogo compact />
@@ -170,10 +192,13 @@ export function SiteHeader({ categories = [] }: { categories?: HeaderCategory[] 
         </div>
       </div>
 
-      {/* Search — mobile */}
-      <div className="shell pb-3 md:hidden">
-        <SearchBar variant="header" />
-      </div>
+      {/* Search — mobile. Hidden where the page has its own search field
+          (home hero, /search, category search) so only one is ever visible. */}
+      {!pageHasOwnSearch(pathname) && (
+        <div className="shell pb-2 md:hidden">
+          <SearchBar variant="header" />
+        </div>
+      )}
 
       {/* Mobile menu */}
       {mobileOpen && (

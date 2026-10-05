@@ -73,8 +73,23 @@
   --shadow-md: 0 4px 12px -4px rgba(15, 23, 42, 0.1);
   --shadow-lg: 0 20px 40px -16px rgba(15, 23, 42, 0.22), 0 6px 14px -6px rgba(15, 23, 42, 0.1);
 
+  /* Fixed/sticky chrome heights — one source of truth for every offset that
+     has to clear the header (sticky sidebars) or the mobile bottom nav (page
+     padding, compare tray, cookie banner). --header-h is re-measured at
+     runtime by SiteHeader; these are the no-JS / first-paint values. */
+  --header-h: 3.5rem;
+  --mobile-nav-h: 3.25rem;
+  --mobile-chrome-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom));
+
   /* Display face — same friendly sans as body, just bolder in use */
   --font-display: "Noto Sans Georgian", "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
+}
+
+@media (min-width: 768px) {
+  :root {
+    /* announcement 2.375 + navbar 3.75 + category row 3.25 + hairlines */
+    --header-h: 9.5rem;
+  }
 }
 
 @theme inline {
@@ -83,7 +98,12 @@
 }
 
 html {
+  /* `clip`, not `hidden`: `hidden` on both html and body turns <body> into a
+     scroll container that never scrolls, which silently disables every
+     position:sticky descendant (header, filter + product sidebars). The
+     `hidden` line stays as the fallback for browsers without `clip`. */
   overflow-x: hidden;
+  overflow-x: clip;
   background: var(--background);
   /* Stop Android Chrome / Samsung Internet from auto-inflating text
      ("font boosting"), which can push non-wrapping pills/badges past the
@@ -95,6 +115,7 @@ html {
 body {
   min-width: 0;
   overflow-x: hidden;
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   font-family: "Noto Sans Georgian", "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
@@ -436,10 +457,40 @@ textarea {
   width: 14rem;
 }
 
-/* ─── Mobile safe area ───────────────────────────────── */
+/* ─── Mobile bottom chrome ───────────────────────────────
+   The bottom nav is fixed on phones, so the body (not <main>) reserves exactly
+   its height. Padding <main> as well used to leave ~130px of blank space
+   between the last content and the (non-fixed) footer. */
 
-.mobile-bottom-safe {
-  padding-bottom: max(8.25rem, calc(env(safe-area-inset-bottom) + 8rem));
+@media (max-width: 767px) {
+  body {
+    padding-bottom: var(--mobile-chrome-bottom);
+  }
+}
+
+/* Compare tray + cookie banner share one fixed stack above the bottom nav, so
+   they stack instead of rendering on top of each other. */
+.bottom-stack {
+  pointer-events: none;
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.75rem calc(var(--mobile-chrome-bottom) + 0.5rem);
+}
+.bottom-stack > * {
+  pointer-events: auto;
+}
+.bottom-stack:empty {
+  display: none;
+}
+@media (min-width: 768px) {
+  .bottom-stack {
+    padding: 0 1rem 1rem;
+  }
 }
 
 /* ─── Product Grids ──────────────────────────────────── */
@@ -525,12 +576,6 @@ textarea {
 @keyframes product-marquee-left {
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(-50%, 0, 0); }
-}
-
-@media (max-width: 767px) {
-  main {
-    padding-bottom: max(8.25rem, calc(env(safe-area-inset-bottom) + 8rem));
-  }
 }
 
 /* ─── Category rail ──────────────────────────────────── */

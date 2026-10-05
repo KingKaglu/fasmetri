@@ -59,7 +59,7 @@ export function AdminNav() {
 function AdminSidebar({ pathname }: { pathname: string }) {
   return (
     <nav className="hidden shrink-0 lg:block lg:w-60">
-      <div className="rounded-[1.15rem] border border-[#27272a] bg-[#0a0a0a] p-2 text-white shadow-[0_18px_44px_rgba(10,10,10,0.22)] lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-7rem)] lg:min-h-[34rem] lg:flex-col">
+      <div className="rounded-[1.15rem] border border-[#27272a] bg-[#0a0a0a] p-2 text-white shadow-[0_18px_44px_rgba(10,10,10,0.22)] lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:flex lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:min-h-[34rem] lg:flex-col">
         <p className="px-3 pb-2 pt-3 text-[11px] font-black uppercase tracking-[0.18em] text-white">
           fasmetri admin
         </p>

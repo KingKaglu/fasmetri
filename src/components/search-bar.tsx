@@ -208,7 +208,7 @@ export function SearchBar({
           plus matching rounded ends on the first/last children instead. */}
       <div
         className={`flex min-w-0 flex-1 items-center rounded-full border bg-white shadow-sm ${
-          isHeader ? "h-11" : large ? "h-14" : "h-12"
+          isHeader ? "h-10 md:h-11" : large ? "h-14" : "h-12"
         } ${
           open && suggestions.length > 0
             ? "border-[var(--accent)] ring-2 ring-blue-100"

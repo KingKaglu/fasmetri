@@ -122,7 +122,9 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Noto+Serif+Georgian:wght@500;600;700;800&display=swap"
         />
       </head>
-      <body className="flex min-h-full flex-col pb-[8.5rem] md:pb-0">
+      {/* Bottom clearance for the fixed mobile nav lives in globals.css
+          (body padding-bottom: var(--mobile-chrome-bottom)) — one source only. */}
+      <body className="flex min-h-full flex-col">
         <JsonLd data={siteJsonLd} />
         <CompareProvider>
           <FavoritesProvider>
@@ -130,11 +132,15 @@ export default async function RootLayout({
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <MobileBottomNav />
-            <CompareTray />
+            {/* One fixed stack above the bottom nav: the compare tray is pushed
+                up while the cookie banner is open instead of hiding under it. */}
+            <div className="bottom-stack">
+              <CompareTray />
+              <CookieConsent />
+            </div>
           </FavoritesProvider>
         </CompareProvider>
         <AnalyticsScripts />
-        <CookieConsent />
         {/*
           Vercel Web Analytics, alongside GA4 rather than instead of it. It is
           served first-party from /_vercel/insights on our own domain, so the
