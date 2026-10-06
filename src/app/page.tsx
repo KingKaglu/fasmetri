@@ -24,7 +24,7 @@ import {
   listRecentPriceChanges,
 } from "@/lib/catalog";
 import { CategoryView, ProductView } from "@/lib/catalog-types";
-import { formatGel, formatRelativeTime, formatRelativeUpdated } from "@/lib/format";
+import { formatGel, formatRelativeTime, formatRelativeUpdated, formatNumber } from "@/lib/format";
 import { popularSearchTerms } from "@/lib/popular-searches";
 import { CardToggles } from "@/components/card-toggles";
 import { categoryIcon } from "@/components/category-card";
@@ -169,11 +169,11 @@ export default async function Home() {
                 ფასები {formatRelativeUpdated(latestUpdate)}
               </p>
             )}
-            <h1 className="font-display mt-3 max-w-3xl text-[30px] font-bold leading-[1.12] text-[var(--brand)] sm:text-[44px]">
-              შეადარე ფასები და იყიდე <span className="text-[var(--accent)]">იაფად</span>
+            <h1 className="font-display mt-3 max-w-3xl text-[30px] font-bold leading-[1.12] text-ink sm:text-[44px]">
+              შეადარე ფასები და იყიდე <span className="text-accent">იაფად</span>
             </h1>
-            <p className="mt-3 max-w-2xl text-[14px] leading-6 text-[var(--muted-strong)] sm:text-[16px] sm:leading-7">
-              ფასმეტრი ერთ ადგილას აგროვებს {(stats.shops ?? 0).toLocaleString()} ქართული ონლაინ მაღაზიის ფასებს —
+            <p className="mt-3 max-w-2xl text-[14px] leading-6 text-ink-soft sm:text-[16px] sm:leading-7">
+              ფასმეტრი ერთ ადგილას აგროვებს {formatNumber(stats.shops ?? 0)} ქართული ონლაინ მაღაზიის ფასებს —
               ტელეფონები, ლეპტოპები, ტელევიზორები და ტექნიკა. ერთი ძებნით ნახავ, სად ღირს ყველაზე იაფი.
             </p>
             <div className="mt-5 max-w-2xl">
@@ -181,7 +181,7 @@ export default async function Home() {
             </div>
             {searches.length > 0 && (
               <nav className="home-chips" aria-label="პოპულარული ძიებები">
-                <span className="mr-1 shrink-0 text-[12px] font-medium text-[var(--muted)]">ხშირად ეძებენ:</span>
+                <span className="mr-1 shrink-0 text-[12px] font-medium text-muted">ხშირად ეძებენ:</span>
                 {searches.map((term) => (
                   <Link key={term} href={`/search?q=${encodeURIComponent(term)}`} className="home-chip">
                     {term}
@@ -202,14 +202,14 @@ export default async function Home() {
 
       {/* ── 2. Which stores are compared — the claim, named ── */}
       {shops.length > 0 && (
-        <section className="border-b border-[var(--line)] bg-white">
+        <section className="border-b border-line bg-surface">
           <div className="shell flex items-center gap-3 overflow-x-auto py-3.5 [scrollbar-width:none]">
-            <span className="shrink-0 text-[12px] font-semibold text-[var(--muted)]">ვადარებთ:</span>
+            <span className="shrink-0 text-[12px] font-semibold text-muted">ვადარებთ:</span>
             {shops.map((shop) => (
               <Link key={shop.id} href={`/shops/${shop.slug}`} className="home-shop">
-                <Store className="size-3.5 text-[var(--accent)]" aria-hidden />
+                <Store className="size-3.5 text-accent" aria-hidden />
                 {shop.name}
-                {shop.productCount ? <span className="home-shop-count">{shop.productCount.toLocaleString()}</span> : null}
+                {shop.productCount ? <span className="home-shop-count">{formatNumber(shop.productCount)}</span> : null}
               </Link>
             ))}
             <Link href="/shops" className="home-shop-all">
@@ -221,9 +221,9 @@ export default async function Home() {
       )}
 
       {/* ── 3. How it works — three steps, one line each ── */}
-      <section className="home-section border-b border-[var(--line)]">
+      <section className="home-section border-b border-line">
         <div className="shell py-7 sm:py-9">
-          <h2 className="font-display mb-4 text-[18px] font-bold text-[var(--brand)] sm:text-[22px]">როგორ მუშაობს ფასმეტრი</h2>
+          <h2 className="font-display mb-4 text-[18px] font-bold text-ink sm:text-[22px]">როგორ მუშაობს ფასმეტრი</h2>
           <ol className="grid grid-cols-3 gap-2 sm:gap-2.5">
             <Step n={1} icon={Search} title="მოძებნე" text="ჩაწერე მოდელი ან აირჩიე კატეგორია — ძებნა ქართულადაც და ლათინურადაც მუშაობს." />
             <Step n={2} icon={Scale} title="შეადარე" text="ერთი და იგივე პროდუქტის ფასი ყველა მაღაზიაში, მარაგი და ფასის ისტორია ერთ გვერდზე." />
@@ -234,7 +234,7 @@ export default async function Home() {
 
       {/* ── 4. Category band — navigation, one h2 for the whole band ── */}
       {categoryTiles.length > 0 && (
-        <section className="border-b border-[var(--line)] bg-white">
+        <section className="border-b border-line bg-surface">
           <div className="shell py-7 sm:py-9">
             <RowHead title="კატეგორიები" href="/categories" action="ყველა კატეგორია" />
             <nav className="cat-band" aria-label="კატეგორიები">
@@ -251,7 +251,7 @@ export default async function Home() {
                   <span className="min-w-0">
                     <span className="cat-name">{category.nameKa}</span>
                     {category.productCount ? (
-                      <span className="cat-count">{category.productCount.toLocaleString()} პროდუქტი</span>
+                      <span className="cat-count">{formatNumber(category.productCount)} პროდუქტი</span>
                     ) : null}
                   </span>
                 </Link>
@@ -266,7 +266,7 @@ export default async function Home() {
 
       {/* ── 5. Biggest price gaps between shops — the core value ── */}
       {savingsRail.length > 0 && (
-        <section className="border-b border-[var(--line)]">
+        <section className="border-b border-line">
           <div className="shell py-7 sm:py-9">
             <RowHead
               title="სად არის იაფი — ფასის სხვაობა მაღაზიებს შორის"
@@ -281,11 +281,11 @@ export default async function Home() {
 
       {/* ── 6. Deals rail ─────────────────────────────────────── */}
       {dealRail.length > 0 && (
-        <section className="home-section border-b border-[var(--line)] bg-white">
+        <section className="home-section border-b border-line bg-surface">
           <div className="shell py-7 sm:py-9">
             <RowHead
               title="დღის საუკეთესო ფასდაკლებები"
-              meta={stats.deals ? `${stats.deals.toLocaleString()} ნამდვილი ფასდაკლება — ძველი ფასი დადასტურებულია` : undefined}
+              meta={stats.deals ? `${formatNumber(stats.deals)} ნამდვილი ფასდაკლება — ძველი ფასი დადასტურებულია` : undefined}
               href="/deals"
               action="ყველა აქცია"
             />
@@ -298,7 +298,7 @@ export default async function Home() {
       {categoryRails.map((rail, index) => (
         <section
           key={rail.slug}
-          className={`home-section border-b border-[var(--line)] ${index % 2 === 1 ? "bg-white" : ""}`}
+          className={`home-section border-b border-line ${index % 2 === 1 ? "bg-surface" : ""}`}
         >
           <div className="shell py-7 sm:py-9">
             <RowHead
@@ -315,12 +315,12 @@ export default async function Home() {
 
       {/* ── 8. Live price movements + brands ─────────────────── */}
       {(priceChanges.length > 0 || brands.length > 0) && (
-        <section className="home-section border-b border-[var(--line)]">
+        <section className="home-section border-b border-line">
           <div className="shell grid gap-8 py-7 sm:py-9 lg:grid-cols-2">
             {priceChanges.length > 0 && (
               <div className="min-w-0">
-                <h2 className="font-display mb-1 text-[18px] font-bold text-[var(--brand)] sm:text-[22px]">ფასი ახლახან შეიცვალა</h2>
-                <p className="mb-3.5 text-[12px] text-[var(--muted)]">ბოლო ცვლილებები კატალოგში — ფასები მუდმივად მოწმდება.</p>
+                <h2 className="font-display mb-1 text-[18px] font-bold text-ink sm:text-[22px]">ფასი ახლახან შეიცვალა</h2>
+                <p className="mb-3.5 text-[12px] text-muted">ბოლო ცვლილებები კატალოგში — ფასები მუდმივად მოწმდება.</p>
                 <ul className="home-changes">
                   {priceChanges.map((change) => (
                     <PriceChangeRow key={change.offerId} change={change} />
@@ -330,13 +330,13 @@ export default async function Home() {
             )}
             {brands.length > 0 && (
               <div className="min-w-0">
-                <h2 className="font-display mb-1 text-[18px] font-bold text-[var(--brand)] sm:text-[22px]">პოპულარული ბრენდები</h2>
-                <p className="mb-3.5 text-[12px] text-[var(--muted)]">შეადარე ფასები ბრენდის მიხედვით.</p>
+                <h2 className="font-display mb-1 text-[18px] font-bold text-ink sm:text-[22px]">პოპულარული ბრენდები</h2>
+                <p className="mb-3.5 text-[12px] text-muted">შეადარე ფასები ბრენდის მიხედვით.</p>
                 <nav className="flex flex-wrap gap-2" aria-label="ბრენდები">
                   {brands.map((brand) => (
                     <Link key={brand.name} href={`/search?q=${encodeURIComponent(brand.name)}`} className="home-brand">
                       {brand.name}
-                      <span className="home-shop-count">{brand.productCount.toLocaleString()}</span>
+                      <span className="home-shop-count">{formatNumber(brand.productCount)}</span>
                     </Link>
                   ))}
                 </nav>
@@ -350,7 +350,7 @@ export default async function Home() {
       <section className="home-section">
         <div className="shell grid gap-8 py-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
           <div className="min-w-0">
-            <h2 className="font-display mb-4 text-[18px] font-bold text-[var(--brand)] sm:text-[22px]">რატომ ფასმეტრი</h2>
+            <h2 className="font-display mb-4 text-[18px] font-bold text-ink sm:text-[22px]">რატომ ფასმეტრი</h2>
             <div className="grid gap-2.5 sm:grid-cols-2">
               <TrustItem
                 icon={Clock3}
@@ -362,7 +362,7 @@ export default async function Home() {
                 icon={Store}
                 href="/shops"
                 title="ერთი ძებნა, ყველა მაღაზია"
-                text={`${(stats.shops ?? 0).toLocaleString()} ქართული მაღაზია ერთ შედარებად კატალოგში.`}
+                text={`${formatNumber(stats.shops ?? 0)} ქართული მაღაზია ერთ შედარებად კატალოგში.`}
               />
               <TrustItem
                 icon={BadgeCheck}
@@ -391,13 +391,13 @@ export default async function Home() {
             </div>
           </div>
           <div className="min-w-0">
-            <h2 className="font-display mb-4 text-[18px] font-bold text-[var(--brand)] sm:text-[22px]">ხშირად დასმული კითხვები</h2>
+            <h2 className="font-display mb-4 text-[18px] font-bold text-ink sm:text-[22px]">ხშირად დასმული კითხვები</h2>
             <div className="home-faq">
               {FAQ.map((item) => (
                 <details key={item.q}>
                   <summary>
                     {item.q}
-                    <ChevronDown className="size-4 shrink-0 text-[var(--muted)]" aria-hidden />
+                    <ChevronDown className="size-4 shrink-0 text-muted" aria-hidden />
                   </summary>
                   <p>{item.a}</p>
                 </details>
@@ -416,9 +416,9 @@ function HeroStat({ value, label }: { value?: number | null; label: string }) {
   if (!value) return null;
   return (
     <div className="home-stat">
-      <dt className="truncate text-[10.5px] font-medium text-[var(--muted)] sm:text-[11.5px]">{label}</dt>
-      <dd className="font-display text-[17px] font-bold tabular-nums text-[var(--brand)] sm:text-[24px]">
-        {value.toLocaleString()}
+      <dt className="truncate text-[12px] font-medium text-muted sm:text-[12px]">{label}</dt>
+      <dd className="font-display text-[17px] font-bold tabular-nums text-ink sm:text-[24px]">
+        {formatNumber(value)}
       </dd>
     </div>
   );
@@ -469,10 +469,10 @@ function Step({ n, icon: Icon, title, text }: { n: number; icon: typeof Search; 
         <Icon className="size-4.5" strokeWidth={2.25} aria-hidden />
       </span>
       <span className="min-w-0">
-        <span className="block text-[14px] font-bold text-[var(--brand)]">
-          <span className="text-[var(--accent)]">{n}.</span> {title}
+        <span className="block text-[14px] font-bold text-ink">
+          <span className="text-accent">{n}.</span> {title}
         </span>
-        <span className="mt-0.5 hidden text-[12.5px] leading-5 text-[var(--muted)] sm:block">{text}</span>
+        <span className="mt-0.5 hidden text-[12.5px] leading-5 text-muted sm:block">{text}</span>
       </span>
     </li>
   );
@@ -497,13 +497,13 @@ function RowHead({
       <div className="flex min-w-0 items-center gap-2.5">
         {icon && <span className="cat-ico hidden sm:grid">{icon}</span>}
         <div className="min-w-0">
-          <h2 className="font-display text-[18px] font-bold leading-tight text-[var(--brand)] sm:text-[22px]">{title}</h2>
-          {meta && <p className="mt-0.5 text-[12px] text-[var(--muted)]">{meta}</p>}
+          <h2 className="font-display text-[18px] font-bold leading-tight text-ink sm:text-[22px]">{title}</h2>
+          {meta && <p className="mt-0.5 text-[12px] text-muted">{meta}</p>}
         </div>
       </div>
       <Link
         href={href}
-        className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-[var(--accent)] hover:underline"
+        className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold text-accent hover:underline"
       >
         {action}
         <ArrowRight className="size-3.5" />
@@ -605,14 +605,14 @@ function PriceChangeRow({ change }: { change: Awaited<ReturnType<typeof listRece
           <Icon className="size-4" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-semibold text-[var(--brand)]">{change.productName}</span>
-          <span className="block truncate text-[11.5px] text-[var(--muted)]">
+          <span className="block truncate text-[13px] font-semibold text-ink">{change.productName}</span>
+          <span className="block truncate text-[12px] text-muted">
             {change.shopName} · {formatRelativeTime(change.changedAt)}
           </span>
         </span>
         <span className="shrink-0 text-right">
-          <span className="block text-[13.5px] font-bold tabular-nums text-[var(--brand)]">{formatGel(change.currentPrice)}</span>
-          <span className={`block text-[11px] font-semibold tabular-nums ${dropped ? "text-[var(--savings)]" : "text-[var(--price-deal)]"}`}>
+          <span className="block text-[13.5px] font-bold tabular-nums text-ink">{formatGel(change.currentPrice)}</span>
+          <span className={`block text-[12px] font-semibold tabular-nums ${dropped ? "text-savings" : "text-deal"}`}>
             {dropped ? "−" : "+"}
             {formatGel(delta)}
           </span>
@@ -636,12 +636,12 @@ function TrustItem({
   return (
     <Link
       href={href}
-      className="flex items-start gap-2.5 rounded-xl border border-[var(--line)] bg-white p-3.5 hover:border-[var(--accent)]"
+      className="flex items-start gap-2.5 rounded-xl border border-line bg-surface p-3.5 hover:border-accent"
     >
-      <Icon className="mt-0.5 size-4 shrink-0 text-[var(--accent)]" strokeWidth={2.25} />
+      <Icon className="mt-0.5 size-4 shrink-0 text-accent" strokeWidth={2.25} />
       <span className="min-w-0">
-        <span className="block text-[13px] font-bold text-[var(--brand)]">{title}</span>
-        <span className="mt-0.5 block text-[11.5px] leading-5 text-[var(--muted)]">{text}</span>
+        <span className="block text-[13px] font-bold text-ink">{title}</span>
+        <span className="mt-0.5 block text-[12px] leading-5 text-muted">{text}</span>
       </span>
     </Link>
   );
@@ -649,8 +649,8 @@ function TrustItem({
 
 function railMeta(category: CategoryView | null) {
   if (!category?.productCount) return undefined;
-  const parts = [`${category.productCount.toLocaleString()} პროდუქტი`];
-  if (category.dealCount) parts.push(`${category.dealCount.toLocaleString()} ფასდაკლება`);
+  const parts = [`${formatNumber(category.productCount)} პროდუქტი`];
+  if (category.dealCount) parts.push(`${formatNumber(category.dealCount)} ფასდაკლება`);
   return parts.join(" · ");
 }
 

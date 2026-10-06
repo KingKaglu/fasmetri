@@ -37,7 +37,7 @@ export function ProductCard({
   return (
     <article
       data-kind={deal ? "deal" : "product"}
-      className="card-hover group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[var(--shadow-card)]"
+      className="card-hover group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-[var(--shadow-card)]"
     >
       {/* Compare + favorite toggles — additive, sit above the image link, never navigate */}
       <CompareToggle slug={product.slug} name={product.name} />
@@ -55,7 +55,7 @@ export function ProductCard({
       />
 
       {/* Image */}
-      <Link href={`/products/${product.slug}`} className="relative block overflow-hidden bg-gray-50">
+      <Link href={`/products/${product.slug}`} className="relative block overflow-hidden bg-surface-soft">
         <ProductImage src={image} alt={product.name} priority={imagePriority} categorySlug={product.category?.slug} shopName={offer.shop.name} />
         {discount > 0 && (
           <span className="absolute left-2 top-2">
@@ -74,9 +74,9 @@ export function ProductCard({
         {/* Shop row */}
         <div className="mb-2 flex min-w-0 items-center gap-1.5">
           <ShopMark shop={offer.shop} size="sm" />
-          <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-gray-500">{offer.shop.name}</span>
+          <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-muted">{offer.shop.name}</span>
           {shopCount > 1 && (
-            <span className="shrink-0 rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-bold tabular-nums text-[var(--accent)]">
+            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold tabular-nums text-accent">
               +{shopCount - 1}
             </span>
           )}
@@ -90,17 +90,17 @@ export function ProductCard({
         <Link
           href={`/products/${product.slug}`}
           title={product.name}
-          className="mb-2.5 line-clamp-4 text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)] sm:line-clamp-3 sm:text-[13px]"
+          className="mb-2.5 line-clamp-3 min-h-[4.2em] text-[13px] font-semibold leading-[1.4] text-ink hover:text-accent"
         >
           {product.name}
         </Link>
 
-        {/* Normalized specs — classified-ad spec line, not chips */}
-        {specChips.length > 0 && (
-          <p className="mb-2 truncate text-[11px] font-medium text-gray-500">
-            {specChips.join(" · ")}
-          </p>
-        )}
+        {/* Normalized specs — classified-ad spec line, not chips. Always
+            rendered (fixed height, empty when there are no specs) so every card
+            in a grid row has the same height. */}
+        <p className="mb-2 h-4 truncate text-[12px] font-medium leading-4 text-muted">
+          {specChips.join(" · ")}
+        </p>
 
         {/* Price */}
         <div className="mb-2 mt-auto">
@@ -108,31 +108,38 @@ export function ProductCard({
         </div>
 
         {/* Savings badge */}
-        {deal && savings > 0 && (
+        {deal && savings > 0 ? (
           <span
-            className="mb-2 inline-flex w-fit items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+            className="mb-2 inline-flex h-6 w-fit items-center gap-1 rounded-full border border-savings-strong/20 bg-savings-soft px-2 text-[11px] font-semibold text-savings-strong"
             title="რეალური ფასდაკლება — ძველი ფასი დადასტურებულია"
           >
             <BadgeCheck className="size-3" />
             ნამდვილი −{formatGel(savings)}
           </span>
-        )}
+        ) : deal ? (
+          // Same height as the badge, so deal cards without one still line up.
+          <span aria-hidden className="mb-2 block h-6" />
+        ) : null}
 
         {/* Shop comparison info: store count + freshness, always visible */}
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-gray-100 pt-2">
-          <span className={`text-[10.5px] font-semibold ${shopCount > 1 ? "text-emerald-700" : "text-gray-400"}`}>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-line pt-2">
+          <span className={`text-[12px] font-semibold ${shopCount > 1 ? "text-savings-strong" : "text-muted"}`}>
             {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
           </span>
-          <LastUpdatedText value={offer.lastSeenAt} className="text-[10px] text-gray-400" />
+          <LastUpdatedText value={offer.lastSeenAt} className="text-[12px] text-muted" />
         </div>
 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="flex h-9 items-center justify-center rounded-md bg-[var(--accent)] px-2 text-[11px] font-semibold text-white hover:bg-[var(--accent-strong)]"
+            className="flex h-9 items-center justify-center rounded-md bg-accent px-2 text-[11px] font-semibold text-white hover:bg-accent-strong"
           >
-            შედარება
+            {/* Not "შედარება": that is the compare tray's action. This opens the
+                product page with every shop's price. Two-column phone cards
+                leave ~55px for the label, so the short form is used there. */}
+            <span className="sm:hidden">ფასები</span>
+            <span className="hidden sm:inline">ყველა ფასი</span>
           </Link>
           <ShopClickLink
             offerId={offer.id}
@@ -144,7 +151,7 @@ export function ProductCard({
             sourceUrl={offer.url}
             ariaLabel={`${offer.shop.name} შეთავაზება`}
             title="შეთავაზება"
-            className="flex h-9 items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-semibold text-gray-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            className="flex h-9 items-center justify-center gap-1 rounded-md border border-line bg-surface px-2 text-[11px] font-semibold text-ink-soft hover:border-accent hover:text-accent"
           >
             ნახვა
             <ArrowUpRight className="size-3.5 shrink-0" />

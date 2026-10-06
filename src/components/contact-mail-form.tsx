@@ -57,14 +57,14 @@ export function ContactMailForm() {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
-        <span className="grid size-9 place-items-center rounded-md border border-gray-200 bg-gray-50 text-gray-500">
+    <form onSubmit={submit} noValidate className="rounded-lg border border-line bg-surface p-4 shadow-sm sm:p-5">
+      <div className="mb-4 flex items-center gap-3 border-b border-line pb-3">
+        <span className="grid size-9 place-items-center rounded-md border border-line bg-surface-soft text-muted">
           <MessageSquareText className="size-4" />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-gray-900">მოგვწერე</h2>
-          <p className="text-xs text-gray-500">ფორმა გახსნის შენს ელფოსტის აპს მომზადებული წერილით.</p>
+          <h2 className="text-base font-semibold text-ink">მოგვწერე</h2>
+          <p className="text-xs text-muted">ფორმა გახსნის შენს ელფოსტის აპს მომზადებული წერილით.</p>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export function ContactMailForm() {
       <Field label="შეტყობინება" error={errors.message}>
         <textarea name="message" required minLength={10} maxLength={1200} className="contact-control min-h-32 resize-y py-2" placeholder="დაწერე დეტალები..." aria-invalid={Boolean(errors.message)} />
       </Field>
-      <button className="mt-1 h-10 w-full rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] sm:w-auto">
+      <button className="mt-1 h-10 w-full rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong sm:w-auto">
         ელფოსტაში გახსნა
       </button>
       {submitted ? (
@@ -112,10 +112,10 @@ export function ContactMailForm() {
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
-    <label className="mb-3 block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+    <label className="mb-3 block text-[12px] font-semibold uppercase tracking-wider text-muted">
       {label}
-      <span className="mt-1 block text-sm font-medium text-gray-900 normal-case tracking-normal">{children}</span>
-      {error ? <span className="mt-1 block text-[11px] font-medium normal-case tracking-normal text-red-600">{error}</span> : null}
+      <span className="mt-1 block text-sm font-medium text-ink normal-case tracking-normal">{children}</span>
+      {error ? <span className="mt-1 block text-[12px] font-medium normal-case tracking-normal text-red-600">{error}</span> : null}
     </label>
   );
 }

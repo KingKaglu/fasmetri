@@ -120,9 +120,9 @@ export function AlertForm({
   }
 
   return (
-    <form onSubmit={submit} noValidate className="grid gap-2.5 rounded-lg border border-gray-200 bg-white p-4">
-      <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-        <BellRing className="size-4 text-[var(--accent)]" /> ფასის შეტყობინება
+    <form onSubmit={submit} noValidate className="grid gap-2.5 rounded-lg border border-line bg-surface p-4">
+      <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
+        <BellRing className="size-4 text-accent" /> ფასის შეტყობინება
       </h2>
       <input
         name="email"
@@ -132,7 +132,7 @@ export function AlertForm({
         autoComplete="email"
         placeholder="ელფოსტა"
         aria-label="ელფოსტა"
-        className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-400"
+        className="h-10 rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none placeholder:text-muted focus:border-line-strong"
       />
       <input
         name="targetPrice"
@@ -143,21 +143,21 @@ export function AlertForm({
         inputMode="decimal"
         placeholder="სამიზნე ფასი ₾"
         aria-label="სამიზნე ფასი ლარში"
-        className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-400"
+        className="h-10 rounded-md border border-line bg-surface px-3 text-sm text-ink outline-none placeholder:text-muted focus:border-line-strong"
       />
       <button
         disabled={busy}
-        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-[var(--accent)] text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:cursor-wait disabled:opacity-60"
+        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent text-sm font-semibold text-white hover:bg-accent-strong disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : null}
         დაყენება
       </button>
-      <p className="text-[11px] leading-5 text-gray-500">
+      <p className="text-[12px] leading-5 text-muted">
         ელფოსტა გამოიყენება მხოლოდ ფასის შეტყობინებისთვის.
         {unsubscribeHref ? (
           <>
             {" "}
-            <a href={unsubscribeHref} className="text-gray-700 underline underline-offset-2">
+            <a href={unsubscribeHref} className="text-ink-soft underline underline-offset-2">
               გაუქმების ბმული
             </a>
           </>
@@ -189,10 +189,10 @@ export function AlertForm({
         </p>
       ) : null}
       {pushState === "denied" ? (
-        <p className="text-[11px] leading-5 text-gray-500">შეტყობინებები დაბლოკილია ბრაუზერში — ჩართე პარამეტრებიდან.</p>
+        <p className="text-[12px] leading-5 text-muted">შეტყობინებები დაბლოკილია ბრაუზერში — ჩართე პარამეტრებიდან.</p>
       ) : null}
       {pushState === "error" ? (
-        <p className="text-[11px] leading-5 text-gray-500">შეტყობინების ჩართვა ვერ მოხერხდა — სცადე თავიდან.</p>
+        <p className="text-[12px] leading-5 text-muted">შეტყობინების ჩართვა ვერ მოხერხდა — სცადე თავიდან.</p>
       ) : null}
       {error ? (
         <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">

@@ -86,21 +86,21 @@ export default async function ComparePage({
       <CompareSync requested={slugs} resolved={resolvedSlugs} />
 
       {/* Swipe affordance — the grid overflows on phones even with 2 columns. */}
-      <p className="mt-4 flex items-center gap-1.5 text-[11px] font-medium text-gray-400 sm:hidden">
+      <p className="mt-4 flex items-center gap-1.5 text-[12px] font-medium text-muted sm:hidden">
         <MoveHorizontal className="size-3.5 shrink-0" />
         გაასრიალე ცხრილი, რომ ყველა პროდუქტი ნახო
       </p>
 
-      <div className="mt-2 overflow-x-auto overscroll-x-contain rounded-lg border border-gray-200 bg-white [--cmp-label:5.75rem] [--cmp-col:9.75rem] sm:mt-4 sm:[--cmp-label:8.5rem] sm:[--cmp-col:11.5rem]">
+      <div className="mt-2 overflow-x-auto overscroll-x-contain rounded-lg border border-line bg-surface [--cmp-label:5.75rem] [--cmp-col:9.75rem] sm:mt-4 sm:[--cmp-label:8.5rem] sm:[--cmp-col:11.5rem]">
         <div role="table" aria-label="პროდუქტების შედარების ცხრილი" className="min-w-fit">
           {/* Header row: image + title (+ per-column remove) */}
-          <div role="row" className="grid border-b border-gray-200 bg-white" style={{ gridTemplateColumns: gridTemplate }}>
-            <div role="columnheader" aria-label="მახასიათებელი" className="sticky left-0 z-20 border-r border-gray-100 bg-white p-3" />
+          <div role="row" className="grid border-b border-line bg-surface" style={{ gridTemplateColumns: gridTemplate }}>
+            <div role="columnheader" aria-label="მახასიათებელი" className="sticky left-0 z-20 border-r border-line bg-surface p-3" />
             {columns.map((column, index) => (
-              <div key={column.product.id} role="columnheader" className={`relative p-3 ${index > 0 ? "border-l border-gray-100" : ""}`}>
+              <div key={column.product.id} role="columnheader" className={`relative p-3 ${index > 0 ? "border-l border-line" : ""}`}>
                 <CompareRemove slug={column.product.slug} name={column.product.name} />
                 <Link href={`/products/${column.product.slug}`} className="block">
-                  <div className="mx-auto w-full max-w-[11rem] overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                  <div className="mx-auto w-full max-w-[11rem] overflow-hidden rounded-xl border border-line bg-surface-soft">
                     <ProductImage
                       src={column.image}
                       alt={column.product.name}
@@ -108,7 +108,7 @@ export default async function ComparePage({
                       shopName={column.cheapestOffer.shop.name}
                     />
                   </div>
-                  <p className="mt-2 line-clamp-3 text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)]">
+                  <p className="mt-2 line-clamp-3 text-[12px] font-semibold leading-[1.4] text-ink hover:text-accent">
                     {column.product.name}
                   </p>
                 </Link>
@@ -125,15 +125,15 @@ export default async function ComparePage({
               const isCheapest = Number.isFinite(cheapest) && column.lowestPrice === cheapest;
               return (
                 <div key={column.product.id} className="flex flex-col gap-1">
-                  <span className="text-base font-bold tabular-nums text-gray-900">
+                  <span className="text-base font-bold tabular-nums text-ink">
                     {Number.isFinite(column.lowestPrice) ? formatGel(column.lowestPrice) : "—"}
                   </span>
                   {isCheapest && columns.length > 1 ? (
-                    <span className="w-fit rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="w-fit rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-bold text-white">
                       საუკეთესო ფასი
                     </span>
                   ) : null}
-                  <span className="text-[10px] text-gray-400">
+                  <span className="text-[12px] text-muted">
                     {column.shopCount > 1 ? `${column.shopCount} მაღაზია` : column.cheapestOffer.shop.name}
                   </span>
                 </div>
@@ -152,9 +152,9 @@ export default async function ComparePage({
               cells={row.values.map((value, index) => (
                 <span
                   key={columns[index].product.id}
-                  className={`text-xs ${row.differs && value != null ? "font-semibold text-gray-900" : "text-gray-600"}`}
+                  className={`text-xs ${row.differs && value != null ? "font-semibold text-ink" : "text-ink-soft"}`}
                 >
-                  {value ?? <span className="text-gray-300">—</span>}
+                  {value ?? <span className="text-subtle">—</span>}
                 </span>
               ))}
             />
@@ -175,7 +175,7 @@ export default async function ComparePage({
                 price={column.cheapestOffer.currentPrice}
                 sourceUrl={column.cheapestOffer.url}
                 ariaLabel={`${column.cheapestOffer.shop.name} შეთავაზება`}
-                className="flex h-10 w-full max-w-[11rem] items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-[11px] font-semibold text-gray-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                className="flex h-10 w-full max-w-[11rem] items-center justify-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-[11px] font-semibold text-ink-soft hover:border-accent hover:text-accent"
               >
                 ნახვა
                 <ArrowUpRight className="size-3.5" />
@@ -190,10 +190,10 @@ export default async function ComparePage({
 
 function Breadcrumb() {
   return (
-    <nav aria-label="ნავიგაცია" className="mb-4 flex flex-wrap items-center gap-1 text-xs text-gray-400">
-      <Link href="/" className="hover:text-gray-700">მთავარი</Link>
+    <nav aria-label="ნავიგაცია" className="mb-4 flex flex-wrap items-center gap-1 text-xs text-muted">
+      <Link href="/" className="hover:text-ink-soft">მთავარი</Link>
       <ChevronRight className="size-3" />
-      <span className="font-medium text-gray-700">შედარება</span>
+      <span className="font-medium text-ink-soft">შედარება</span>
     </nav>
   );
 }
@@ -214,17 +214,17 @@ function Row({
   return (
     <div
       role="row"
-      className={`grid border-b border-gray-100 last:border-b-0 ${highlight ? "bg-gray-50" : "bg-white"}`}
+      className={`grid border-b border-line last:border-b-0 ${highlight ? "bg-surface-soft" : "bg-surface"}`}
       style={{ gridTemplateColumns: gridTemplate }}
     >
       <div
         role="rowheader"
-        className="sticky left-0 z-20 flex items-center border-r border-gray-100 bg-inherit p-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400"
+        className="sticky left-0 z-20 flex items-center border-r border-line bg-inherit p-3 text-[12px] font-semibold uppercase tracking-wide text-muted"
       >
         {label}
       </div>
       {cells.map((cell, index) => (
-        <div key={index} role="cell" className={`flex items-center p-3 ${index > 0 ? "border-l border-gray-100" : ""}`}>
+        <div key={index} role="cell" className={`flex items-center p-3 ${index > 0 ? "border-l border-line" : ""}`}>
           {cell}
         </div>
       ))}

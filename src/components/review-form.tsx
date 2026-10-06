@@ -75,9 +75,9 @@ export function ReviewForm() {
 
   if (done) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
-        <p className="text-base font-semibold text-gray-900">მადლობა შეფასებისთვის 🙏</p>
-        <p className="mt-2 text-sm leading-6 text-gray-600">
+      <div className="rounded-xl border border-line bg-surface-soft p-5">
+        <p className="text-base font-semibold text-ink">მადლობა შეფასებისთვის 🙏</p>
+        <p className="mt-2 text-sm leading-6 text-ink-soft">
           {done === "pending"
             ? "შენი კომენტარი გადამოწმების შემდეგ გამოჩნდება."
             : "შენი კომენტარი უკვე გვერდზეა — გვერდის განახლების შემდეგ დაინახავ."}
@@ -87,9 +87,9 @@ export function ReviewForm() {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="grid gap-4 rounded-xl border border-gray-200 bg-white p-5">
+    <form onSubmit={submit} noValidate className="grid gap-4 rounded-xl border border-line bg-surface p-5">
       <div>
-        <p className="text-sm font-semibold text-gray-900">როგორ შეაფასებდი ფასმეტრს?</p>
+        <p className="text-sm font-semibold text-ink">როგორ შეაფასებდი ფასმეტრს?</p>
         <div className="mt-2 flex items-center gap-1" onMouseLeave={() => setHovered(0)}>
           {[1, 2, 3, 4, 5].map((step) => (
             <button
@@ -101,22 +101,22 @@ export function ReviewForm() {
               onBlur={() => setHovered(0)}
               aria-label={`${step} ვარსკვლავი — ${RATING_LABELS[step - 1]}`}
               aria-pressed={rating === step}
-              className="rounded p-1 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="rounded-sm p-1 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
               <Star
                 aria-hidden
                 className={`size-7 transition-colors ${
-                  step <= shown ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"
+                  step <= shown ? "fill-amber-400 text-amber-400" : "fill-subtle text-subtle"
                 }`}
               />
             </button>
           ))}
-          <span className="ml-2 text-sm font-semibold text-gray-600">{shown ? RATING_LABELS[shown - 1] : ""}</span>
+          <span className="ml-2 text-sm font-semibold text-ink-soft">{shown ? RATING_LABELS[shown - 1] : ""}</span>
         </div>
       </div>
 
       <div className="grid gap-1.5">
-        <label htmlFor="review-body" className="text-sm font-semibold text-gray-900">
+        <label htmlFor="review-body" className="text-sm font-semibold text-ink">
           კომენტარი
         </label>
         <textarea
@@ -128,14 +128,14 @@ export function ReviewForm() {
           maxLength={REVIEW_BODY_MAX}
           onChange={(event) => setBody(event.target.value)}
           placeholder="რა მოგეწონა და რა უნდა გავაუმჯობესოთ? ბმულების დამატება არ შეიძლება."
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-6 outline-none focus:border-[var(--accent)]"
+          className="w-full rounded-md border border-line-strong px-3 py-2 text-sm leading-6 outline-none focus:border-accent"
         />
-        <p className="text-right text-xs text-gray-400">{remaining}</p>
+        <p className="text-right text-xs text-muted">{remaining}</p>
       </div>
 
       <div className="grid gap-1.5">
-        <label htmlFor="review-name" className="text-sm font-semibold text-gray-900">
-          სახელი <span className="font-normal text-gray-500">— სურვილისამებრ</span>
+        <label htmlFor="review-name" className="text-sm font-semibold text-ink">
+          სახელი <span className="font-normal text-muted">— სურვილისამებრ</span>
         </label>
         <input
           id="review-name"
@@ -144,7 +144,7 @@ export function ReviewForm() {
           maxLength={REVIEW_NAME_MAX}
           autoComplete="nickname"
           placeholder="ანონიმური"
-          className="h-10 w-full rounded-md border border-gray-300 px-3 text-sm outline-none focus:border-[var(--accent)]"
+          className="h-10 w-full rounded-md border border-line-strong px-3 text-sm outline-none focus:border-accent"
         />
       </div>
 
@@ -160,11 +160,11 @@ export function ReviewForm() {
         <button
           type="submit"
           disabled={busy}
-          className="h-10 rounded-md bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:opacity-60"
+          className="h-10 rounded-md bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong disabled:opacity-60"
         >
           {busy ? "იგზავნება…" : "გამოქვეყნება"}
         </button>
-        <p className="text-xs leading-5 text-gray-500">
+        <p className="text-xs leading-5 text-muted">
           რეგისტრაცია არ სჭირდება. არ ვინახავთ არც ელფოსტას, არც სახელს, თუ თავად არ მიუთითებ.
         </p>
       </div>

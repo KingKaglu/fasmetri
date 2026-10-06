@@ -12,6 +12,7 @@ import {
   toPublicProduct,
 } from "@/config/productCuration";
 import { prisma } from "@/lib/prisma";
+import { compareOffersForDisplay } from "@/lib/offerOrder";
 import { prettifyProductName } from "@/lib/productDisplay";
 import { productSearchWhereTerms, rankSearchResults } from "@/lib/searchKeywords";
 
@@ -95,8 +96,13 @@ type ProductSummaryRecord = Prisma.ProductGetPayload<{
 // offer at all — the page then 404s and the product disappears from the
 // catalogue even though it is on sale. Shops with no displayable offer still
 // keep their cheapest row, so the admin views lose nothing.
+//
+// "Cheapest" means cheapest buyable: offers rank by stock first (IN_STOCK,
+// UNKNOWN, OUT_OF_STOCK) and then price, both when picking a shop's row and in
+// the returned order, so offers[0] is never a sold-out listing while another
+// shop has stock. See compareOffersForDisplay.
 export function selectShopOffers(offers: OfferView[]): OfferView[] {
-  const byPrice = [...offers].sort((left, right) => left.currentPrice - right.currentPrice);
+  const byPrice = [...offers].sort(compareOffersForDisplay);
   const seenShops = new Set<string>();
   const chosen: OfferView[] = [];
   for (const offer of byPrice) {
@@ -109,7 +115,7 @@ export function selectShopOffers(offers: OfferView[]): OfferView[] {
     seenShops.add(offer.shop.id);
     chosen.push(offer);
   }
-  return chosen.sort((left, right) => left.currentPrice - right.currentPrice);
+  return chosen.sort(compareOffersForDisplay);
 }
 
 function productView(product: ProductRecord | ProductSummaryRecord): ProductView {
@@ -510,7 +516,7 @@ export async function listPublicProducts(filters: ProductFilters = {}) {
   const scoped = { ...filters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-products-v12", publicListingKey(filters)],
+    ["public-products-v13", publicListingKey(filters)],
     { revalidate: PUBLIC_LISTING_TTL_SECONDS, tags: ["catalog"] },
   );
   return cached();
@@ -521,7 +527,7 @@ export async function listPublicProductMatches(filters: ProductFilters = {}) {
   const scoped = { ...unpagedFilters, publicSafe: true } as const;
   const cached = unstable_cache(
     () => listProducts(scoped),
-    ["public-product-matches-v10", publicListingKey(unpagedFilters)],
+    ["public-product-matches-v11", publicListingKey(unpagedFilters)],
     { revalidate: PUBLIC_LISTING_TTL_SECONDS, tags: ["catalog"] },
   );
   return cached();

@@ -17,6 +17,7 @@ import { isExcludedPublicQuery } from "@/config/productCuration";
 import { recordSearch } from "@/lib/search-log";
 import { relaxedSearchSuggestions, type RelaxedSuggestion } from "@/lib/search-relax";
 import { popularSearchTerms } from "@/lib/popular-searches";
+import { formatNumber } from "@/lib/format";
 import {
   cleanSearchQuery,
   cleanSlugParam,
@@ -82,18 +83,18 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
         />
       ) : null}
       <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-        <aside className="hidden lg:sticky lg:top-[4.5rem] lg:block lg:h-fit">
+        <aside className="hidden lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:block lg:h-fit">
           <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} />
         </aside>
         <div className="min-w-0">
           {/* Page header */}
-          <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 rounded-lg border border-line bg-surface p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="eyebrow mb-1">ძებნა</p>
-                <h1 className="font-display break-words text-xl font-bold text-gray-900 sm:text-2xl">{headline}</h1>
+                <h1 className="font-display break-words text-xl font-bold text-ink sm:text-2xl">{headline}</h1>
               </div>
-              <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100">
+              <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-full bg-deal-soft px-3.5 py-1.5 text-xs font-semibold text-deal-strong hover:bg-deal-strong hover:text-white">
                 <BadgePercent className="size-3.5" />
                 აქციები
               </Link>
@@ -107,16 +108,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
 
           {/* Mobile filter trigger */}
           <div className="mb-4 lg:hidden">
-            <MobileFilterDrawer>
+            <MobileFilterDrawer resultCount={hasSearchIntent ? products.length : undefined}>
               <CatalogFilters action="/search" resetHref="/search" values={filters} categories={categories} shops={shops} variant="drawer" />
             </MobileFilterDrawer>
           </div>
 
           {/* Results count */}
           {hasSearchIntent && products.length > 0 && (
-            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm">
-              <span className="font-semibold text-gray-900">{products.length.toLocaleString()} პროდუქტი</span>
-              <span className="text-gray-400 text-xs">· ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს</span>
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-line bg-surface px-4 py-2.5 text-sm">
+              <span className="font-semibold text-ink">{formatNumber(products.length)} პროდუქტი</span>
+              <span className="text-muted text-xs">· ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს</span>
             </div>
           )}
 
@@ -167,12 +168,12 @@ function SearchDiscovery({
 }) {
   return (
     <div className="grid gap-6">
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+      <div className="rounded-lg border border-line bg-surface p-4 shadow-sm sm:p-5">
+        <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">
           <Sparkles className="size-3.5" /> პოპულარული ძიებები
         </div>
         <KeywordLinks keywords={popular} />
-        <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-gray-400">შემოთავაზებული</p>
+        <p className="mt-4 text-[12px] font-semibold uppercase tracking-wider text-muted">შემოთავაზებული</p>
         <KeywordLinks keywords={suggestedSearches} compact />
         <div className="mt-4 grid gap-2 min-[380px]:grid-cols-2">
           <CategoryShortcut href="/categories/mobiles" icon={Smartphone} label="ტელეფონები" />
@@ -199,34 +200,34 @@ function SearchDiscovery({
 
 function FailedSearchState({ query, relaxed }: { query?: string; relaxed: RelaxedSuggestion[] }) {
   return (
-    <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-4 py-10 text-center">
+    <div className="grid min-h-60 place-items-center rounded-lg border border-line bg-surface px-4 py-10 text-center">
       <div className="w-full">
-        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-gray-200 bg-gray-50 text-gray-400">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-line bg-surface-soft text-muted">
           <Search className="size-5" />
         </span>
-        <h2 className="mt-4 text-base font-semibold text-gray-900">ვერ მოიძებნა შედეგი</h2>
+        <h2 className="mt-4 text-base font-semibold text-ink">ვერ მოიძებნა შედეგი</h2>
 
         {/* Every relaxed query below was checked against the catalog first, so
             these links can never lead to another empty page. */}
         {relaxed.length ? (
           <>
-            <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-gray-500">იქნებ ეძებდი:</p>
+            <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted">იქნებ ეძებდი:</p>
             <div className="mt-3 flex flex-wrap justify-center gap-1.5">
               {relaxed.map((suggestion) => (
                 <Link
                   key={suggestion.query}
                   href={`/search?q=${encodeURIComponent(suggestion.query)}`}
-                  className="flex h-8 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-800 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  className="flex h-8 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-ink hover:border-accent hover:text-accent"
                 >
                   {suggestion.query}
-                  <span className="text-xs text-gray-400">{suggestion.productCount}+</span>
+                  <span className="text-xs text-muted">{suggestion.productCount}+</span>
                 </Link>
               ))}
             </div>
           </>
         ) : (
           <>
-            <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-gray-500">
+            <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted">
               სცადე სხვა სახელი, ბრენდი ან მეხსიერების მოცულობა.
             </p>
             <KeywordLinks keywords={suggestedSearches} compact />
@@ -236,7 +237,7 @@ function FailedSearchState({ query, relaxed }: { query?: string; relaxed: Relaxe
         {query ? <StockRequestForm query={query} /> : null}
 
         <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2">
-          <Link href="/search" className="flex h-9 items-center rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
+          <Link href="/search" className="flex h-9 items-center rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong">
             ფილტრების გასუფთავება
           </Link>
           <CategoryShortcut href="/categories/mobiles" icon={Smartphone} label="ტელეფონები" />
@@ -254,7 +255,7 @@ function KeywordLinks({ keywords, compact = false }: { keywords: string[]; compa
         <Link
           key={keyword}
           href={`/search?q=${encodeURIComponent(keyword)}`}
-          className="inline-flex h-8 items-center rounded-full border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+          className="inline-flex h-8 items-center rounded-full border border-line bg-surface-soft px-3 text-xs font-medium text-ink-soft hover:border-accent hover:bg-accent-soft hover:text-accent"
         >
           {keyword}
         </Link>
@@ -265,8 +266,8 @@ function KeywordLinks({ keywords, compact = false }: { keywords: string[]; compa
 
 function CategoryShortcut({ href, icon: Icon, label }: { href: string; icon: LucideIcon; label: string }) {
   return (
-    <Link href={href} className="flex h-10 items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]">
-      <Icon className="size-4 text-gray-400" />
+    <Link href={href} className="flex h-10 items-center justify-center gap-2 rounded-md border border-line bg-surface px-3 text-sm font-medium text-ink-soft hover:border-accent hover:bg-accent-soft">
+      <Icon className="size-4 text-muted" />
       {label}
     </Link>
   );
@@ -275,8 +276,8 @@ function CategoryShortcut({ href, icon: Icon, label }: { href: string; icon: Luc
 function SectionTitle({ title, href }: { title: string; href: string }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-      <Link href={href} className="text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)]">
+      <h2 className="text-base font-semibold text-ink">{title}</h2>
+      <Link href={href} className="text-xs font-semibold text-accent hover:text-accent-strong">
         ყველა →
       </Link>
     </div>

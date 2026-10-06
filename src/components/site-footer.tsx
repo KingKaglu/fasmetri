@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Clock3 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
-import { getCatalogStats } from "@/lib/catalog";
+import { getCatalogStats, listPublicCategories } from "@/lib/catalog";
 import { formatRelativeTime } from "@/lib/format";
 
 const columns: Array<[string, Array<[string, string]>]> = [
@@ -43,9 +43,13 @@ export async function SiteFooter() {
   const latestUpdate = await getCatalogStats()
     .then((stats) => stats.latestUpdate)
     .catch(() => null);
+  // The header no longer carries a category strip, so the footer is the one
+  // site-wide place every category page is linked from. Same cached summary
+  // as getCatalogStats, so no extra database round trip.
+  const categories = await listPublicCategories().catch(() => []);
 
   return (
-    <footer className="mt-16 bg-[var(--ink-surface)]">
+    <footer className="mt-8 bg-[var(--ink-surface)] md:mt-16">
       <div className="shell grid gap-10 py-12 md:grid-cols-[2fr_1fr_1fr_1fr]">
         {/* Brand column — colophon */}
         <div>
@@ -70,7 +74,7 @@ export async function SiteFooter() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 rounded-xl bg-white/[0.06] px-3 py-2.5 text-[11px] leading-5 text-slate-400">
+          <p className="mt-4 rounded-xl bg-white/[0.06] px-3 py-2.5 text-[12px] leading-5 text-slate-400">
             ფასმეტრი არ არის ჩამოთვლილი მაღაზიების ოფიციალური პარტნიორი. ყიდვამდე საბოლოო ფასი მაღაზიის გვერდზე გადაამოწმე.
           </p>
         </div>
@@ -78,7 +82,7 @@ export async function SiteFooter() {
         {/* Link columns */}
         {columns.map(([title, items]) => (
           <div key={title}>
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400">{title}</p>
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.1em] text-slate-400">{title}</p>
             <ul className="grid gap-2">
               {items.map(([href, label]) => (
                 <li key={href}>
@@ -94,9 +98,27 @@ export async function SiteFooter() {
         ))}
       </div>
 
+      {categories.length ? (
+        <nav aria-label="კატეგორიები" className="shell border-t border-white/10 py-6">
+          <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.1em] text-slate-400">კატეგორიები</p>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1">
+            {categories.map(({ slug, nameKa }) => (
+              <li key={slug}>
+                <Link
+                  href={`/categories/${slug}`}
+                  className="inline-block py-1 text-sm text-slate-300 transition-colors hover:text-white"
+                >
+                  {nameKa}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
+
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[11px] text-zinc-400">
+        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[12px] text-zinc-400">
           <span>© {new Date().getFullYear()} ფასმეტრი. ყველა უფლება დაცულია.</span>
           {latestUpdate ? (
             <span className="inline-flex items-center gap-1">

@@ -11,18 +11,18 @@ export default function LegalPage() {
     <section className="shell py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">სამართლებრივი</p>
-        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">დისკლეიმერი</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-ink sm:text-3xl">დისკლეიმერი</h1>
 
-        <div className="mt-6 grid gap-5 text-sm leading-7 text-gray-600">
+        <div className="mt-6 grid gap-5 text-sm leading-7 text-ink-soft">
           <p>
-            ფასმეტრი არის <strong className="text-gray-900">დამოუკიდებელი</strong> ფასების შედარების
+            ფასმეტრი არის <strong className="text-ink">დამოუკიდებელი</strong> ფასების შედარების
             პლატფორმა. ფასმეტრი არ არის Zoommer-ის, EE.ge / Elite Electronics-ის, PCShop-ის ან სხვა
             ჩამოთვლილი მაღაზიის ოფიციალური პარტნიორი, წარმომადგენელი, რესელერი ან აფილირებული პირი,
             თუ ეს პირდაპირ არ არის მითითებული.
           </p>
           <p>
             ფასები, ფასდაკლებები და მარაგი იცვლება და შესაძლოა არ ემთხვეოდეს მაღაზიის ვებსაიტზე
-            მითითებულ ინფორმაციას იმ მომენტში, როდესაც შენ ნახულობ. <strong className="text-gray-900">საბოლოო
+            მითითებულ ინფორმაციას იმ მომენტში, როდესაც შენ ნახულობ. <strong className="text-ink">საბოლოო
             ფასი და ხელმისაწვდომობა ყოველთვის გადაამოწმე მაღაზიის ოფიციალურ გვერდზე</strong> შეძენამდე.
           </p>
           <p>
@@ -33,14 +33,14 @@ export default function LegalPage() {
           <p>
             მაღაზიის ბმულზე გადასვლა შესაძლოა აღირიცხოს ანონიმური სტატისტიკისთვის (რომელი პროდუქტი,
             რომელი მაღაზია, დრო) — დეტალები იხილე{" "}
-            <a className="font-semibold text-zinc-900 underline underline-offset-2 hover:text-black" href="/privacy">კონფიდენციალურობის პოლიტიკაში</a>.
+            <a className="font-semibold text-ink underline underline-offset-2 hover:text-black" href="/privacy">კონფიდენციალურობის პოლიტიკაში</a>.
           </p>
           <p>
             მაღაზიების სახელები გამოყენებულია მხოლოდ წყაროს იდენტიფიკაციისთვის. ისინი ეკუთვნით შესაბამის
             მფლობელებს. თუ ხარ მაღაზიის წარმომადგენელი და გსურს მონაცემების შესწორება ან ამოღება,
-            დაგვიკავშირდი <a className="font-semibold text-zinc-900 underline underline-offset-2 hover:text-black" href="/contact">კონტაქტის გვერდზე</a>.
+            დაგვიკავშირდი <a className="font-semibold text-ink underline underline-offset-2 hover:text-black" href="/contact">კონტაქტის გვერდზე</a>.
           </p>
-          <p className="text-xs text-gray-500">ბოლო განახლება: 2026 წელი.</p>
+          <p className="text-xs text-muted">ბოლო განახლება: 2026 წელი.</p>
         </div>
       </div>
     </section>

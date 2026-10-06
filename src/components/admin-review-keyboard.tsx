@@ -82,9 +82,9 @@ export function ReviewKeyboardNav({ matchIds }: { matchIds: string[] }) {
         <Keyboard className="size-3.5 text-[var(--accent)]" />
         <span className="tabular-nums">{index + 1}/{matchIds.length}</span>
         <span className="text-white/40">·</span>
-        <kbd className="rounded bg-white/12 px-1.5 py-0.5">↑↓</kbd> ნავიგაცია
-        <kbd className="rounded bg-white/12 px-1.5 py-0.5">A</kbd> დადასტურება
-        <kbd className="rounded bg-white/12 px-1.5 py-0.5">R</kbd> უარყოფა
+        <kbd className="rounded-sm bg-white/12 px-1.5 py-0.5">↑↓</kbd> ნავიგაცია
+        <kbd className="rounded-sm bg-white/12 px-1.5 py-0.5">A</kbd> დადასტურება
+        <kbd className="rounded-sm bg-white/12 px-1.5 py-0.5">R</kbd> უარყოფა
         {busy ? <span className="text-[var(--accent)]">…</span> : null}
       </div>
     </div>

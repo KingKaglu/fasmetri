@@ -1,6 +1,7 @@
 import { isPublicCategorySlug } from "@/config/categoryMapping";
 import { CategoryView, OfferView, ProductView, isPublicMatchStatus } from "@/lib/catalog-types";
 import { normalizeProductName } from "@/lib/matching";
+import { compareOffersForDisplay } from "@/lib/offerOrder";
 import { readProductIdentity } from "@/lib/productIdentity";
 import { explainMatchDecision } from "@/lib/productMatching";
 
@@ -232,7 +233,9 @@ export function isTechnologyCategory(slug?: string | null) {
 }
 
 export function publicOffers(offers: OfferView[], product?: Pick<ProductView, "name">) {
-  const sorted = offers.filter((offer) => isPublicOffer(offer)).sort((left, right) => left.currentPrice - right.currentPrice);
+  // Stock first, then price (compareOffersForDisplay): offers[0] is the
+  // product's advertised best price, so it must be one you can buy.
+  const sorted = offers.filter((offer) => isPublicOffer(offer)).sort(compareOffersForDisplay);
   // A price comparison shows one price per shop. When the same shop has several
   // offers attached to a product, prefer that shop's exact-title offer. This
   // prevents a near-match from becoming the displayed price only because it is
@@ -246,7 +249,7 @@ export function publicOffers(offers: OfferView[], product?: Pick<ProductView, "n
   }
   return [...byShop.values()]
     .map((shopOffers) => shopOffers.find((offer) => productTitle && comparableTitle(offer.title) === productTitle) ?? shopOffers[0])
-    .sort((left, right) => left.currentPrice - right.currentPrice);
+    .sort(compareOffersForDisplay);
 }
 
 export function toPublicProduct(product: ProductView): ProductView | null {

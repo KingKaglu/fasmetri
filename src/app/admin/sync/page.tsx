@@ -244,13 +244,13 @@ export default async function AdminSyncPage() {
               </div>
             ) : (
               <p className="text-sm font-bold text-[var(--muted)]">
-                ლოკალურად: <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
+                ლოკალურად: <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
               </p>
             )}
           </div>
         ) : (
           <p className="p-4 text-sm font-bold text-[var(--muted)]">
-            ლოკალურად: <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
+            ლოკალურად: <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
           </p>
         )}
       </AdminPanel>

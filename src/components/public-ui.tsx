@@ -19,11 +19,11 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
     availability === "IN_STOCK"
       ? { label: "მარაგშია", className: "border-emerald-200 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" }
       : availability === "OUT_OF_STOCK"
-        ? { label: "არ არის მარაგში", className: "border-gray-200 bg-gray-50 text-gray-400", dot: "bg-gray-300" }
-        : { label: "მარაგი მოწმდება", className: "border-gray-200 bg-white text-gray-500", dot: "bg-gray-400" };
+        ? { label: "არ არის მარაგში", className: "border-line bg-surface-soft text-muted", dot: "bg-subtle" }
+        : { label: "მარაგი მოწმდება", className: "border-line bg-surface text-muted", dot: "bg-subtle" };
 
   return (
-    <span className={`inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[10px] font-semibold ${meta.className}`}>
+    <span className={`inline-flex h-5 items-center gap-1 rounded-full border px-2 text-[11px] font-semibold ${meta.className}`}>
       <span className={`size-1.5 rounded-full ${meta.dot}`} />
       {meta.label}
     </span>
@@ -33,7 +33,7 @@ export function AvailabilityBadge({ availability, hideUnknown = false }: { avail
 export function DiscountBadge({ percent, label }: { percent: number; label?: string }) {
   if (!percent) return null;
   return (
-    <span className="inline-flex items-center rounded-full bg-[var(--danger)] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-sm">
+    <span className="inline-flex items-center rounded-full bg-deal-strong px-2 py-1 text-[11px] font-bold leading-none text-white shadow-sm">
       {label ?? `-${percent}%`}
     </span>
   );
@@ -95,14 +95,14 @@ export function LastUpdatedText({
   const stale = hours >= STALE_WARN_HOURS;
   const Icon = stale ? AlertTriangle : Clock3;
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1 ${stale ? "font-semibold text-amber-700" : "text-gray-400"} ${className}`}>
+    <span className={`inline-flex min-w-0 items-center gap-1 ${stale ? "font-semibold text-amber-700" : "text-muted"} ${className}`}>
       <Icon className="size-3 shrink-0" />
       <span className="min-w-0">
         <span className="block">
           {formatRelativeUpdated(value)}
           {stale ? ` — ${hours >= STALE_STRONG_HOURS ? "მოძველებული ფასი, გადაამოწმე" : "გადაამოწმე მაღაზიაში"}` : ""}
         </span>
-        {exact ? <span className="block text-[11px] font-medium text-gray-500">{formatUpdated(value)}</span> : null}
+        {exact ? <span className="block text-[12px] font-medium text-muted">{formatUpdated(value)}</span> : null}
       </span>
     </span>
   );
@@ -111,7 +111,7 @@ export function LastUpdatedText({
 export function ShopMark({ shop, size = "md" }: { shop: Pick<ShopView, "name" | "logoUrl">; size?: "sm" | "md" }) {
   const dimension = size === "sm" ? "size-6" : "size-9";
   return (
-    <span className={`relative grid ${dimension} shrink-0 place-items-center overflow-hidden rounded-md border border-gray-200 bg-white text-[10px] font-semibold text-gray-600`}>
+    <span className={`relative grid ${dimension} shrink-0 place-items-center overflow-hidden rounded-md border border-line bg-surface text-[12px] font-semibold text-ink-soft`}>
       {shop.logoUrl ? <Image src={shop.logoUrl} alt="" fill unoptimized className="object-contain p-1" /> : shop.name.slice(0, 1)}
     </span>
   );
@@ -123,11 +123,11 @@ export function ShopStatusBadge({ shop }: { shop: ShopView }) {
     hasComparedProducts && shop.lastScrapedAt
       ? { label: "აქტიური", className: "border-emerald-200 bg-emerald-50 text-emerald-700" }
       : shop.enabled
-        ? { label: "მოწმდება", className: "border-gray-200 bg-white text-gray-500" }
-        : { label: "მალე", className: "border-gray-200 bg-gray-50 text-gray-400" };
+        ? { label: "მოწმდება", className: "border-line bg-surface text-muted" }
+        : { label: "მალე", className: "border-line bg-surface-soft text-muted" };
 
   return (
-    <span className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${meta.className}`}>
+    <span className={`inline-flex shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${meta.className}`}>
       {meta.label}
     </span>
   );
@@ -152,7 +152,7 @@ export function SectionHeader({
         <div className="max-w-2xl min-w-0">
           {eyebrow ? <p className="masthead-kicker mb-1">{eyebrow}</p> : null}
           <h2 className="masthead-title">{title}</h2>
-          {description ? <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p> : null}
+          {description ? <p className="mt-1.5 text-sm leading-6 text-muted">{description}</p> : null}
         </div>
         {href ? (
           <Link href={href} className="masthead-link shrink-0">
@@ -180,15 +180,15 @@ export function EmptyState({
 }) {
   const Icon = icon === "store" ? Store : icon === "error" ? AlertCircle : PackageSearch;
   return (
-    <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-5 py-12 text-center">
+    <div className="grid min-h-60 place-items-center rounded-lg border border-line bg-surface px-5 py-12 text-center">
       <div className="max-w-md">
-        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-gray-200 bg-gray-50 text-gray-400">
+        <span className="mx-auto grid size-12 place-items-center rounded-lg border border-line bg-surface-soft text-muted">
           <Icon className="size-5" />
         </span>
-        <h2 className="mt-4 text-base font-semibold text-gray-900">{title}</h2>
-        <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
+        <h2 className="mt-4 text-base font-semibold text-ink">{title}</h2>
+        <p className="mt-1.5 text-sm leading-6 text-muted">{description}</p>
         {href ? (
-          <Link href={href} className="mt-5 inline-flex h-10 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]">
+          <Link href={href} className="mt-5 inline-flex h-10 items-center rounded-full bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong">
             {action}
           </Link>
         ) : null}
@@ -207,13 +207,13 @@ export function ErrorState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="grid min-h-60 place-items-center rounded-lg border border-gray-200 bg-white px-5 py-10 text-center">
+    <div className="grid min-h-60 place-items-center rounded-lg border border-line bg-surface px-5 py-10 text-center">
       <div className="max-w-md">
         <span className="mx-auto grid size-12 place-items-center rounded-full bg-red-50 text-red-500">
           <AlertCircle className="size-5" />
         </span>
-        <h1 className="mt-4 text-lg font-bold text-gray-900">{title}</h1>
-        <p className="mt-1.5 text-sm leading-6 text-gray-500">{description}</p>
+        <h1 className="mt-4 text-lg font-bold text-ink">{title}</h1>
+        <p className="mt-1.5 text-sm leading-6 text-muted">{description}</p>
         {action ? <div className="mt-5">{action}</div> : null}
       </div>
     </div>
@@ -222,12 +222,12 @@ export function ErrorState({
 
 export function TrustNote({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white ${compact ? "p-4" : "p-5"}`}>
-      <p className="flex gap-2 text-sm font-semibold text-gray-900">
+    <div className={`rounded-lg border border-line bg-surface ${compact ? "p-4" : "p-5"}`}>
+      <p className="flex gap-2 text-sm font-semibold text-ink">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
         ფასები და მარაგი რეგულარულად ახლდება.
       </p>
-      <p className="mt-1.5 text-sm leading-5 text-gray-500">
+      <p className="mt-1.5 text-sm leading-5 text-muted">
         ყიდვამდე საბოლოო ფასი ყოველთვის გადაამოწმე მაღაზიის ოფიციალურ გვერდზე.
       </p>
     </div>
@@ -236,9 +236,9 @@ export function TrustNote({ compact = false }: { compact?: boolean }) {
 
 export function PriceDisclaimer({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`rounded-md border border-gray-200 bg-gray-50 ${compact ? "px-3 py-2" : "px-4 py-3"}`}>
-      <p className="flex gap-2 text-xs font-medium leading-5 text-gray-600">
-        <Info className="mt-0.5 size-3.5 shrink-0 text-gray-400" />
+    <div className={`rounded-md border border-line bg-surface-soft ${compact ? "px-3 py-2" : "px-4 py-3"}`}>
+      <p className="flex gap-2 text-xs font-medium leading-5 text-ink-soft">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-muted" />
         ფასები შეიძლება შეიცვალოს. საბოლოო ფასი გადაამოწმე მაღაზიის ვებსაიტზე.
       </p>
     </div>
@@ -260,12 +260,12 @@ export function ProductNotFound() {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <div className="aspect-square animate-pulse bg-gray-100" />
+    <div className="overflow-hidden rounded-lg border border-line bg-surface">
+      <div className="aspect-square animate-pulse bg-surface-mute" />
       <div className="grid gap-2 p-3">
-        <div className="h-4 w-20 animate-pulse rounded bg-gray-100" />
-        <div className="h-8 animate-pulse rounded bg-gray-100" />
-        <div className="h-6 w-24 animate-pulse rounded bg-gray-100" />
+        <div className="h-4 w-20 animate-pulse rounded-sm bg-surface-mute" />
+        <div className="h-8 animate-pulse rounded-sm bg-surface-mute" />
+        <div className="h-6 w-24 animate-pulse rounded-sm bg-surface-mute" />
       </div>
     </div>
   );

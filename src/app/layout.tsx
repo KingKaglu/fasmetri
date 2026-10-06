@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Noto_Sans_Georgian } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
 import { CookieConsent } from "@/components/cookie-consent";
@@ -10,9 +11,20 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { CompareProvider } from "@/lib/use-compare";
 import { FavoritesProvider } from "@/lib/use-favorites";
 import { CompareTray } from "@/components/compare-tray";
+import { BottomStack } from "@/components/bottom-stack";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { siteUrl } from "@/config/site";
-import { listPublicCategories } from "@/lib/catalog";
+
+// Self-hosted by next/font: no render-blocking Google Fonts stylesheet, no
+// third-party connection, and a size-adjusted fallback while it loads. 500 is
+// kept because font-medium is used throughout. The serif face that used to be
+// loaded here was referenced nowhere; the OG image loads its own fonts.
+const notoSansGeorgian = Noto_Sans_Georgian({
+  subsets: ["georgian", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-georgian",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -59,12 +71,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // The header's category strip is driven by the live catalog so empty
-  // categories are never advertised. This reads the same cached summary the
-  // footer already awaits here, so it adds no extra database round trip.
-  const headerCategories = await listPublicCategories()
-    .then((categories) => categories.map(({ slug, nameKa }) => ({ slug, nameKa })))
-    .catch(() => []);
   const base = siteUrl();
   const siteJsonLd = [
     {
@@ -104,7 +110,7 @@ export default async function RootLayout({
   ];
 
   return (
-    <html lang="ka" className="h-full antialiased">
+    <html lang="ka" className={`${notoSansGeorgian.variable} h-full antialiased`}>
       <head>
         {/*
           Every product image (incl. the LCP hero + first listing cards) is served
@@ -114,27 +120,35 @@ export default async function RootLayout({
         */}
         <link rel="preconnect" href="https://wsrv.nl" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://wsrv.nl" />
-        {/* Brand typeface — Noto Sans Georgian (referenced by globals.css body font-family) */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Noto+Serif+Georgian:wght@500;600;700;800&display=swap"
-        />
       </head>
-      <body className="flex min-h-full flex-col pb-[8.5rem] md:pb-0">
+      {/* Bottom clearance for the fixed mobile nav lives in globals.css
+          (body padding-bottom: var(--mobile-chrome-bottom)) — one source only. */}
+      <body className="flex min-h-full flex-col">
+        {/* First focusable element: lets keyboard users jump past the header. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-control focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent focus:shadow-[var(--shadow-lg)]"
+        >
+          გადასვლა კონტენტზე
+        </a>
         <JsonLd data={siteJsonLd} />
         <CompareProvider>
           <FavoritesProvider>
-            <SiteHeader categories={headerCategories} />
-            <main className="flex-1">{children}</main>
+            <SiteHeader />
+            <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+              {children}
+            </main>
             <SiteFooter />
             <MobileBottomNav />
-            <CompareTray />
+            {/* One fixed stack above the bottom nav: the compare tray is pushed
+                up while the cookie banner is open instead of hiding under it. */}
+            <BottomStack>
+              <CompareTray />
+              <CookieConsent />
+            </BottomStack>
           </FavoritesProvider>
         </CompareProvider>
         <AnalyticsScripts />
-        <CookieConsent />
         {/*
           Vercel Web Analytics, alongside GA4 rather than instead of it. It is
           served first-party from /_vercel/insights on our own domain, so the

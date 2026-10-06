@@ -12,11 +12,11 @@ export default function PrivacyPage() {
     <section className="shell py-8 sm:py-12">
       <div className="mx-auto max-w-3xl">
         <p className="eyebrow">კონფიდენციალურობა</p>
-        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">კონფიდენციალურობის პოლიტიკა</h1>
+        <h1 className="font-display mt-1 text-2xl font-bold text-ink sm:text-3xl">კონფიდენციალურობის პოლიტიკა</h1>
 
-        <div className="mt-6 grid gap-6 text-sm leading-7 text-gray-600">
+        <div className="mt-6 grid gap-6 text-sm leading-7 text-ink-soft">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">რა მონაცემებს ვაგროვებთ</h2>
+            <h2 className="text-base font-semibold text-ink">რა მონაცემებს ვაგროვებთ</h2>
             <p className="mt-2">
               ფასმეტრი არ ითხოვს რეგისტრაციას და არ აგროვებს სახელს, მისამართს ან გადახდის მონაცემებს.
               ვაგროვებთ მხოლოდ გამოყენების ანონიმურ მონაცემებს, რომ პლატფორმა გავაუმჯობესოთ:
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 className="text-base font-semibold text-gray-900">ანალიტიკა და ქუქიები</h2>
+            <h2 className="text-base font-semibold text-ink">ანალიტიკა და ქუქიები</h2>
             <p className="mt-2">
               შესაძლოა გამოვიყენოთ Google Analytics, Meta Pixel და TikTok Pixel ვიზიტებისა და რეკლამის
               ეფექტიანობის გასაზომად. ეს სერვისები იყენებენ ქუქიებს. ქუქიების მართვა შეგიძლია ბრაუზერის
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 className="text-base font-semibold text-gray-900">გარე ლინკები</h2>
+            <h2 className="text-base font-semibold text-ink">გარე ლინკები</h2>
             <p className="mt-2">
               მაღაზიის ღილაკზე დაჭერისას გადახვალ მესამე მხარის (მაღაზიის) ვებსაიტზე, რომელსაც აქვს
               საკუთარი კონფიდენციალურობის პოლიტიკა. ფასმეტრი არ აკონტროლებს და არ აგებს პასუხს მათ
@@ -47,7 +47,7 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 className="text-base font-semibold text-gray-900">მონაცემთა გამოყენება</h2>
+            <h2 className="text-base font-semibold text-ink">მონაცემთა გამოყენება</h2>
             <p className="mt-2">
               აგრეგირებულ (არაიდენტიფიცირებად) სტატისტიკას შესაძლოა გავუზიაროთ მაღაზიებს, მაგ.
               „ფასმეტრმა ამ თვეში თქვენს პროდუქტებზე X გადასვლა გამოგიგზავნათ“. პერსონალურ მონაცემებს
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 className="text-base font-semibold text-gray-900">ანალიტიკის არჩევანი</h2>
+            <h2 className="text-base font-semibold text-ink">ანალიტიკის არჩევანი</h2>
             <p className="mt-2">
               ანალიტიკა მხოლოდ შენი თანხმობით ირთვება და ნებისმიერ დროს შეგიძლია გამორთო.
             </p>
@@ -64,14 +64,14 @@ export default function PrivacyPage() {
           </div>
 
           <div>
-            <h2 className="text-base font-semibold text-gray-900">კონტაქტი</h2>
+            <h2 className="text-base font-semibold text-ink">კონტაქტი</h2>
             <p className="mt-2">
               შეკითხვებისთვის ან მონაცემების შესახებ მოთხოვნისთვის მოგვწერე{" "}
-              <a className="font-semibold text-zinc-900 underline underline-offset-2 hover:text-black" href="/contact">კონტაქტის გვერდზე</a>.
+              <a className="font-semibold text-ink underline underline-offset-2 hover:text-black" href="/contact">კონტაქტის გვერდზე</a>.
             </p>
           </div>
 
-          <p className="text-xs text-gray-500">ბოლო განახლება: 2026 წელი.</p>
+          <p className="text-xs text-muted">ბოლო განახლება: 2026 წელი.</p>
         </div>
       </div>
     </section>

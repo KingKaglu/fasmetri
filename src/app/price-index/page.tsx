@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { ArrowRight, LineChart, TrendingDown, TrendingUp } from "lucide-react";
 import { getPriceIndex, CategoryIndex, IndexMover } from "@/lib/priceIndex";
-import { formatGel, formatRelativeTime } from "@/lib/format";
+import { formatGel, formatRelativeTime, formatNumber } from "@/lib/format";
 import { ProductImage } from "@/components/public-ui";
 
 export const metadata: Metadata = {
@@ -53,7 +53,7 @@ export default async function PriceIndexPage() {
                   <span aria-hidden className="text-2xl sm:text-3xl">{index.overall.changePct < 0 ? "▼" : index.overall.changePct > 0 ? "▲" : "•"}</span>
                   {formatPct(index.overall.changePct)}
                 </div>
-                <div className="mt-2 text-[11px] font-medium text-white/60">
+                <div className="mt-2 text-[12px] font-medium text-white/60">
                   ბაზარი ბოლო {index.windowDays} დღეში
                 </div>
               </div>
@@ -89,13 +89,13 @@ export default async function PriceIndexPage() {
                 ))}
               </ul>
             </div>
-            <p className="mt-2 text-[11px] text-gray-400">
+            <p className="mt-2 text-[12px] text-muted">
               განახლდა {formatRelativeTime(index.generatedAt)} · საშუალო ცვლილება კატეგორიის ყველა დაკვირვებულ შეთავაზებაზე
             </p>
           </section>
 
           {/* Movers — two-column drop/rise wire */}
-          <section className="section-mist mt-8 border-y border-[var(--line)]">
+          <section className="section-mist mt-8 border-y border-line">
             <div className="shell pt-8 pb-8">
               <div className="grid gap-8 lg:grid-cols-2 lg:gap-6">
                 <div className="min-w-0">
@@ -113,15 +113,15 @@ export default async function PriceIndexPage() {
       )}
 
       {/* Methodology + CTA */}
-      <section className="section-hatch border-b border-[var(--line)]">
+      <section className="section-hatch border-b border-line">
         <div className="shell pt-8 pb-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="max-w-2xl">
-              <p className="flex items-center gap-2 text-[13px] font-bold text-[var(--brand)]">
+              <p className="flex items-center gap-2 text-[13px] font-bold text-ink">
                 <LineChart className="size-4" />
                 როგორ ითვლება ინდექსი
               </p>
-              <p className="mt-2 text-[13px] leading-6 text-gray-600">
+              <p className="mt-2 text-[13px] leading-6 text-ink-soft">
                 ყოველი შეთავაზების დღევანდელი ფასი დარდება მისსავე, მაღაზიის გვერდიდან ჩაწერილ ფასს {index.windowDays} დღის
                 წინ. ცვლილებები საშუალდება კატეგორიების მიხედვით; უკიდურესი გადახრები (მაგ. მონაცემის შეცდომა) იჭრება,
                 რომ ერთმა პროდუქტმა ინდექსი ვერ გადაწიოს. შედეგი CPI-ის მსგავსი, „ერთნაირი კალათის" საზომია — ის არ
@@ -130,7 +130,7 @@ export default async function PriceIndexPage() {
             </div>
             <Link
               href="/deals"
-              className="inline-flex h-11 w-fit items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-[13px] font-bold text-white hover:bg-[var(--accent-strong)]"
+              className="inline-flex h-11 w-fit items-center gap-2 rounded-full bg-accent px-5 text-[13px] font-bold text-white hover:bg-accent-strong"
             >
               ნახე დღევანდელი ფასდაკლებები
               <ArrowRight className="size-3.5" />
@@ -157,9 +157,9 @@ function IndexStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="stat-rule min-w-0">
       <div className="font-display text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
-        {value.toLocaleString()}
+        {formatNumber(value)}
       </div>
-      <div className="mt-1.5 text-[11px] font-medium text-white/60">{label}</div>
+      <div className="mt-1.5 text-[12px] font-medium text-white/60">{label}</div>
     </div>
   );
 }
@@ -191,13 +191,13 @@ function CategoryRow({ category, maxAbsPct }: { category: CategoryIndex; maxAbsP
         {flatMove ? "•" : dropped ? "▼" : "▲"}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-gray-900">{category.nameKa}</span>
-        <span className="block truncate text-[11px] text-gray-400">
+        <span className="block truncate text-sm font-bold text-ink">{category.nameKa}</span>
+        <span className="block truncate text-[12px] text-muted">
           {category.sampleSize} შეთავაზება · {category.drops} გაიაფდა · {category.rises} გაძვირდა
         </span>
       </span>
       {/* Move bar — filled ink for drops (prices falling), outlined for rises */}
-      <span className="hidden h-2 w-32 shrink-0 border border-zinc-300 bg-white sm:block md:w-44" aria-hidden>
+      <span className="hidden h-2 w-32 shrink-0 border border-line-strong bg-surface sm:block md:w-44" aria-hidden>
         <span
           className={`block h-full ${dropped ? "bg-emerald-500" : flatMove ? "bg-transparent" : "bg-red-300"}`}
           style={{ width: `${barWidth}%` }}
@@ -216,7 +216,7 @@ function CategoryRow({ category, maxAbsPct }: { category: CategoryIndex; maxAbsP
 
 function MoverList({ movers, direction, emptyText }: { movers: IndexMover[]; direction: "drop" | "rise"; emptyText: string }) {
   if (!movers.length) {
-    return <p className="border border-[var(--line)] bg-white px-4 py-6 text-center text-sm text-gray-500">{emptyText}</p>;
+    return <p className="border border-line bg-surface px-4 py-6 text-center text-sm text-muted">{emptyText}</p>;
   }
   return (
     <div className="wire-table overflow-hidden">
@@ -237,25 +237,25 @@ function MoverRow({ mover, rank, direction }: { mover: IndexMover; rank: number;
     <li>
       <Link
         href={`/products/${mover.productSlug}`}
-        className="wire-row flex min-w-0 items-center gap-3 px-3 py-2.5 hover:bg-gray-50 sm:px-4"
+        className="wire-row flex min-w-0 items-center gap-3 px-3 py-2.5 hover:bg-surface-soft sm:px-4"
       >
-        <span className="w-6 shrink-0 text-center text-[12px] font-black tabular-nums text-gray-300" aria-hidden>
+        <span className="w-6 shrink-0 text-center text-[12px] font-black tabular-nums text-subtle" aria-hidden>
           {rank}
         </span>
-        <span className="relative block size-11 shrink-0 overflow-hidden border border-[var(--line)] bg-white">
+        <span className="relative block size-11 shrink-0 overflow-hidden border border-line bg-surface">
           <ProductImage src={mover.imageUrl} alt={mover.productName} categorySlug={mover.categorySlug} shopName={mover.shopName} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-semibold text-gray-900">{mover.productName}</span>
-          <span className="block truncate text-[11px] text-gray-400">{mover.shopName}</span>
+          <span className="block truncate text-[13px] font-semibold text-ink">{mover.productName}</span>
+          <span className="block truncate text-[12px] text-muted">{mover.shopName}</span>
         </span>
         <span className="hidden shrink-0 text-right sm:block">
-          <span className="block text-[11px] tabular-nums text-gray-400 line-through">{formatGel(mover.priceThen)}</span>
-          <span className="block text-sm font-bold tabular-nums text-gray-900">{formatGel(mover.priceNow)}</span>
+          <span className="block text-[12px] tabular-nums text-muted line-through">{formatGel(mover.priceThen)}</span>
+          <span className="block text-sm font-bold tabular-nums text-ink">{formatGel(mover.priceNow)}</span>
         </span>
         <span
           className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums ${
-            dropped ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"
+            dropped ? "bg-savings-soft text-savings-strong" : "bg-deal-soft text-deal-strong"
           }`}
         >
           {dropped ? <TrendingDown className="size-3" /> : <TrendingUp className="size-3" />}

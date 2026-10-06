@@ -4,6 +4,7 @@ import { listPublicProducts, listPublicShops } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product-grid";
 import { CatalogPager } from "@/components/catalog-pager";
 import { LastUpdatedText, ShopMark, ShopStatusBadge } from "@/components/public-ui";
+import { formatNumber } from "@/lib/format";
 
 // No loading.tsx for this segment: a route-level skeleton makes Next stream
 // the response, which flushes a 200 before notFound() can run — unknown
@@ -37,26 +38,26 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
 
   return (
     <section className="shell py-6 sm:py-9">
-      <div className="mb-5 grid gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:grid-cols-[auto_1fr_auto] sm:items-center">
+      <div className="mb-5 grid gap-4 rounded-lg border border-line bg-surface p-4 shadow-sm sm:grid-cols-[auto_1fr_auto] sm:items-center">
         <ShopMark shop={shop} />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-gray-900 sm:text-3xl">{shop.name}</h1>
+            <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{shop.name}</h1>
             <ShopStatusBadge shop={shop} />
           </div>
-          <p className="mt-1 text-sm text-gray-500">
-            <span className="font-semibold text-gray-900">{(shop.productCount ?? products.length).toLocaleString()}</span> ამ მაღაზიაში ნაპოვნი პროდუქტი
+          <p className="mt-1 text-sm text-muted">
+            <span className="font-semibold text-ink">{formatNumber(shop.productCount ?? products.length)}</span> ამ მაღაზიაში ნაპოვნი პროდუქტი
             {" · "}
-            <span className="font-semibold text-gray-900">{(shop.dealCount ?? 0).toLocaleString()}</span> აქტიური აქცია
+            <span className="font-semibold text-ink">{formatNumber(shop.dealCount ?? 0)}</span> აქტიური აქცია
             {" · "}
-            ნაჩვენებია {products.length.toLocaleString()} / {(shop.productCount ?? products.length).toLocaleString()}
+            ნაჩვენებია {formatNumber(products.length)} / {formatNumber(shop.productCount ?? products.length)}
           </p>
-          <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-400">
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-muted">
             ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
           </p>
           {shop.lastScrapedAt ? <LastUpdatedText value={shop.lastScrapedAt} warnStale className="mt-1 text-xs" /> : null}
         </div>
-        <p className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
+        <p className="rounded-md border border-line bg-surface-soft px-3 py-2 text-xs font-medium text-muted">
           საბოლოო ფასი მაღაზიაში გადაამოწმე
         </p>
       </div>

@@ -24,7 +24,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
 
   if (!data.length) {
     return (
-      <div className="grid min-h-48 w-full place-items-center rounded-lg border border-gray-200 bg-white p-5 text-center text-sm text-gray-500">
+      <div className="grid min-h-48 w-full place-items-center rounded-lg border border-line bg-surface p-5 text-center text-sm text-muted">
         ფასის ისტორია ჯერ გროვდება.
       </div>
     );
@@ -42,14 +42,14 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
 
   if (!hasTimeSpread) {
     return (
-      <div className="grid min-h-56 w-full gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
+      <div className="grid min-h-56 w-full gap-4 rounded-lg border border-line bg-surface p-4 sm:p-5">
         <HistorySummary firstPoint={firstPoint} latestPoint={latestPoint} minPrice={minPrice} maxPrice={maxPrice} />
-        <div className="relative grid min-h-24 place-items-center overflow-hidden rounded-md border border-dashed border-gray-200 bg-gray-50 px-5">
-          <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-gray-300" />
+        <div className="relative grid min-h-24 place-items-center overflow-hidden rounded-md border border-dashed border-line bg-surface-soft px-5">
+          <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-line-strong" />
           <div className="relative grid gap-1.5 text-center">
-            <span className="mx-auto size-3 rounded-full bg-[var(--accent)] ring-4 ring-blue-100" />
-            <strong className="text-xl font-bold text-gray-900">{formatGel(latestPoint.price)}</strong>
-            <span className="text-xs text-gray-500">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
+            <span className="mx-auto size-3 rounded-full bg-accent ring-4 ring-blue-100" />
+            <strong className="text-xl font-bold text-ink">{formatGel(latestPoint.price)}</strong>
+            <span className="text-xs text-muted">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
   const xTicks = spreadTicks(data, 6);
 
   return (
-    <div className="grid min-h-64 w-full gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:p-5">
+    <div className="grid min-h-64 w-full gap-4 rounded-lg border border-line bg-surface p-4 sm:p-5">
       <HistorySummary firstPoint={firstPoint} latestPoint={latestPoint} minPrice={minPrice} maxPrice={maxPrice} />
       <div className="w-full min-w-0 overflow-hidden" style={{ height: CHART_HEIGHT }}>
         {/* debounce throttles ResizeObserver callbacks; fixed height number
@@ -137,13 +137,13 @@ function HistorySummary({
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
         <p className="eyebrow">დაკვირვების პერიოდი</p>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           {formatUpdated(firstPoint.capturedAt)} — {formatUpdated(latestPoint.capturedAt)}
         </p>
       </div>
       <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
         <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">მინ. {formatGel(minPrice)}</span>
-        <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 font-semibold text-gray-600">მაქს. {formatGel(maxPrice)}</span>
+        <span className="rounded-full border border-line bg-surface px-2.5 py-1 font-semibold text-ink-soft">მაქს. {formatGel(maxPrice)}</span>
       </div>
     </div>
   );

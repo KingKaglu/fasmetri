@@ -131,27 +131,27 @@ export function CatalogFilters({
     <div
       className={
         inDrawer
-          ? "flex h-full min-h-0 flex-col bg-white text-gray-900"
+          ? "flex h-full min-h-0 flex-col bg-surface text-ink"
           // No overflow-hidden: the sort/category selects render absolutely
           // positioned listboxes inside this card, and clipping them would hide
           // the options. Nothing here paints into the rounded corners anyway.
-          : "rounded-2xl border border-[var(--line)] bg-white text-gray-900 shadow-sm"
+          : "rounded-2xl border border-line bg-surface text-ink shadow-sm"
       }
     >
       {/* Header */}
       {!inDrawer && (
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="size-3.5 text-[var(--accent)]" />
-            <span className="text-[13px] font-bold text-gray-900">ფილტრები</span>
+            <SlidersHorizontal className="size-3.5 text-accent" />
+            <span className="text-[13px] font-bold text-ink">ფილტრები</span>
             {activeCount > 0 && (
-              <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[10px] font-bold tabular-nums leading-none text-white">
+              <span className="rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-bold tabular-nums leading-none text-white">
                 {activeCount}
               </span>
             )}
           </div>
           {activeCount > 0 && (
-            <Link href={resetHref} className="flex items-center gap-1 text-[11px] font-bold text-gray-400 hover:text-[var(--accent)]">
+            <Link href={resetHref} className="flex items-center gap-1 text-[12px] font-bold text-muted hover:text-accent">
               <RotateCcw className="size-3" />
               გასუფთავება
             </Link>
@@ -232,7 +232,7 @@ export function CatalogFilters({
                 onCommit={(v) => setParam("minDiscount", v)}
               />
               <div>
-                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">მარაგი</label>
+                <label className="mb-1 block text-[12px] font-semibold uppercase tracking-wider text-muted">მარაგი</label>
                 <Select
                   label="მარაგი"
                   value={values.availability ?? ""}
@@ -257,10 +257,10 @@ export function CatalogFilters({
 
       {/* Drawer footer: reset only — results apply live, no submit needed. */}
       {inDrawer && activeCount > 0 && (
-        <div className="border-t border-gray-100 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="border-t border-line bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <Link
             href={resetHref}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-line text-sm font-semibold text-ink-soft hover:bg-surface-soft"
           >
             <RotateCcw className="size-4" />
             ფილტრების გასუფთავება
@@ -282,7 +282,7 @@ function FilterSection({
 }) {
   return (
     <div>
-      <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+      <label className="mb-1.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">
         {icon}
         {label}
       </label>
@@ -332,7 +332,7 @@ function NumberFilter({
           previously the label sat beside it with no htmlFor, leaving these
           three price/discount fields unlabelled for screen readers. */}
       <label className="block">
-        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
+        <span className="mb-1 block text-[12px] font-semibold uppercase tracking-wider text-muted">{label}</span>
       <input
         type="number"
         min="0"
@@ -493,15 +493,15 @@ function Select({
         aria-label={`${label}: ${selected?.label ?? ""}`}
         onClick={() => (open ? closeMenu(false) : openMenu(selectedIndex >= 0 ? selectedIndex : 0))}
         onKeyDown={onTriggerKeyDown}
-        className="flex w-full min-h-10 items-center justify-between gap-2 rounded-xl border border-[var(--line-strong)] bg-white px-3 text-left text-sm font-medium text-gray-900 hover:border-[var(--accent)] focus-visible:border-[var(--accent)] focus-visible:ring-2 focus-visible:ring-blue-100 outline-none"
+        className="flex w-full min-h-10 items-center justify-between gap-2 rounded-xl border border-line-strong bg-surface px-3 text-left text-sm font-medium text-ink hover:border-accent focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-blue-100 outline-none"
       >
         <span className="min-w-0 truncate">{selected?.label}</span>
-        <ChevronDown className={`size-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`size-4 shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div
           ref={listRef}
-          className="absolute left-0 right-0 z-20 mt-1.5 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[var(--shadow-lg)] outline-none"
+          className="absolute left-0 right-0 z-20 mt-1.5 overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow-lg)] outline-none"
           role="listbox"
           tabIndex={-1}
           aria-label={label}
@@ -522,9 +522,9 @@ function Select({
                   onMouseMove={() => setActiveIndex(index)}
                   className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors ${
                     active
-                      ? "bg-[var(--accent)] font-semibold text-white"
-                      : "text-gray-700"
-                  } ${highlighted && !active ? "bg-gray-100" : ""} ${!active && !highlighted ? "hover:bg-gray-50" : ""}`}
+                      ? "bg-accent font-semibold text-white"
+                      : "text-ink-soft"
+                  } ${highlighted && !active ? "bg-surface-mute" : ""} ${!active && !highlighted ? "hover:bg-surface-soft" : ""}`}
                 >
                   <span className="min-w-0 truncate">{option.label}</span>
                   {active && <Check className="size-3.5 shrink-0 text-white" />}
@@ -540,8 +540,8 @@ function Select({
 
 function SwitchRow({ label, checked, onChange }: { label: string; checked?: boolean; onChange: (checked: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[var(--line-strong)] px-3 py-2.5 hover:border-[var(--accent)]">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+    <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line-strong px-3 py-2.5 hover:border-accent">
+      <span className="text-sm font-medium text-ink-soft">{label}</span>
       <div className="relative shrink-0">
         <input
           type="checkbox"
@@ -549,8 +549,8 @@ function SwitchRow({ label, checked, onChange }: { label: string; checked?: bool
           onChange={(e) => onChange(e.target.checked)}
           className="peer sr-only"
         />
-        <div className="h-5 w-9 rounded-full border border-gray-300 bg-gray-200 transition peer-checked:border-[var(--accent)] peer-checked:bg-[var(--accent)]" />
-        <div className="absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow-sm transition peer-checked:translate-x-4" />
+        <div className="h-5 w-9 rounded-full border border-line-strong bg-surface-strong transition peer-checked:border-accent peer-checked:bg-accent" />
+        <div className="absolute left-0.5 top-0.5 size-4 rounded-full bg-surface shadow-sm transition peer-checked:translate-x-4" />
       </div>
     </label>
   );
@@ -565,7 +565,7 @@ function TogglePill({ label, checked, onChange }: { label: string; checked?: boo
         onChange={(e) => onChange(e.target.checked)}
         className="peer sr-only"
       />
-      <span className="flex min-h-9 items-center justify-center rounded-full border border-[var(--line-strong)] px-2 text-center text-xs font-semibold text-gray-700 transition peer-checked:border-[var(--accent)] peer-checked:bg-[var(--accent)] peer-checked:text-white hover:border-[var(--accent)]">
+      <span className="flex min-h-9 items-center justify-center rounded-full border border-line-strong px-2 text-center text-xs font-semibold text-ink-soft transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white hover:border-accent">
         <span className="truncate">{label}</span>
       </span>
     </label>

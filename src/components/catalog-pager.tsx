@@ -20,7 +20,7 @@ export function CatalogPager({
   return (
     <nav
       aria-label="კატალოგის გვერდები"
-      className="mt-8 flex items-center justify-between gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-3 shadow-sm sm:gap-2 sm:px-4"
+      className="mt-8 flex items-center justify-between gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-3 shadow-sm sm:gap-2 sm:px-4"
     >
       {/* Previous */}
       <div className="flex-1">
@@ -33,23 +33,23 @@ export function CatalogPager({
 
       {/* Page indicator */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-500">გვერდი</span>
-        <span className="flex size-8 items-center justify-center rounded-md bg-[var(--accent)] text-sm font-semibold text-white">
+        <span className="text-muted">გვერდი</span>
+        <span className="flex size-8 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white">
           {currentPage}
         </span>
         {hasNext && (
           <>
-            <span className="text-gray-300">·</span>
+            <span className="text-subtle">·</span>
             <Link
               href={pageHref(baseHref, params, currentPage + 1)}
-              className="flex size-8 items-center justify-center rounded-md border border-gray-200 text-sm font-medium text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+              className="flex size-8 items-center justify-center rounded-md border border-line text-sm font-medium text-ink-soft hover:border-line-strong hover:bg-surface-soft"
             >
               {currentPage + 1}
             </Link>
           </>
         )}
         {!hasNext && (
-          <span className="text-xs text-gray-400">ბოლო</span>
+          <span className="text-xs text-muted">ბოლო</span>
         )}
       </div>
 
@@ -81,8 +81,8 @@ function PagerLink({
       aria-label={label}
       className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-sm font-semibold transition-colors sm:px-3 ${
         direction === "next"
-          ? "border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]"
-          : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+          ? "border-accent bg-accent text-white hover:bg-accent-strong"
+          : "border-line bg-surface text-ink-soft hover:border-line-strong hover:bg-surface-soft"
       }`}
     >
       {direction === "prev" && <Icon className="size-4 shrink-0" />}
@@ -99,7 +99,7 @@ function PagerGhost({ label, direction }: { label: string; direction: "prev" | "
   return (
     <span
       aria-label={label}
-      className="inline-flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md border border-gray-100 bg-gray-50 px-2.5 text-sm font-semibold text-gray-300 sm:px-3"
+      className="inline-flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md border border-line bg-surface-soft px-2.5 text-sm font-semibold text-subtle sm:px-3"
     >
       {direction === "prev" && <Icon className="size-4 shrink-0" />}
       <span className="hidden min-[380px]:inline">{label}</span>

@@ -14,6 +14,7 @@ import { JsonLd } from "@/components/json-ld";
 import { buildCategoryBreadcrumbJsonLd, buildCategoryItemListJsonLd } from "@/lib/structured-data";
 import { isCategoryAlias, resolvePublicCategorySlug } from "@/lib/categoryNormalization";
 import { cleanSlugParam, finiteNumberParam, firstParam, pageNumberParam, PUBLIC_LIST_PAGE_SIZE } from "@/lib/publicQueryParams";
+import { formatNumber } from "@/lib/format";
 
 // No loading.tsx for this segment: a route-level skeleton makes Next stream
 // the response, which flushes a 200 before notFound() can run — unknown
@@ -121,48 +122,48 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       <TrackView event="category_view" signature={`category_view:${category.slug}`} params={{ category: category.slug }} />
 
       {/* Page header */}
-      <div className="mb-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-5 rounded-lg border border-line bg-surface p-4 shadow-sm sm:p-5">
         <p className="eyebrow mb-1">კატეგორია</p>
-        <h1 className="font-display text-2xl font-bold text-gray-900 sm:text-3xl">{category.nameKa}</h1>
-        <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-          <span><span className="font-semibold text-gray-900">{totalProductCount.toLocaleString()}</span> {hasExtraFilters ? "პროდუქტი ფილტრებით" : "პროდუქტი"}</span>
-          <span className="text-gray-300">·</span>
-          <span><span className="font-semibold text-gray-900">{totalDealCount.toLocaleString()}</span> აქტიური აქცია</span>
-          <span className="text-gray-300">·</span>
-          <span>ნაჩვენებია {products.length.toLocaleString()} / {totalProductCount.toLocaleString()}</span>
+        <h1 className="font-display text-2xl font-bold text-ink sm:text-3xl">{category.nameKa}</h1>
+        <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
+          <span><span className="font-semibold text-ink">{formatNumber(totalProductCount)}</span> {hasExtraFilters ? "პროდუქტი ფილტრებით" : "პროდუქტი"}</span>
+          <span className="text-subtle">·</span>
+          <span><span className="font-semibold text-ink">{formatNumber(totalDealCount)}</span> აქტიური აქცია</span>
+          <span className="text-subtle">·</span>
+          <span>ნაჩვენებია {formatNumber(products.length)} / {formatNumber(totalProductCount)}</span>
         </div>
       </div>
 
       {/* Mobile filter trigger */}
       <div className="mb-4 lg:hidden">
-        <MobileFilterDrawer>
+        <MobileFilterDrawer resultCount={totalProductCount}>
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} variant="drawer" />
         </MobileFilterDrawer>
       </div>
 
       {/* Main layout: sidebar + content */}
       <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="hidden lg:sticky lg:top-[4.5rem] lg:block lg:h-fit">
+        <div className="hidden lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:block lg:h-fit">
           <CatalogFilters action={`/categories/${category.slug}`} resetHref={`/categories/${category.slug}`} values={filters} categories={categories} shops={shops} fixedCategory={category.slug} />
         </div>
         <div className="min-w-0">
           {/* Category search */}
-          <form action={`/categories/${category.slug}`} className="mb-4 flex h-11 min-w-0 items-center overflow-hidden rounded-full border border-gray-200 bg-white shadow-sm focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-blue-100">
-            <SearchIcon className="ml-3 size-3.5 shrink-0 text-gray-400" />
+          <form action={`/categories/${category.slug}`} className="mb-4 flex h-11 min-w-0 items-center overflow-hidden rounded-full border border-line bg-surface shadow-sm focus-within:border-accent focus-within:ring-2 focus-within:ring-blue-100">
+            <SearchIcon className="ml-3 size-3.5 shrink-0 text-muted" />
             <input
               name="q"
               defaultValue={q}
               maxLength={140}
               aria-label={`ძებნა კატეგორიაში ${category.nameKa}`}
               placeholder={`ძებნა ${category.nameKa}-ში...`}
-              className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm font-medium text-gray-900 outline-none placeholder:text-gray-400"
+              className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-sm font-medium text-ink outline-none placeholder:text-muted"
             />
             {q && (
-              <a href={`/categories/${category.slug}`} className="mr-1 shrink-0 px-2 py-1 text-xs font-medium text-gray-400 hover:text-gray-700">
+              <a href={`/categories/${category.slug}`} className="mr-1 shrink-0 px-2 py-1 text-xs font-medium text-muted hover:text-ink-soft">
                 ✕
               </a>
             )}
-            <button className="h-full shrink-0 bg-[var(--accent)] px-5 text-xs font-semibold text-white hover:bg-[var(--accent-strong)]">ძებნა</button>
+            <button className="h-full shrink-0 bg-accent px-5 text-xs font-semibold text-white hover:bg-accent-strong">ძებნა</button>
           </form>
 
           <ActiveFilterChips basePath={`/categories/${category.slug}`} categories={categories} shops={shops} fixedCategory={category.slug} />

@@ -40,11 +40,11 @@ export async function generateMetadata({
 // Verdict → badge styling. Green reads "buy this", amber "it will do", red "no".
 const VERDICT_STYLE: Record<Verdict, string> = {
   excellent: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  good: "bg-blue-50 text-[var(--accent)] border-blue-200",
+  good: "bg-blue-50 text-accent border-blue-200",
   playable: "bg-amber-50 text-amber-700 border-amber-200",
   marginal: "bg-orange-50 text-orange-700 border-orange-200",
   unsupported: "bg-red-50 text-red-600 border-red-200",
-  unknown: "bg-gray-50 text-gray-500 border-gray-200",
+  unknown: "bg-surface-soft text-muted border-line",
 };
 
 type Scored = { product: ProductView; fit: GameFit; gpuName: string | null; ramGb: number | null; price: number };
@@ -136,7 +136,7 @@ export default async function GamesPage({
                   aria-current={active ? "page" : undefined}
                   className={
                     active
-                      ? "rounded-full bg-white px-4 py-2 text-[13px] font-bold text-[#1d4ed8]"
+                      ? "rounded-full bg-surface px-4 py-2 text-[13px] font-bold text-[#1d4ed8]"
                       : "rounded-full bg-white/10 px-4 py-2 text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/20 hover:text-white"
                   }
                 >
@@ -152,13 +152,13 @@ export default async function GamesPage({
                 <div className="text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
                   {playableCount}
                 </div>
-                <div className="mt-1.5 text-[11px] font-medium text-white/60">ლეპტოპი გაუშვებს</div>
+                <div className="mt-1.5 text-[12px] font-medium text-white/60">ლეპტოპი გაუშვებს</div>
               </div>
               <div className="stat-rule">
                 <div className="text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
                   {formatGel(cheapestPlayable.price)}
                 </div>
-                <div className="mt-1.5 text-[11px] font-medium text-white/60">ყველაზე იაფი, რომელიც გაუშვებს</div>
+                <div className="mt-1.5 text-[12px] font-medium text-white/60">ყველაზე იაფი, რომელიც გაუშვებს</div>
               </div>
             </div>
           )}
@@ -173,8 +173,8 @@ export default async function GamesPage({
         />
 
         {/* Honesty note — these are estimates, and buyers deserve to know. */}
-        <p className="mb-6 flex items-start gap-2 rounded-xl border border-blue-100 bg-[var(--accent-soft)] px-4 py-3 text-[12.5px] leading-5 text-[var(--muted-strong)]">
-          <Info className="mt-0.5 size-4 shrink-0 text-[var(--accent)]" />
+        <p className="mb-6 flex items-start gap-2 rounded-xl border border-blue-100 bg-accent-soft px-4 py-3 text-[12.5px] leading-5 text-ink-soft">
+          <Info className="mt-0.5 size-4 shrink-0 text-accent" />
           <span>
             კადრების რაოდენობა სავარაუდოა და დამოკიდებულია ლეპტოპის კონკრეტულ კონფიგურაციაზე
             (ვიდეობარათის სიმძლავრე, გაცივება, დრაივერები). ვიყენებთ ვიდეობარათის კლასს, რომელსაც
@@ -183,7 +183,7 @@ export default async function GamesPage({
         </p>
 
         {groups.length === 0 ? (
-          <p className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+          <p className="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted">
             ამჟამად ლეპტოპები ვერ მოიძებნა. სცადე მოგვიანებით.
           </p>
         ) : (
@@ -196,7 +196,7 @@ export default async function GamesPage({
                   >
                     {VERDICT_LABELS[group.verdict]}
                   </span>
-                  <span className="text-[12px] font-medium text-gray-400">
+                  <span className="text-[12px] font-medium text-muted">
                     {group.entries.length} ლეპტოპი
                   </span>
                 </div>
@@ -208,7 +208,7 @@ export default async function GamesPage({
                 </div>
 
                 {group.entries.length > 12 && (
-                  <p className="mt-2 text-[12px] text-gray-400">
+                  <p className="mt-2 text-[12px] text-muted">
                     და კიდევ {group.entries.length - 12} ლეპტოპი ამ კატეგორიაში
                   </p>
                 )}
@@ -220,7 +220,7 @@ export default async function GamesPage({
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/categories/laptops"
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong"
           >
             ყველა ლეპტოპის ნახვა
             <ArrowRight className="size-4" />
@@ -237,10 +237,10 @@ function LaptopRow({ entry }: { entry: Scored }) {
   const shopCount = new Set(product.offers.map((item) => item.shop.id)).size;
 
   return (
-    <article className="flex items-stretch gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-colors hover:border-[var(--accent)] sm:gap-4 sm:p-4">
+    <article className="flex items-stretch gap-3 rounded-2xl border border-line bg-surface p-3 shadow-sm transition-colors hover:border-accent sm:gap-4 sm:p-4">
       <Link
         href={`/products/${product.slug}`}
-        className="w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 sm:w-24"
+        className="w-20 shrink-0 overflow-hidden rounded-xl border border-line bg-surface-soft sm:w-24"
       >
         <ProductImage
           src={offer.imageUrl ?? product.imageUrl}
@@ -254,21 +254,21 @@ function LaptopRow({ entry }: { entry: Scored }) {
         <Link
           href={`/products/${product.slug}`}
           title={product.name}
-          className="line-clamp-3 text-[13px] font-semibold leading-snug text-gray-900 hover:text-[var(--accent)] sm:line-clamp-2"
+          className="line-clamp-3 text-[13px] font-semibold leading-snug text-ink hover:text-accent sm:line-clamp-2"
         >
           {product.name}
         </Link>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted">
           {gpuName && (
             <span className="inline-flex items-center gap-1">
-              <Monitor className="size-3.5 text-gray-400" />
+              <Monitor className="size-3.5 text-muted" />
               {gpuName}
             </span>
           )}
           {ramGb && (
             <span className="inline-flex items-center gap-1">
-              <MemoryStick className="size-3.5 text-gray-400" />
+              <MemoryStick className="size-3.5 text-muted" />
               {ramGb}GB RAM
             </span>
           )}
@@ -276,14 +276,14 @@ function LaptopRow({ entry }: { entry: Scored }) {
         </div>
 
         {fit.fps && fit.preset && (
-          <p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-lg bg-gray-50 px-2.5 py-1 text-[12px] font-medium text-gray-700">
-            <Cpu className="size-3.5 text-[var(--accent)]" />
+          <p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-lg bg-surface-soft px-2.5 py-1 text-[12px] font-medium text-ink-soft">
+            <Cpu className="size-3.5 text-accent" />
             {fit.preset} · ~{fit.fps[0]}–{fit.fps[1]} FPS
           </p>
         )}
 
         {fit.notes.map((note) => (
-          <p key={note} className="mt-1 text-[11px] text-amber-700">
+          <p key={note} className="mt-1 text-[12px] text-amber-700">
             {note}
           </p>
         ))}
@@ -293,7 +293,7 @@ function LaptopRow({ entry }: { entry: Scored }) {
         <span className="price-now text-base sm:text-lg">{formatGel(entry.price)}</span>
         <Link
           href={`/products/${product.slug}`}
-          className="inline-flex h-9 items-center rounded-full border border-gray-200 px-3.5 text-[12px] font-semibold text-gray-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+          className="inline-flex h-9 items-center rounded-full border border-line px-3.5 text-[12px] font-semibold text-ink-soft hover:border-accent hover:text-accent"
         >
           ნახვა
         </Link>

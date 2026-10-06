@@ -39,22 +39,23 @@ export function CompareTray() {
   const href = `/compare?items=${items.map(encodeURIComponent).join(",")}`;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-[8.5rem] sm:px-4 sm:pb-4">
-      <div className="pointer-events-auto mx-auto flex max-w-5xl flex-col gap-3 rounded-xl border border-gray-200 bg-white/95 p-3 shadow-[var(--shadow-lg)] backdrop-blur sm:flex-row sm:items-center sm:gap-4">
+    // Positioned by <BottomStack> (fixed, above the mobile nav and the cookie bar).
+    <div className="w-full px-3 pb-2 md:px-0 md:pb-0">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 rounded-xl border border-line bg-white/95 p-3 shadow-[var(--shadow-lg)] backdrop-blur sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
-          <span className="shrink-0 text-xs font-semibold text-gray-500">
+          <span className="shrink-0 text-xs font-semibold text-muted">
             შედარება ({items.length}/4)
           </span>
           <ul className="flex min-w-0 items-center gap-1.5">
             {items.map((slug) => (
               <li key={slug}>
-                <span className="flex max-w-[11rem] items-center gap-1 rounded-full border border-gray-200 bg-gray-50 py-1 pl-2.5 pr-1 text-[11px] font-medium text-gray-700">
+                <span className="flex max-w-[11rem] items-center gap-1 rounded-full border border-line bg-surface-soft py-1 pl-2.5 pr-1 text-[11px] font-medium text-ink-soft">
                   <span className="truncate" title={readableSlug(slug)}>{readableSlug(slug)}</span>
                   <button
                     type="button"
                     onClick={() => handleRemove(slug)}
                     aria-label={`${readableSlug(slug)} — შედარებიდან მოხსნა`}
-                    className="grid size-4 shrink-0 place-items-center rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+                    className="grid size-4 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-strong hover:text-ink-soft"
                   >
                     <X className="size-3" />
                   </button>
@@ -68,7 +69,7 @@ export function CompareTray() {
           <button
             type="button"
             onClick={handleClear}
-            className="rounded-md px-2.5 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            className="rounded-md px-2.5 py-2 text-xs font-semibold text-muted hover:bg-surface-mute hover:text-ink-soft"
           >
             გასუფთავება
           </button>
@@ -83,7 +84,7 @@ export function CompareTray() {
           ) : (
             <span
               aria-disabled
-              className="flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md bg-gray-200 px-4 text-xs font-semibold text-gray-400"
+              className="flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md bg-surface-strong px-4 text-xs font-semibold text-muted"
               title="აირჩიე მინიმუმ 2 პროდუქტი"
             >
               <BarChart2 className="size-4" />
