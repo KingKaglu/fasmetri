@@ -70,7 +70,7 @@ export function ProductImage({
     const oneX = useWsrv ? wsrvLoader({ src: src!, width: fixedWidth, quality: 68 }) : src!;
     const twoX = useWsrv ? wsrvLoader({ src: src!, width: fixedWidth * 2, quality: 68 }) : null;
     return (
-      <div className="relative isolate aspect-square overflow-hidden bg-[linear-gradient(145deg,#ffffff,#f4f4f5)]">
+      <div className="relative isolate aspect-square overflow-hidden bg-surface-soft">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={oneX}
@@ -88,7 +88,7 @@ export function ProductImage({
   }
 
   return (
-    <div className={`relative isolate ${shape} overflow-hidden bg-[linear-gradient(145deg,#ffffff,#f4f4f5)]`}>
+    <div className={`relative isolate ${shape} overflow-hidden bg-surface-soft`}>
       <div className="absolute inset-x-4 bottom-5 h-8 rounded-full bg-black/8 blur-xl" />
       {showImage ? (
         <Image
@@ -133,10 +133,10 @@ function ImagePlaceholder({ categorySlug, shopName }: { categorySlug?: string | 
   return (
     <div className="grid h-full place-items-center p-4 text-center">
       <div className="grid justify-items-center gap-2">
-        <span className="grid size-12 place-items-center rounded-xl border border-gray-200 bg-white text-gray-300">
+        <span className="grid size-12 place-items-center rounded-xl border border-line bg-surface text-subtle">
           <Icon className="size-6" />
         </span>
-        <span className="text-xs font-medium text-gray-400">
+        <span className="text-xs font-medium text-muted">
           {shopName ? shopName : "სურათი მიუწვდომელია"}
         </span>
       </div>

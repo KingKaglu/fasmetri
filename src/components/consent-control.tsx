@@ -16,13 +16,13 @@ export function ConsentControl() {
         : "ამჟამად: არჩევანი არ გაგიკეთებია — ანალიტიკა გამორთულია.";
 
   return (
-    <div className="mt-2 flex flex-col gap-2 border border-gray-200 p-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-gray-600">{label}</p>
+    <div className="mt-2 flex flex-col gap-2 border border-line p-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-ink-soft">{label}</p>
       <button
         type="button"
         data-consent-toggle=""
         onClick={() => writeConsent(consent === "granted" ? "denied" : "granted")}
-        className="h-9 shrink-0 border border-gray-300 px-4 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+        className="h-9 shrink-0 border border-line-strong px-4 text-sm font-semibold text-ink hover:bg-surface-soft"
       >
         {consent === "granted" ? "ანალიტიკის გამორთვა" : "ანალიტიკის ჩართვა"}
       </button>

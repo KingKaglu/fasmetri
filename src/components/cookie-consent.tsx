@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useConsent, writeConsent } from "@/lib/consent";
 
-// Rendered inside the layout's `.bottom-stack`, which owns the fixed position
-// and the clearance above the mobile bottom nav. Sharing that stack with the
-// compare tray is what keeps the two from rendering on top of each other.
+// Rendered inside <BottomStack>, which owns the fixed position and the
+// clearance above the mobile bottom nav (and shares it with the compare tray,
+// so the two never overlap). Deliberately small: a full-width slim bar resting
+// on the bottom nav on phones, a 380px toast in the bottom-right corner from
+// md up — it must never cover the search field or the page's main content.
 export function CookieConsent() {
   const consent = useConsent();
 
@@ -15,26 +17,25 @@ export function CookieConsent() {
 
   return (
     <div
-      className="mx-auto w-full max-w-3xl"
+      className="w-full md:ml-auto md:max-w-[380px]"
       data-consent-banner=""
       role="dialog"
       aria-modal="false"
       aria-label="ანალიტიკის თანხმობა"
     >
-      <div className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-lg)] sm:flex-row sm:items-center sm:justify-between">
-        <p className="min-w-0 text-sm leading-6 text-[var(--muted-strong)]">
-          ვიყენებთ ანონიმურ ანალიტიკას, რომ გავიგოთ რომელი შედარებები გჭირდებათ.
-          შენი თანხმობის გარეშე არაფერს ვრთავთ.{" "}
-          <Link href="/privacy" className="underline underline-offset-2 hover:text-[var(--brand)]">
+      <div className="flex items-center gap-3 border-t border-line-strong bg-surface px-3 py-2 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] md:rounded-card md:border md:p-3 md:shadow-[var(--shadow-lg)]">
+        <p className="min-w-0 flex-1 text-[12px] leading-4 text-ink-soft">
+          ანონიმურ ანალიტიკას მხოლოდ შენი თანხმობით ვრთავთ.{" "}
+          <Link href="/privacy" className="font-semibold text-ink underline underline-offset-2">
             კონფიდენციალურობა
           </Link>
         </p>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 gap-1.5">
           <button
             type="button"
             data-consent-decline=""
             onClick={() => writeConsent("denied")}
-            className="h-10 rounded-[var(--radius-control)] border border-[var(--line-strong)] px-4 text-sm font-semibold text-[var(--brand)] hover:bg-[var(--surface-mute)]"
+            className="h-8 rounded-control border border-line-strong px-3 text-[12px] font-semibold text-ink hover:bg-surface-mute"
           >
             უარი
           </button>
@@ -42,7 +43,7 @@ export function CookieConsent() {
             type="button"
             data-consent-accept=""
             onClick={() => writeConsent("granted")}
-            className="h-10 rounded-[var(--radius-control)] bg-[var(--brand)] px-4 text-sm font-semibold text-[var(--brand-ink)] hover:bg-[var(--brand-soft)]"
+            className="h-8 rounded-control bg-[var(--brand)] px-3 text-[12px] font-semibold text-[var(--brand-ink)] hover:bg-[var(--brand-soft)]"
           >
             თანხმობა
           </button>

@@ -24,8 +24,8 @@ export default async function ReviewsPage() {
     <section className="shell py-8 sm:py-12">
       <div className="max-w-2xl">
         <p className="eyebrow">შენი აზრი</p>
-        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">შეფასებები</h1>
-        <p className="mt-3 text-base leading-7 text-gray-600">
+        <h1 className="font-display mt-1 text-2xl font-bold text-ink sm:text-3xl">შეფასებები</h1>
+        <p className="mt-3 text-base leading-7 text-ink-soft">
           დაწერე რას ფიქრობ ფასმეტრზე — რა გამოგადგა და რა აკლია. რეგისტრაცია არ სჭირდება:
           აირჩიე ვარსკვლავები, დაწერე კომენტარი და გამოაქვეყნე.
         </p>
@@ -45,10 +45,10 @@ export default async function ReviewsPage() {
               ))}
             </ul>
           ) : (
-            <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-10 text-center">
-              <MessageSquareQuote className="mx-auto size-6 text-gray-400" />
-              <p className="mt-3 text-base font-semibold text-gray-900">ჯერ არავის დაუწერია</p>
-              <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-gray-600">
+            <div className="mt-6 rounded-xl border border-dashed border-line-strong bg-surface-soft px-5 py-10 text-center">
+              <MessageSquareQuote className="mx-auto size-6 text-muted" />
+              <p className="mt-3 text-base font-semibold text-ink">ჯერ არავის დაუწერია</p>
+              <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-ink-soft">
                 იყავი პირველი — შენი კომენტარი დაეხმარება სხვებს და გვეტყვის რა გავაუმჯობესოთ.
               </p>
             </div>
@@ -58,7 +58,7 @@ export default async function ReviewsPage() {
         {/* Form — first on mobile, where the point of the page is to write one. */}
         <div className="order-1 lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:order-2">
           <ReviewForm />
-          <p className="mt-3 text-xs leading-5 text-gray-500">
+          <p className="mt-3 text-xs leading-5 text-muted">
             კომენტარები საჯაროა. სპამის, შეურაცხყოფის ან სარეკლამო ბმულების შემცველი ჩანაწერი იშლება.
           </p>
         </div>
@@ -77,15 +77,15 @@ function RatingSummary({
   distribution: number[];
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border border-gray-200 bg-white p-5">
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border border-line bg-surface p-5">
       <div>
-        <p className="font-display text-4xl font-bold leading-none text-gray-900 tabular-nums">
+        <p className="font-display text-4xl font-bold leading-none text-ink tabular-nums">
           {average.toFixed(1)}
         </p>
         <div className="mt-2">
           <ReviewStars rating={average} label={`საშუალო შეფასება ${average.toFixed(1)} 5-დან`} />
         </div>
-        <p className="mt-1 text-xs text-gray-500">{total} შეფასება</p>
+        <p className="mt-1 text-xs text-muted">{total} შეფასება</p>
       </div>
 
       <ul className="min-w-[12rem] flex-1 grid gap-1">
@@ -93,12 +93,12 @@ function RatingSummary({
           const count = distribution[star - 1] ?? 0;
           const percent = total ? Math.round((count / total) * 100) : 0;
           return (
-            <li key={star} className="flex items-center gap-2 text-xs text-gray-600">
+            <li key={star} className="flex items-center gap-2 text-xs text-ink-soft">
               <span className="w-3 tabular-nums">{star}</span>
-              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-mute">
                 <span className="block h-full rounded-full bg-amber-400" style={{ width: `${percent}%` }} />
               </span>
-              <span className="w-8 text-right tabular-nums text-gray-500">{count}</span>
+              <span className="w-8 text-right tabular-nums text-muted">{count}</span>
             </li>
           );
         })}
@@ -110,25 +110,25 @@ function RatingSummary({
 function ReviewCard({ review }: { review: PublicReview }) {
   const name = review.authorName?.trim() || "ანონიმური";
   return (
-    <article className="rounded-xl border border-gray-200 bg-white p-5">
+    <article className="rounded-xl border border-line bg-surface p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ReviewStars rating={review.rating} size="sm" label={`${review.rating} 5-დან`} />
-          <span className="text-sm font-semibold text-gray-900">{name}</span>
+          <span className="text-sm font-semibold text-ink">{name}</span>
         </div>
-        <time dateTime={review.createdAt.toISOString()} className="text-xs text-gray-500">
+        <time dateTime={review.createdAt.toISOString()} className="text-xs text-muted">
           {formatRelativeTime(review.createdAt)}
         </time>
       </div>
 
       {/* whitespace-pre-line keeps the visitor's own line breaks without
           letting any of their text be interpreted as markup. */}
-      <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-700">{review.body}</p>
+      <p className="mt-3 whitespace-pre-line text-sm leading-6 text-ink-soft">{review.body}</p>
 
       {review.reply ? (
-        <div className="mt-4 rounded-lg border-l-2 border-[var(--accent)] bg-gray-50 px-4 py-3">
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-500">ფასმეტრის პასუხი</p>
-          <p className="mt-1 whitespace-pre-line text-sm leading-6 text-gray-700">{review.reply}</p>
+        <div className="mt-4 rounded-lg border-l-2 border-accent bg-surface-soft px-4 py-3">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">ფასმეტრის პასუხი</p>
+          <p className="mt-1 whitespace-pre-line text-sm leading-6 text-ink-soft">{review.reply}</p>
         </div>
       ) : null}
     </article>

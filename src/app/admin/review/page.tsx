@@ -75,7 +75,7 @@ function HighlightedTitle({ title, shared }: { title: string; shared: Set<string
         const key = part.toLowerCase();
         if (key.length > 1 && shared.has(key)) {
           return (
-            <mark key={index} className="rounded bg-[#ededee] px-0.5 text-[var(--brand)]">
+            <mark key={index} className="rounded-sm bg-[#ededee] px-0.5 text-[var(--brand)]">
               {part}
             </mark>
           );

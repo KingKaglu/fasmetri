@@ -10,6 +10,20 @@ export function formatGel(value: number) {
   return `${amount} ₾`;
 }
 
+// Counts and other plain numbers in the Georgian convention: "1 234" (no-break
+// space grouping) and "1 234,5" (decimal comma) — the same shape formatGel
+// uses. Built on en-US output instead of Intl's "ka-GE" because ka locale data
+// is missing from some ICU builds (headless Chrome renders "1,234"), and a
+// bare toLocaleString() follows the *server's* locale, so the same number came
+// out differently on the server and in the browser.
+export function formatNumber(value: number, maximumFractionDigits = 0) {
+  if (!Number.isFinite(value)) return "—";
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits })
+    .format(value)
+    .replaceAll(",", " ")
+    .replace(".", ",");
+}
+
 export function formatUpdated(value: string | Date) {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Tbilisi",

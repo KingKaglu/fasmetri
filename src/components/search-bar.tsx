@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Clock3, Search, X } from "lucide-react";
 import { formatGel } from "@/lib/format";
-import { CategoryMenu } from "@/components/category-menu";
 
 // Recent searches (idealo-style): last submitted queries, shown when the
 // input is focused while empty. Stored per browser, capped, best-effort.
@@ -67,6 +66,11 @@ export function SearchBar({
   variant?: "hero" | "header";
 }) {
   const router = useRouter();
+  // Per-instance ids: the header (desktop + mobile) and the hero each mount a
+  // SearchBar, so a fixed id produced duplicate ids and broke the combobox's
+  // aria-controls / aria-activedescendant wiring.
+  const listId = useId();
+  const optionId = (index: number) => `${listId}-option-${index}`;
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [brands, setBrands] = useState<BrandSuggestion[]>([]);
@@ -205,19 +209,18 @@ export function SearchBar({
       {/* No overflow-hidden here: the category menu renders as an absolutely
           positioned dropdown inside this container, and clipping it hid every
           entry past the first. The pill shape comes from the container radius
-          plus matching rounded ends on the first/last children instead. */}
+          plus matching rounded-sm ends on the first/last children instead. */}
       <div
-        className={`flex min-w-0 flex-1 items-center rounded-full border bg-white shadow-sm ${
+        className={`flex min-w-0 flex-1 items-center rounded-full border bg-surface shadow-sm ${
           isHeader ? "h-10 md:h-11" : large ? "h-14" : "h-12"
         } ${
           open && suggestions.length > 0
-            ? "border-[var(--accent)] ring-2 ring-blue-100"
-            : "border-gray-200 focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-blue-100"
+            ? "border-accent ring-2 ring-blue-100"
+            : "border-line focus-within:border-accent focus-within:ring-2 focus-within:ring-blue-100"
         }`}
       >
-        {isHeader && <CategoryMenu />}
         <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
-          <Search className={`shrink-0 text-gray-400 ${isHeader ? "size-3.5" : "size-4.5"}`} />
+          <Search className={`shrink-0 text-muted ${isHeader ? "size-3.5" : "size-4.5"}`} />
           <input
             ref={inputRef}
             name="q"
@@ -241,10 +244,12 @@ export function SearchBar({
             autoComplete="off"
             role="combobox"
             aria-expanded={open}
-            aria-controls="search-suggestions"
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={open && activeIndex >= 0 && suggestions[activeIndex] ? optionId(activeIndex) : undefined}
             aria-label="პროდუქტის ძებნა"
-            placeholder={isHeader ? "მოძებნე iPhone, ლეპტოპი ან მაღაზია…" : "მოძებნე iPhone 15, MacBook Air, Galaxy S25..."}
-            className={`w-full min-w-0 bg-transparent font-medium text-gray-900 outline-none placeholder:text-gray-400 ${
+            placeholder="მოძებნე პროდუქტი…"
+            className={`w-full min-w-0 bg-transparent font-medium text-ink outline-none placeholder:text-muted ${
               isHeader ? "text-sm" : large ? "text-base" : "text-sm"
             }`}
           />
@@ -254,7 +259,7 @@ export function SearchBar({
           <button
             type="button"
             onClick={clearQuery}
-            className="grid size-9 shrink-0 place-items-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="grid size-9 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-mute hover:text-ink-soft"
             aria-label="გასუფთავება"
           >
             <X className="size-4" />
@@ -266,10 +271,10 @@ export function SearchBar({
           aria-label="ძებნა"
           className={`shrink-0 rounded-r-full font-semibold text-white ${
             isHeader
-              ? "h-full bg-[var(--accent)] px-4 text-sm hover:bg-[var(--accent-strong)]"
+              ? "h-full bg-accent px-4 text-sm hover:bg-accent-strong"
               : large
-                ? "h-full bg-[var(--accent)] px-6 text-sm hover:bg-[var(--accent-strong)]"
-                : "h-full bg-[var(--accent)] px-5 text-sm hover:bg-[var(--accent-strong)]"
+                ? "h-full bg-accent px-4 text-sm hover:bg-accent-strong sm:px-6"
+                : "h-full bg-accent px-4 text-sm hover:bg-accent-strong sm:px-5"
           }`}
         >
           {isHeader ? (
@@ -277,7 +282,9 @@ export function SearchBar({
           ) : (
             <span className="inline-flex items-center gap-1.5">
               <Search className="size-4" />
-              ძებნა
+              {/* Icon-only on phones so the input keeps room for its placeholder;
+                  the button's aria-label still names it. */}
+              <span className="hidden sm:inline">ძებნა</span>
             </span>
           )}
         </button>
@@ -285,8 +292,8 @@ export function SearchBar({
 
       {/* Recent searches dropdown — focused with empty input */}
       {recentsOpen && !open && recentSearches.length > 0 && (
-        <ul className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-lg)]">
-          <li className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400">ბოლო ძიებები</li>
+        <ul className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-lg)]">
+          <li className="px-3 pb-1 pt-2 text-[12px] font-bold uppercase tracking-[0.1em] text-muted">ბოლო ძიებები</li>
           {recentSearches.map((term) => (
             <li key={term}>
               <button
@@ -295,15 +302,15 @@ export function SearchBar({
                   setQuery(term);
                   goToSearch(term);
                 }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium text-gray-800 hover:bg-gray-50"
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm font-medium text-ink hover:bg-surface-soft"
               >
-                <Clock3 className="size-3.5 shrink-0 text-gray-400" />
+                <Clock3 className="size-3.5 shrink-0 text-muted" />
                 <span className="min-w-0 flex-1 truncate">{term}</span>
-                <ArrowRight className="size-3 shrink-0 text-gray-300" />
+                <ArrowRight className="size-3 shrink-0 text-subtle" />
               </button>
             </li>
           ))}
-          <li className="border-t border-gray-100">
+          <li className="border-t border-line">
             <button
               type="button"
               onClick={() => {
@@ -315,7 +322,7 @@ export function SearchBar({
                 setRecentSearches([]);
                 setRecentsOpen(false);
               }}
-              className="w-full px-3 py-2 text-left text-xs font-semibold text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+              className="w-full px-3 py-2 text-left text-xs font-semibold text-muted hover:bg-surface-soft hover:text-ink-soft"
             >
               ისტორიის გასუფთავება
             </button>
@@ -326,24 +333,26 @@ export function SearchBar({
       {/* Suggestions dropdown */}
       {open && (suggestions.length > 0 || brands.length > 0 || categories.length > 0) && (
         <ul
-          id="search-suggestions"
+          id={listId}
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-lg)]"
+          aria-label="ძიების შედეგები"
+          className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-lg)]"
         >
           {suggestions.length > 0 && (
-            <li className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">პროდუქტები</li>
+            <li role="presentation" className="px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-muted">პროდუქტები</li>
           )}
           {suggestions.map((item, index) => (
-            <li key={item.slug} role="option" aria-selected={index === activeIndex}>
+            <li key={item.slug} id={optionId(index)} role="option" aria-selected={index === activeIndex}>
               <button
                 type="button"
+                tabIndex={-1}
                 onMouseEnter={() => setActiveIndex(index)}
                 onClick={() => {
                   setOpen(false);
                   router.push(`/products/${item.slug}`);
                 }}
                 className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-200 ease-in-out ${
-                  index === activeIndex ? "bg-[var(--accent-soft)]" : "hover:bg-gray-50"
+                  index === activeIndex ? "bg-accent-soft" : "hover:bg-surface-soft"
                 }`}
               >
                 {item.imageUrl ? (
@@ -352,42 +361,42 @@ export function SearchBar({
                     src={item.imageUrl}
                     alt=""
                     loading="lazy"
-                    className="size-9 shrink-0 rounded-md border border-gray-100 object-contain bg-gray-50"
+                    className="size-9 shrink-0 rounded-md border border-line object-contain bg-surface-soft"
                   />
                 ) : (
-                  <span className="grid size-9 shrink-0 place-items-center rounded-md bg-gray-100 text-gray-400">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-md bg-surface-mute text-muted">
                     <Search className="size-4" />
                   </span>
                 )}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-gray-900">{item.name}</span>
-                  <span className="block truncate text-xs text-gray-500">
+                  <span className="block truncate text-sm font-medium text-ink">{item.name}</span>
+                  <span className="block truncate text-xs text-muted">
                     {item.category}
                     {item.shopCount > 1 ? ` · ${item.shopCount} მაღაზია` : ""}
                   </span>
                 </span>
                 {item.minPrice != null && (
-                  <span className="shrink-0 text-sm font-bold text-gray-900">{formatGel(item.minPrice)}</span>
+                  <span className="shrink-0 text-sm font-bold text-ink">{formatGel(item.minPrice)}</span>
                 )}
               </button>
             </li>
           ))}
           {(brands.length > 0 || categories.length > 0) && (
-            <li className="border-t border-gray-100 px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+            <li role="presentation" className="border-t border-line px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-muted">
               ბრენდები და კატეგორიები
             </li>
           )}
           {(brands.length > 0 || categories.length > 0) && (
-            <li className="flex flex-wrap gap-1.5 px-3 pb-2.5">
+            <li role="presentation" className="flex flex-wrap gap-1.5 px-3 pb-2.5">
               {brands.map((brand) => (
                 <button
                   key={`brand-${brand.name}`}
                   type="button"
                   onClick={() => goToSearch(brand.name)}
-                  className="inline-flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                  className="inline-flex h-7 items-center gap-1 rounded-full border border-line bg-surface-soft px-2.5 text-xs font-medium text-ink-soft hover:border-accent hover:bg-accent-soft hover:text-accent"
                 >
                   {brand.name}
-                  <span className="text-[10px] text-gray-400">{brand.productCount}</span>
+                  <span className="text-[12px] text-muted">{brand.productCount}</span>
                 </button>
               ))}
               {categories.map((category) => (
@@ -398,19 +407,19 @@ export function SearchBar({
                     setOpen(false);
                     router.push(`/categories/${category.slug}`);
                   }}
-                  className="inline-flex h-7 items-center gap-1 rounded-full border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-2.5 text-xs font-medium text-[var(--accent)] hover:border-[var(--accent)]"
+                  className="inline-flex h-7 items-center gap-1 rounded-full border border-accent/20 bg-accent-soft px-2.5 text-xs font-medium text-accent hover:border-accent"
                 >
                   {category.nameKa}
-                  <span className="text-[10px] text-zinc-400">{category.productCount}</span>
+                  <span className="text-[12px] text-muted">{category.productCount}</span>
                 </button>
               ))}
             </li>
           )}
-          <li className="border-t border-gray-100">
+          <li role="presentation" className="border-t border-line">
             <button
               type="button"
               onClick={() => goToSearch(query.trim())}
-              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent-soft)]"
+              className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-accent hover:bg-accent-soft"
             >
               <span>ყველა შედეგი „{query.trim()}"</span>
               <ArrowRight className="size-3.5" />

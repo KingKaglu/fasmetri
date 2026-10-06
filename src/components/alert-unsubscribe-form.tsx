@@ -22,8 +22,8 @@ export function AlertUnsubscribeForm({ alertId }: { alertId: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto mt-6 grid max-w-md gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <label className="grid gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+    <form onSubmit={submit} className="mx-auto mt-6 grid max-w-md gap-3 rounded-lg border border-line bg-surface p-4 shadow-sm sm:p-5">
+      <label className="grid gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">
         ელფოსტა
         <input
           name="email"
@@ -31,14 +31,14 @@ export function AlertUnsubscribeForm({ alertId }: { alertId: string }) {
           required
           maxLength={254}
           autoComplete="email"
-          className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm normal-case tracking-normal text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-400"
+          className="h-10 rounded-md border border-line bg-surface px-3 text-sm normal-case tracking-normal text-ink outline-none placeholder:text-muted focus:border-line-strong"
           placeholder="name@email.ge"
         />
       </label>
-      <button disabled={pending} className="h-10 rounded-md bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:opacity-60">
+      <button disabled={pending} className="h-10 rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong disabled:opacity-60">
         {pending ? "მუშავდება..." : "შეტყობინების გაუქმება"}
       </button>
-      {message ? <p className="text-xs font-medium text-gray-600">{message}</p> : null}
+      {message ? <p className="text-xs font-medium text-ink-soft">{message}</p> : null}
     </form>
   );
 }

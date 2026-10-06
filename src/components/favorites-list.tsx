@@ -18,18 +18,18 @@ export function FavoritesList() {
 
   if (!count) {
     return (
-      <div className="grid min-h-60 place-items-center border border-gray-200 bg-white px-5 py-12 text-center">
+      <div className="grid min-h-60 place-items-center border border-line bg-surface px-5 py-12 text-center">
         <div className="max-w-md">
-          <span className="mx-auto grid size-12 place-items-center border border-gray-200 bg-gray-50 text-gray-400">
+          <span className="mx-auto grid size-12 place-items-center border border-line bg-surface-soft text-muted">
             <Heart className="size-5" />
           </span>
-          <h2 className="font-display mt-4 text-base font-bold text-gray-900">ფავორიტები ცარიელია</h2>
-          <p className="mt-1.5 text-sm leading-6 text-gray-500">
+          <h2 className="font-display mt-4 text-base font-bold text-ink">ფავორიტები ცარიელია</h2>
+          <p className="mt-1.5 text-sm leading-6 text-muted">
             პროდუქტის ბარათზე გულის ღილაკით შეინახე პროდუქტები და აქ ერთ სიაში ნახავ.
           </p>
           <Link
             href="/search"
-            className="mt-5 inline-flex h-10 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)]"
+            className="mt-5 inline-flex h-10 items-center rounded-full bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong"
           >
             კატალოგის ნახვა
           </Link>
@@ -41,13 +41,13 @@ export function FavoritesList() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-sm text-gray-500">
-          <span className="font-bold tabular-nums text-gray-900">{count}</span> შენახული პროდუქტი
+        <p className="text-sm text-muted">
+          <span className="font-bold tabular-nums text-ink">{count}</span> შენახული პროდუქტი
         </p>
         <button
           type="button"
           onClick={clear}
-          className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
         >
           <Trash2 className="size-3.5" />
           სიის გასუფთავება
@@ -56,13 +56,13 @@ export function FavoritesList() {
 
       <div className="product-grid-catalog grid">
         {items.map((item) => (
-          <article key={item.slug} className="card-hover relative flex min-w-0 flex-col overflow-hidden border border-gray-200 bg-white">
+          <article key={item.slug} className="card-hover relative flex min-w-0 flex-col overflow-hidden border border-line bg-surface">
             <button
               type="button"
               aria-label={`${item.name} — ფავორიტებიდან წაშლა`}
               title="წაშლა"
               onClick={() => remove(item.slug)}
-              className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-gray-200 bg-white/90 text-gray-500 backdrop-blur transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-line bg-white/90 text-muted backdrop-blur transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
             >
               <Trash2 className="size-3.5" />
             </button>
@@ -73,7 +73,7 @@ export function FavoritesList() {
               <Link
                 href={`/products/${item.slug}`}
                 title={item.name}
-                className="mb-2 line-clamp-4 text-[12px] font-semibold leading-[1.4] text-gray-900 hover:text-[var(--accent)] sm:line-clamp-3 sm:text-[13px]"
+                className="mb-2 line-clamp-4 text-[12px] font-semibold leading-[1.4] text-ink hover:text-accent sm:line-clamp-3 sm:text-[13px]"
               >
                 {item.name}
               </Link>
@@ -83,13 +83,13 @@ export function FavoritesList() {
                   <span className="price-old text-xs">{formatGel(item.oldPrice)}</span>
                 ) : null}
               </div>
-              <div className="flex items-center justify-between gap-2 border-t border-gray-100 pt-2">
-                <span className="truncate text-[10.5px] font-semibold text-gray-400">
+              <div className="flex items-center justify-between gap-2 border-t border-line pt-2">
+                <span className="truncate text-[12px] font-semibold text-muted">
                   {item.shopCount && item.shopCount > 1 ? `${item.shopCount} მაღაზია` : item.shopName ?? ""}
                 </span>
                 <Link
                   href={`/products/${item.slug}`}
-                  className="inline-flex shrink-0 items-center gap-1 text-[11.5px] font-bold text-[var(--accent)] hover:underline"
+                  className="inline-flex shrink-0 items-center gap-1 text-[12px] font-bold text-accent hover:underline"
                 >
                   ნახვა
                   <ArrowUpRight className="size-3" />
@@ -100,7 +100,7 @@ export function FavoritesList() {
         ))}
       </div>
 
-      <p className="mt-6 border-l-2 border-gray-300 pl-3 text-[11px] leading-5 text-gray-500">
+      <p className="mt-6 border-l-2 border-line-strong pl-3 text-[12px] leading-5 text-muted">
         ფასები შენახვის მომენტისაა — გახსენი პროდუქტი მიმდინარე ფასის სანახავად. სია ინახება მხოლოდ ამ ბრაუზერში.
       </p>
     </div>

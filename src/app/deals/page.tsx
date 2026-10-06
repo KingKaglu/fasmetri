@@ -8,6 +8,7 @@ import { ActiveFilterChips } from "@/components/active-filter-chips";
 import { MobileFilterDrawer } from "@/components/mobile-filter-drawer";
 import { CatalogPager } from "@/components/catalog-pager";
 import { filterCuratedProducts } from "@/config/productCuration";
+import { formatNumber } from "@/lib/format";
 import {
   cleanSlugParam,
   finiteNumberParam,
@@ -61,7 +62,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
       <section className="hero-frame shell mt-4">
         <div className="relative z-10 flex flex-col gap-3 p-5 sm:p-7 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/80">
+            <p className="inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-white/80">
               <Flame className="size-3.5" /> დღის საუკეთესო ფასდაკლებები
             </p>
             <h1 className="font-display mt-2 text-3xl font-bold text-white sm:text-4xl">აქციები</h1>
@@ -72,10 +73,10 @@ export default async function DealsPage({ searchParams }: { searchParams: Params
           <div className="flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 px-4 py-3">
             <BadgePercent className="size-5 text-white" />
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/60">აქტიური აქცია</p>
-              <p className="text-2xl font-bold leading-none text-white">{totalDeals.toLocaleString()}</p>
+              <p className="text-[12px] font-semibold uppercase tracking-wider text-white/60">აქტიური აქცია</p>
+              <p className="text-2xl font-bold leading-none text-white">{formatNumber(totalDeals)}</p>
               <p className="mt-1 text-xs text-white/60">
-                ამ გვერდზე ნაჩვენებია {products.length.toLocaleString()} / {totalDeals.toLocaleString()}
+                ამ გვერდზე ნაჩვენებია {formatNumber(products.length)} / {formatNumber(totalDeals)}
               </p>
             </div>
           </div>

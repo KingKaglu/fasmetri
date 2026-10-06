@@ -9,8 +9,9 @@ import { useFavorites } from "@/lib/use-favorites";
 // search field (header, hero, or the page's own), so a quick-search form here
 // only duplicated it and doubled the fixed chrome. Shops moved to the header
 // menu and the footer to keep five tabs. Labels are kept to <=8 Georgian
-// characters: at the 12px minimum, longer words ("კატეგორიები", "ფავორიტები")
-// truncate in a 390px-wide five-column bar.
+// characters: longer words ("კატეგორიები", "ფავორიტები") truncate in a
+// five-column bar. The bar has no side padding and the label steps down from
+// 12px to 11px below ~375px, so "კატალოგი" fits a 360px (and 320px) screen.
 const items = [
   { href: "/", label: "მთავარი", icon: Home },
   { href: "/categories", label: "კატალოგი", icon: Grid3X3 },
@@ -27,7 +28,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="მთავარი ნავიგაცია"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--line-strong)] bg-[var(--surface)] px-1 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-line-strong bg-surface shadow-[0_-4px_16px_rgba(15,23,42,0.06)] md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Height is the --mobile-nav-h token, which the body padding and the
@@ -41,8 +42,8 @@ export function MobileBottomNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-0.5 text-[12px] font-semibold transition-colors ${
-                active ? "text-[var(--accent)]" : "text-[var(--muted)] hover:text-[var(--muted-strong)]"
+              className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl text-[clamp(11px,3.2vw,12px)] font-semibold transition-colors ${
+                active ? "text-accent" : "text-muted hover:text-ink-soft"
               }`}
             >
               <span className="relative">
@@ -51,7 +52,7 @@ export function MobileBottomNav() {
                   strokeWidth={active ? 2.5 : 2}
                 />
                 {showBadge && (
-                  <span className="absolute -right-2.5 -top-1.5 grid min-w-[1.1rem] place-items-center rounded-full bg-[var(--danger)] px-1 py-0.5 text-[11px] font-bold leading-none tabular-nums text-white">
+                  <span className="absolute -right-2.5 -top-1.5 grid min-w-[1.1rem] place-items-center rounded-full bg-danger px-1 py-0.5 text-[11px] font-bold leading-none tabular-nums text-white">
                     {favoriteCount > 99 ? "99+" : favoriteCount}
                   </span>
                 )}

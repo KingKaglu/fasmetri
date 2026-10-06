@@ -32,7 +32,7 @@ export function FavoriteToggle({
         className={`flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors ${
           selected
             ? "border-red-200 bg-red-50 text-red-600"
-            : "border-gray-200 bg-white text-gray-700 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            : "border-line bg-surface text-ink-soft hover:border-red-200 hover:bg-red-50 hover:text-red-600"
         }`}
       >
         <Heart className={`size-4 ${selected ? "fill-current" : ""}`} />
@@ -51,7 +51,7 @@ export function FavoriteToggle({
       className={`absolute right-11 top-2 z-20 grid size-7 place-items-center rounded-full border shadow-sm transition-colors ${
         selected
           ? "border-transparent bg-red-500 text-white"
-          : "border-gray-200 bg-white/90 text-gray-500 backdrop-blur hover:border-gray-300 hover:text-gray-700"
+          : "border-line bg-white/90 text-muted backdrop-blur hover:border-line-strong hover:text-ink-soft"
       }`}
     >
       <Heart className={`size-4 ${selected ? "fill-current" : ""}`} />

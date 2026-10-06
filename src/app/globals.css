@@ -49,8 +49,14 @@
 
   --price: #0f172a;
   --price-deal: #dc2626;
+  /* Deal badges with white text: #dc2626 is only 4.8:1; red-700 gives 6.5:1.
+     --deal-soft + --deal-strong text is 6.0:1. */
+  --deal-strong: #b91c1c;
+  --deal-soft: #fef2f2;
   --savings: #059669;
   --savings-soft: #ecfdf5;
+  /* white text on --savings is only 3.8:1; badges with white text use this (5.5:1) */
+  --savings-strong: #047857;
   --save-ink: #ffffff;
   --save-soft: #059669;
   --star: #f59e0b;
@@ -82,19 +88,65 @@
   --mobile-chrome-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom));
 
   /* Display face — same friendly sans as body, just bolder in use */
-  --font-display: "Noto Sans Georgian", "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
+  --font-display: var(--font-georgian, "Noto Sans Georgian"), "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
 }
 
 @media (min-width: 768px) {
   :root {
-    /* announcement 2.375 + navbar 3.75 + category row 3.25 + hairlines */
-    --header-h: 9.5rem;
+    /* announcement 2.375 + navbar 3.75 + hairline */
+    --header-h: 6.25rem;
   }
 }
 
+/* ─── Tailwind theme: semantic tokens ──────────────────────
+   `inline` makes each utility reference the :root variable directly, so the
+   section overrides above (.section-ink redefines --muted, --line, --brand…)
+   still flow through text-muted, border-line, text-ink, etc. Use these
+   instead of raw gray / zinc / slate palette classes in components. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-ink: var(--brand);
+  --color-ink-soft: var(--muted-strong);
+  --color-muted: var(--muted);
+  --color-subtle: var(--c-300);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-mute: var(--surface-mute);
+  --color-surface-strong: var(--c-150);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-savings: var(--savings);
+  --color-savings-strong: var(--savings-strong);
+  --color-savings-soft: var(--savings-soft);
+  --color-deal: var(--price-deal);
+  --color-deal-strong: var(--deal-strong);
+  --color-deal-soft: var(--deal-soft);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: var(--font-georgian, "Noto Sans Georgian"), "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
+}
+
+/* Radius + small-shadow scale. These replace the old `!important` compat
+   layer that re-wrote .rounded-* / .shadow-sm after the fact: the values are
+   identical, but the utilities now carry them themselves, so variants and
+   overrides (sm:rounded-none, !rounded-none) behave normally. Tailwind's bare
+   `rounded` is hard-coded to 0.25rem, so components use `rounded-sm`. */
+@theme {
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+  --radius-chip: 999px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 html {
@@ -118,7 +170,8 @@ body {
   overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
-  font-family: "Noto Sans Georgian", "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
+  /* --font-georgian is set on <html> by next/font in layout.tsx */
+  font-family: var(--font-georgian, "Noto Sans Georgian"), "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
   letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -151,24 +204,6 @@ textarea {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-
-/* ─── Friendly-radius compat layer ────────────────────────
-   Components written against Tailwind's literal radius/shadow
-   utilities get bumped to the comfortable rounded scale in one
-   place, so every page — including ones not hand-edited —
-   picks up the softer look. Circles (.rounded-full) survive. */
-
-.rounded { border-radius: 0.5rem !important; }
-.rounded-sm { border-radius: 0.5rem !important; }
-.rounded-md { border-radius: 0.625rem !important; }
-.rounded-lg { border-radius: 0.875rem !important; }
-.rounded-xl { border-radius: 1rem !important; }
-.rounded-2xl { border-radius: 1.25rem !important; }
-.rounded-3xl { border-radius: 1.5rem !important; }
-.rounded-t-2xl { border-radius: 1.25rem 1.25rem 0 0 !important; }
-.rounded-b-2xl { border-radius: 0 0 1.25rem 1.25rem !important; }
-.rounded-\[10px\] { border-radius: 0.625rem !important; }
-.shadow-sm { box-shadow: var(--shadow-sm) !important; }
 
 /* Display face for headlines / mastheads (now friendly sans) */
 .font-display {
@@ -319,7 +354,7 @@ textarea {
 }
 
 .chip-deal {
-  background: var(--danger);
+  background: var(--deal-strong);
   color: #ffffff;
 }
 
@@ -462,14 +497,22 @@ textarea {
    its height. Padding <main> as well used to leave ~130px of blank space
    between the last content and the (non-fixed) footer. */
 
+/* --bottom-stack-h is published by <BottomStack> (compare tray + cookie banner,
+   including the nav clearance on phones), so an open banner or tray never
+   permanently covers the end of the page. */
+body {
+  padding-bottom: var(--bottom-stack-h, 0px);
+}
 @media (max-width: 767px) {
   body {
-    padding-bottom: var(--mobile-chrome-bottom);
+    padding-bottom: max(var(--mobile-chrome-bottom), var(--bottom-stack-h, 0px));
   }
 }
 
-/* Compare tray + cookie banner share one fixed stack above the bottom nav, so
-   they stack instead of rendering on top of each other. */
+/* Compare tray + cookie banner share one fixed stack, so they stack instead of
+   rendering on top of each other. Phones: the stack sits directly on the
+   bottom nav and the cookie banner is a full-width slim bar touching it.
+   md+: the tray is centred, the banner is a small bottom-right toast. */
 .bottom-stack {
   pointer-events: none;
   position: fixed;
@@ -478,8 +521,7 @@ textarea {
   z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0 0.75rem calc(var(--mobile-chrome-bottom) + 0.5rem);
+  padding-bottom: var(--mobile-chrome-bottom);
 }
 .bottom-stack > * {
   pointer-events: auto;
@@ -489,6 +531,7 @@ textarea {
 }
 @media (min-width: 768px) {
   .bottom-stack {
+    gap: 0.5rem;
     padding: 0 1rem 1rem;
   }
 }
@@ -805,9 +848,9 @@ textarea {
   left: 0.5rem;
   top: 0.5rem;
   border-radius: 999px;
-  background: var(--price-deal);
+  background: var(--deal-strong);
   padding: 0.1rem 0.4rem;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
 }
@@ -846,7 +889,7 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -931,7 +974,7 @@ textarea {
   border-radius: 999px;
   background: var(--surface);
   padding: 0.25rem 0.7rem;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted-strong);
 }
@@ -957,12 +1000,19 @@ textarea {
   color: var(--accent);
 }
 
+/* 2x2 on phones: four columns at 320-390px squeezed the numbers and labels */
 .home-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 0.5rem;
   margin-top: 1.25rem;
   max-width: 42rem;
+}
+@media (min-width: 480px) {
+  .home-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
 }
 .home-stats .home-stat {
   min-width: 0;
@@ -1065,9 +1115,9 @@ textarea {
 .home-compare-best {
   flex: none;
   border-radius: 999px;
-  background: var(--savings);
+  background: var(--savings-strong);
   padding: 0.05rem 0.45rem;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
 }
@@ -1178,7 +1228,7 @@ textarea {
   white-space: nowrap;
 }
 .cat-count {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--muted);
 }
@@ -1186,7 +1236,7 @@ textarea {
 /* Rail card additions */
 .home-card-from {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--muted);
 }
@@ -1196,9 +1246,9 @@ textarea {
   border-radius: 999px;
   background: var(--savings-soft);
   padding: 0.05rem 0.45rem;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--savings);
+  color: var(--savings-strong);
 }
 .home-card-meta[data-multi] {
   font-weight: 600;
@@ -1235,7 +1285,7 @@ textarea {
   color: var(--savings);
 }
 .home-change-ico.is-up {
-  background: #fef2f2;
+  background: var(--deal-soft);
   color: var(--price-deal);
 }
 

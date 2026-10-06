@@ -3,6 +3,7 @@ import { Store } from "lucide-react";
 import { getCatalogStats, listPublicShops } from "@/lib/catalog";
 import { ShopCard } from "@/components/shop-card";
 import { EmptyState } from "@/components/public-ui";
+import { formatNumber } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "მაღაზიები",
@@ -17,13 +18,13 @@ export default async function ShopsPage() {
 
   return (
     <section className="shell py-7 sm:py-10">
-      <div className="mb-6 border-b border-gray-100 pb-4">
+      <div className="mb-6 border-b border-line pb-4">
         <p className="eyebrow inline-flex items-center gap-1.5"><Store className="size-3.5" /> ქართული მაღაზიები</p>
-        <h1 className="font-display mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">მაღაზიები</h1>
-        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500">
-          ამჟამად ფასმეტრი ადარებს {activeShops.length.toLocaleString()} აქტიურ მაღაზიას ({stats.products.toLocaleString()} პროდუქტი). ახალი მაღაზიები ეტაპობრივად ემატება.
+        <h1 className="font-display mt-1 text-2xl font-bold text-ink sm:text-3xl">მაღაზიები</h1>
+        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted">
+          ამჟამად ფასმეტრი ადარებს {formatNumber(activeShops.length)} აქტიურ მაღაზიას ({formatNumber(stats.products)} პროდუქტი). ახალი მაღაზიები ეტაპობრივად ემატება.
         </p>
-        <p className="mt-1.5 max-w-2xl text-xs leading-5 text-gray-400">
+        <p className="mt-1.5 max-w-2xl text-xs leading-5 text-muted">
           ერთი პროდუქტი შეიძლება რამდენიმე მაღაზიაში იყოს წარმოდგენილი, ამიტომ შეთავაზებების რაოდენობა შეიძლება პროდუქტის რაოდენობაზე მეტი იყოს.
         </p>
       </div>
