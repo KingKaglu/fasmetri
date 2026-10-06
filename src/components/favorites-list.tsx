@@ -29,7 +29,7 @@ export function FavoritesList() {
           </p>
           <Link
             href="/search"
-            className="mt-5 inline-flex h-10 items-center rounded-full bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong"
+            className="mt-5 inline-flex h-10 items-center rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink hover:bg-accent-strong"
           >
             კატალოგის ნახვა
           </Link>
@@ -47,7 +47,7 @@ export function FavoritesList() {
         <button
           type="button"
           onClick={clear}
-          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-danger-line hover:bg-danger-soft hover:text-danger"
         >
           <Trash2 className="size-3.5" />
           სიის გასუფთავება
@@ -62,7 +62,7 @@ export function FavoritesList() {
               aria-label={`${item.name} — ფავორიტებიდან წაშლა`}
               title="წაშლა"
               onClick={() => remove(item.slug)}
-              className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-line bg-white/90 text-muted backdrop-blur transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              className="absolute right-2 top-2 z-20 grid size-7 place-items-center rounded-full border border-line bg-overlay text-muted backdrop-blur transition-colors hover:border-danger-line hover:bg-danger-soft hover:text-danger"
             >
               <Trash2 className="size-3.5" />
             </button>

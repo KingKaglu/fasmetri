@@ -19,7 +19,7 @@ export function AdminProductThumb({ src, alt, size = 40 }: { src?: string | null
 
   return (
     <span
-      className="grid shrink-0 place-items-center overflow-hidden rounded-lg border border-[#dbe5d3] bg-white"
+      className="grid shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-surface"
       style={{ width: size, height: size }}
     >
       {showImage ? (
@@ -38,7 +38,7 @@ export function AdminProductThumb({ src, alt, size = 40 }: { src?: string | null
           className="size-full object-contain p-0.5"
         />
       ) : (
-        <ImageOff className="size-4 text-gray-300" />
+        <ImageOff className="size-4 text-subtle" />
       )}
     </span>
   );

@@ -52,8 +52,8 @@ export function CompareToggle({ slug, name }: { slug: string; name: string }) {
         onClick={handleClick}
         className={`grid size-7 place-items-center rounded-full border shadow-sm transition-colors ${
           selected
-            ? "border-transparent text-white"
-            : "border-line bg-white/90 text-muted backdrop-blur hover:border-line-strong hover:text-ink-soft"
+            ? "border-transparent text-accent-ink"
+            : "border-line bg-overlay text-muted backdrop-blur hover:border-line-strong hover:text-ink-soft"
         } ${full ? "opacity-40" : ""}`}
         style={selected ? { background: "var(--accent)" } : undefined}
       >
@@ -63,7 +63,7 @@ export function CompareToggle({ slug, name }: { slug: string; name: string }) {
       {showFullHint && (
         <span
           role="status"
-          className="absolute right-0 top-8 z-30 w-max max-w-[11rem] rounded-lg bg-ink px-2.5 py-1.5 text-[12px] font-medium leading-4 text-white shadow-lg"
+          className="absolute right-0 top-8 z-30 w-max max-w-[11rem] rounded-lg bg-ink px-2.5 py-1.5 text-[12px] font-medium leading-4 text-surface shadow-lg"
         >
           შედარების სია სავსეა — ჯერ მოხსენი პროდუქტი
         </span>

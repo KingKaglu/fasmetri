@@ -54,7 +54,7 @@ export async function SiteFooter() {
         {/* Brand column — colophon */}
         <div>
           <BrandLogo compact tone="light" />
-          <p className="mt-4 max-w-xs text-[15px] leading-7 text-slate-300">
+          <p className="mt-4 max-w-xs text-[15px] leading-7 text-on-ink-soft">
             ფასმეტრი (Fasmetri) — ქართული ონლაინ მაღაზიების დამოუკიდებელი ფასების შედარების პლატფორმა.
           </p>
           {/* Outbound profile links. They give the Latin brand name a second
@@ -67,14 +67,14 @@ export async function SiteFooter() {
                   href={href}
                   rel="me noopener noreferrer"
                   target="_blank"
-                  className="inline-block py-1 text-sm text-slate-300 transition-colors hover:text-white"
+                  className="inline-block py-1 text-sm text-on-ink-soft transition-colors hover:text-white"
                 >
                   {label}
                 </a>
               </li>
             ))}
           </ul>
-          <p className="mt-4 rounded-xl bg-white/[0.06] px-3 py-2.5 text-[12px] leading-5 text-slate-400">
+          <p className="mt-4 rounded-xl bg-on-ink-fill px-3 py-2.5 text-[12px] leading-5 text-on-ink-muted">
             ფასმეტრი არ არის ჩამოთვლილი მაღაზიების ოფიციალური პარტნიორი. ყიდვამდე საბოლოო ფასი მაღაზიის გვერდზე გადაამოწმე.
           </p>
         </div>
@@ -82,13 +82,13 @@ export async function SiteFooter() {
         {/* Link columns */}
         {columns.map(([title, items]) => (
           <div key={title}>
-            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.1em] text-slate-400">{title}</p>
+            <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.1em] text-on-ink-muted">{title}</p>
             <ul className="grid gap-2">
               {items.map(([href, label]) => (
                 <li key={href}>
                   {/* inline-block + py-1 lifts the tap target from ~16px of
                       text height to a comfortable 24px+ on phones. */}
-                  <Link href={href} className="inline-block py-1 text-sm text-slate-300 transition-colors hover:text-white">
+                  <Link href={href} className="inline-block py-1 text-sm text-on-ink-soft transition-colors hover:text-white">
                     {label}
                   </Link>
                 </li>
@@ -99,14 +99,14 @@ export async function SiteFooter() {
       </div>
 
       {categories.length ? (
-        <nav aria-label="კატეგორიები" className="shell border-t border-white/10 py-6">
-          <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.1em] text-slate-400">კატეგორიები</p>
+        <nav aria-label="კატეგორიები" className="shell border-t border-on-ink-line py-6">
+          <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.1em] text-on-ink-muted">კატეგორიები</p>
           <ul className="flex flex-wrap gap-x-5 gap-y-1">
             {categories.map(({ slug, nameKa }) => (
               <li key={slug}>
                 <Link
                   href={`/categories/${slug}`}
-                  className="inline-block py-1 text-sm text-slate-300 transition-colors hover:text-white"
+                  className="inline-block py-1 text-sm text-on-ink-soft transition-colors hover:text-white"
                 >
                   {nameKa}
                 </Link>
@@ -117,8 +117,8 @@ export async function SiteFooter() {
       ) : null}
 
       {/* Bottom bar */}
-      <div className="border-t border-white/10">
-        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[12px] text-zinc-400">
+      <div className="border-t border-on-ink-line">
+        <div className="shell flex flex-wrap items-center justify-between gap-2 py-4 text-[12px] text-on-ink-subtle">
           <span>© {new Date().getFullYear()} ფასმეტრი. ყველა უფლება დაცულია.</span>
           {latestUpdate ? (
             <span className="inline-flex items-center gap-1">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { trackEvent, type AnalyticsEvent, type AnalyticsParams } from "@/lib/analytics";
 
 // Fires an analytics event once per distinct `signature` from a server-rendered
@@ -16,15 +16,16 @@ export function TrackView({
   params: AnalyticsParams;
   signature?: string;
 }) {
-  const paramsRef = useRef(params);
-  paramsRef.current = params;
   const sig = signature ?? `${event}:${JSON.stringify(params)}`;
   const last = useRef<string | null>(null);
+  // Reads the latest event/params without making them effect dependencies:
+  // only a new signature may fire again.
+  const fire = useEffectEvent(() => trackEvent(event, params));
 
   useEffect(() => {
     if (last.current === sig) return;
     last.current = sig;
-    trackEvent(event, paramsRef.current);
+    fire();
   }, [sig]);
 
   return null;

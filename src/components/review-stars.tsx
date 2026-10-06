@@ -22,7 +22,7 @@ export function ReviewStars({
         <Star
           key={step}
           aria-hidden
-          className={`${SIZES[size]} ${step <= filled ? "fill-amber-400 text-amber-400" : "fill-subtle text-subtle"}`}
+          className={`${SIZES[size]} ${step <= filled ? "fill-star text-star" : "fill-subtle text-subtle"}`}
         />
       ))}
     </span>

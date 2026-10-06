@@ -63,7 +63,7 @@ export function ProductCard({
           </span>
         )}
         {offer.availability !== "UNKNOWN" ? (
-          <span className="absolute bottom-2 left-2">
+          <span className="on-image absolute bottom-2 left-2">
             <AvailabilityBadge availability={offer.availability} hideUnknown />
           </span>
         ) : null}
@@ -110,7 +110,7 @@ export function ProductCard({
         {/* Savings badge */}
         {deal && savings > 0 ? (
           <span
-            className="mb-2 inline-flex h-6 w-fit items-center gap-1 rounded-full border border-savings-strong/20 bg-savings-soft px-2 text-[11px] font-semibold text-savings-strong"
+            className="mb-2 inline-flex h-6 w-fit items-center gap-1 rounded-full border border-savings-strong/20 bg-savings-soft px-2 text-[11px] font-semibold text-success"
             title="რეალური ფასდაკლება — ძველი ფასი დადასტურებულია"
           >
             <BadgeCheck className="size-3" />
@@ -123,7 +123,7 @@ export function ProductCard({
 
         {/* Shop comparison info: store count + freshness, always visible */}
         <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-line pt-2">
-          <span className={`text-[12px] font-semibold ${shopCount > 1 ? "text-savings-strong" : "text-muted"}`}>
+          <span className={`text-[12px] font-semibold ${shopCount > 1 ? "text-success" : "text-muted"}`}>
             {shopCount > 1 ? `${shopCount} მაღაზია ადარებს` : "ერთ მაღაზიაშია"}
           </span>
           <LastUpdatedText value={offer.lastSeenAt} className="text-[12px] text-muted" />
@@ -133,7 +133,7 @@ export function ProductCard({
         <div className="grid grid-cols-2 gap-1.5">
           <Link
             href={`/products/${product.slug}`}
-            className="flex h-9 items-center justify-center rounded-md bg-accent px-2 text-[11px] font-semibold text-white hover:bg-accent-strong"
+            className="flex h-9 items-center justify-center rounded-md bg-accent px-2 text-[11px] font-semibold text-accent-ink hover:bg-accent-strong"
           >
             {/* Not "შედარება": that is the compare tray's action. This opens the
                 product page with every shop's price. Two-column phone cards

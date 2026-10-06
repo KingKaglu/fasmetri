@@ -81,7 +81,7 @@ export default async function ConfirmEmailPage({ searchParams }: { searchParams:
         </p>
         <form method="post" action="/api/alerts/verify" className="mt-5">
           <input type="hidden" name="token" value={token} />
-          <button className="h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong">
+          <button className="h-11 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-ink hover:bg-accent-strong">
             დადასტურება
           </button>
         </form>

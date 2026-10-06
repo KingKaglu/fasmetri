@@ -94,17 +94,17 @@ export function ContactMailForm() {
       <Field label="შეტყობინება" error={errors.message}>
         <textarea name="message" required minLength={10} maxLength={1200} className="contact-control min-h-32 resize-y py-2" placeholder="დაწერე დეტალები..." aria-invalid={Boolean(errors.message)} />
       </Field>
-      <button className="mt-1 h-10 w-full rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong sm:w-auto">
+      <button className="mt-1 h-10 w-full rounded-md bg-accent px-4 text-sm font-semibold text-accent-ink hover:bg-accent-strong sm:w-auto">
         ელფოსტაში გახსნა
       </button>
       {submitted ? (
-        <p className="mt-3 flex items-start gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium leading-5 text-emerald-800">
+        <p className="mt-3 flex items-start gap-1.5 rounded-xl border border-success-line bg-success-soft px-3 py-2 text-xs font-medium leading-5 text-success">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
           წერილი მომზადდა შენს ელფოსტის აპში — გადახედე და გააგზავნე. თუ აპი არ გაიხსნა, მოგვწერე პირდაპირ: Fasmetri@gmail.com
         </p>
       ) : null}
       {!submitted && Object.keys(errors).length > 0 ? (
-        <p className="mt-3 text-xs font-medium text-red-600">შეასწორე მონიშნული ველები და სცადე თავიდან.</p>
+        <p className="mt-3 text-xs font-medium text-danger">შეასწორე მონიშნული ველები და სცადე თავიდან.</p>
       ) : null}
     </form>
   );
@@ -115,7 +115,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     <label className="mb-3 block text-[12px] font-semibold uppercase tracking-wider text-muted">
       {label}
       <span className="mt-1 block text-sm font-medium text-ink normal-case tracking-normal">{children}</span>
-      {error ? <span className="mt-1 block text-[12px] font-medium normal-case tracking-normal text-red-600">{error}</span> : null}
+      {error ? <span className="mt-1 block text-[12px] font-medium normal-case tracking-normal text-danger">{error}</span> : null}
     </label>
   );
 }

@@ -33,7 +33,7 @@ export function SyncTriggerButtons({ workflow }: { workflow: string }) {
           type="button"
           disabled={busy}
           onClick={() => trigger(workflow, "prices")}
-          className="inline-flex h-10 items-center gap-1.5 rounded-2xl bg-[#0a0a0a] px-3 text-xs font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex h-10 items-center gap-1.5 rounded-2xl bg-ink-surface px-3 text-xs font-black text-white hover:bg-ink-deep disabled:cursor-wait disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5 text-[var(--accent)]" />}
           ფასების სინქი
@@ -42,7 +42,7 @@ export function SyncTriggerButtons({ workflow }: { workflow: string }) {
           type="button"
           disabled={busy}
           onClick={() => trigger(workflow, "full")}
-          className="inline-flex h-10 items-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#0a0a0a] disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex h-10 items-center gap-1.5 rounded-2xl border border-line bg-surface px-3 text-xs font-black text-[var(--brand)] hover:border-ink disabled:cursor-wait disabled:opacity-60"
         >
           <Play className="size-3.5" />
           სრული სინქი
@@ -62,7 +62,7 @@ export function MatcherTriggerButton() {
         type="button"
         disabled={busy}
         onClick={() => trigger("match-products.yml")}
-        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-[#0a0a0a] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-ink-surface px-4 text-sm font-black text-white hover:bg-ink-deep disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4 text-[var(--accent)]" />}
         Matcher-ის გაშვება
@@ -96,7 +96,7 @@ export function StaleOfferCleanupButton({ staleCount }: { staleCount: number }) 
         type="button"
         disabled={busy || staleCount === 0}
         onClick={cleanup}
-        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[var(--warn-soft)] px-4 text-sm font-black text-[var(--warn)] hover:border-[var(--warn)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-line-strong bg-[var(--warn-soft)] px-4 text-sm font-black text-[var(--warn)] hover:border-[var(--warn)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Eraser className="size-4" />}
         ძველი შეთავაზებების გასუფთავება ({staleCount})

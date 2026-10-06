@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Eye, EyeOff, MessageSquareReply, Trash2 } from "lucide-react";
 
 const BUTTON =
-  "inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#0a0a0a] disabled:cursor-wait disabled:opacity-60";
+  "inline-flex h-9 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 text-xs font-black text-[var(--brand)] hover:border-ink disabled:cursor-wait disabled:opacity-60";
 
 /**
  * Hide / show / reply / delete for one visitor review. Hiding is reversible and
@@ -63,7 +63,7 @@ export function AdminReviewModeration({
         <button
           type="button"
           disabled={busy}
-          className={`${BUTTON} text-[#d9412f] hover:border-[#d9412f]`}
+          className={`${BUTTON} text-danger hover:border-danger`}
           onClick={() => {
             if (window.confirm("წავშალოთ ეს კომენტარი სამუდამოდ? დამალვა შექცევადია, წაშლა — არა.")) {
               void send({ method: "DELETE" });
@@ -82,7 +82,7 @@ export function AdminReviewModeration({
             value={replyText}
             onChange={(event) => setReplyText(event.target.value)}
             placeholder="საჯარო პასუხი — გამოჩნდება კომენტარის ქვეშ."
-            className="w-full rounded-xl border border-[#e4e4e7] px-3 py-2 text-sm outline-none focus:border-[#0a0a0a]"
+            className="w-full rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-ink"
           />
           <div className="flex flex-wrap gap-2">
             <button type="button" disabled={busy} className={BUTTON} onClick={() => patch({ action: "reply", reply: replyText.trim() })}>
@@ -97,7 +97,7 @@ export function AdminReviewModeration({
         </div>
       ) : null}
 
-      {error ? <p className="text-xs font-bold text-[#d9412f]">{error}</p> : null}
+      {error ? <p className="text-xs font-bold text-danger">{error}</p> : null}
     </div>
   );
 }

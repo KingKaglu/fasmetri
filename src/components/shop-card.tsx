@@ -28,7 +28,7 @@ export function ShopCard({ shop }: { shop: ShopView }) {
         <div
           className={`flex items-center gap-1.5 rounded-md border px-2.5 py-2 text-xs font-semibold ${
             (shop.dealCount ?? 0) > 0
-              ? "border-deal-strong/15 bg-deal-soft text-deal-strong"
+              ? "border-deal-strong/15 bg-deal-soft text-danger-strong"
               : "border-line bg-surface-soft text-muted"
           }`}
         >
@@ -46,7 +46,7 @@ export function ShopCard({ shop }: { shop: ShopView }) {
         )}
         <Link
           href={`/shops/${shop.slug}`}
-          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-xs font-semibold text-white hover:bg-accent-strong"
+          className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-xs font-semibold text-accent-ink hover:bg-accent-strong"
         >
           შეთავაზებების ნახვა
           <ArrowRight className="size-3.5" />

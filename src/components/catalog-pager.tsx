@@ -34,7 +34,7 @@ export function CatalogPager({
       {/* Page indicator */}
       <div className="flex items-center gap-2 text-sm">
         <span className="text-muted">გვერდი</span>
-        <span className="flex size-8 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white">
+        <span className="flex size-8 items-center justify-center rounded-md bg-accent text-sm font-semibold text-accent-ink">
           {currentPage}
         </span>
         {hasNext && (
@@ -81,7 +81,7 @@ function PagerLink({
       aria-label={label}
       className={`inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-sm font-semibold transition-colors sm:px-3 ${
         direction === "next"
-          ? "border-accent bg-accent text-white hover:bg-accent-strong"
+          ? "border-accent bg-accent text-accent-ink hover:bg-accent-strong"
           : "border-line bg-surface text-ink-soft hover:border-line-strong hover:bg-surface-soft"
       }`}
     >

@@ -79,12 +79,12 @@ export function StockRequestForm({ query }: { query: string }) {
         <button
           type="submit"
           disabled={busy}
-          className="h-9 shrink-0 rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong disabled:opacity-60"
+          className="h-9 shrink-0 rounded-md bg-accent px-4 text-sm font-semibold text-accent-ink hover:bg-accent-strong disabled:opacity-60"
         >
           {busy ? "იგზავნება…" : "შემატყობინე"}
         </button>
       </div>
-      {error ? <p className="text-center text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-center text-xs text-danger">{error}</p> : null}
     </form>
   );
 }

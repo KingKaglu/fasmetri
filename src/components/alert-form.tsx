@@ -1,8 +1,9 @@
 "use client";
 
 import { BellRing, CheckCircle2, Loader2, MailCheck } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { useClientValue } from "@/lib/local-store";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -42,18 +43,17 @@ export function AlertForm({
   const [error, setError] = useState("");
   const [unsubscribeHref, setUnsubscribeHref] = useState("");
   const [emailUsed, setEmailUsed] = useState("");
-  const [pushSupported, setPushSupported] = useState(false);
   const [pushState, setPushState] = useState<PushState>("idle");
   const [verification, setVerification] = useState<Verification | null>(null);
   const [resendState, setResendState] = useState<ResendState>("idle");
 
   // Push is a progressive enhancement: only offered when VAPID is configured and
-  // the browser supports Service Worker + Push. Checked after mount (no SSR mismatch).
-  useEffect(() => {
-    setPushSupported(
-      Boolean(vapidPublicKey) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
-    );
-  }, [vapidPublicKey]);
+  // the browser supports Service Worker + Push. False on the server and during
+  // hydration (no SSR mismatch).
+  const pushSupported = useClientValue(
+    () => Boolean(vapidPublicKey) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
+    false,
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -180,7 +180,7 @@ export function AlertForm({
       />
       <button
         disabled={busy}
-        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent text-sm font-semibold text-white hover:bg-accent-strong disabled:cursor-wait disabled:opacity-60"
+        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent text-sm font-semibold text-accent-ink hover:bg-accent-strong disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : null}
         დაყენება
@@ -222,7 +222,7 @@ export function AlertForm({
           )}
         </div>
       ) : success ? (
-        <p role="status" className="flex items-start gap-1.5 rounded-xl border border-savings/30 bg-savings-soft px-3 py-2 text-xs font-medium text-savings-strong">
+        <p role="status" className="flex items-start gap-1.5 rounded-xl border border-savings/30 bg-savings-soft px-3 py-2 text-xs font-medium text-success">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
           {emailDelivery
             ? "შეტყობინება დაყენებულია — ფასის დაკლებისას ელფოსტაზე მოგწერთ."
@@ -247,7 +247,7 @@ export function AlertForm({
         </p>
       ) : null}
       {pushState === "enabled" ? (
-        <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+        <p role="status" className="rounded-xl border border-success-line bg-success-soft px-3 py-2 text-xs font-medium text-success">
           ბრაუზერის შეტყობინებები ჩართულია.
         </p>
       ) : null}
@@ -258,7 +258,7 @@ export function AlertForm({
         <p className="text-[12px] leading-5 text-muted">შეტყობინების ჩართვა ვერ მოხერხდა — სცადე თავიდან.</p>
       ) : null}
       {error ? (
-        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+        <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-xs font-medium text-danger-strong">
           {error}
         </p>
       ) : null}

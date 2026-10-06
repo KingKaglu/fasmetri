@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { ArrowRight, History } from "lucide-react";
 import { formatGel } from "@/lib/format";
 import { ProductImage } from "@/components/product-image";
@@ -9,8 +9,8 @@ import type { FavoriteSnapshot } from "@/lib/use-favorites";
 
 // Recently-viewed products ("ბოლოს ნანახი") — the idealo-style recents rail.
 // Product pages record a snapshot on mount (RecordRecentView); the strip reads
-// once on mount, so it is hydration-safe (renders nothing on the server and on
-// the first client paint).
+// localStorage through useSyncExternalStore, so it is hydration-safe (renders
+// nothing on the server and on the hydration render).
 
 const RECENTS_STORAGE_KEY = "fasmetri:recents";
 const RECENTS_MAX = 12;
@@ -36,6 +36,34 @@ function readRecents(): RecentSnapshot[] {
   }
 }
 
+// Snapshot cache keyed on the raw string: useSyncExternalStore needs the same
+// array back until storage actually changes.
+const NO_RECENTS: RecentSnapshot[] = [];
+let cachedRaw: string | null | undefined;
+let cachedRecents: RecentSnapshot[] = NO_RECENTS;
+
+function getRecentsSnapshot(): RecentSnapshot[] {
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(RECENTS_STORAGE_KEY);
+  } catch {
+    raw = null;
+  }
+  if (raw !== cachedRaw) {
+    cachedRaw = raw;
+    cachedRecents = raw ? readRecents() : NO_RECENTS;
+  }
+  return cachedRecents;
+}
+
+function subscribeRecents(listener: () => void) {
+  function onStorage(event: StorageEvent) {
+    if (event.key === RECENTS_STORAGE_KEY) listener();
+  }
+  window.addEventListener("storage", onStorage);
+  return () => window.removeEventListener("storage", onStorage);
+}
+
 export function RecordRecentView({ snapshot }: { snapshot: Omit<FavoriteSnapshot, "savedAt"> }) {
   useEffect(() => {
     try {
@@ -55,11 +83,8 @@ export function RecordRecentView({ snapshot }: { snapshot: Omit<FavoriteSnapshot
 }
 
 export function RecentlyViewedStrip({ excludeSlug, inline = false }: { excludeSlug?: string; inline?: boolean }) {
-  const [items, setItems] = useState<RecentSnapshot[]>([]);
-
-  useEffect(() => {
-    setItems(readRecents().filter((item) => item.slug !== excludeSlug));
-  }, [excludeSlug]);
+  const recents = useSyncExternalStore(subscribeRecents, getRecentsSnapshot, () => NO_RECENTS);
+  const items = useMemo(() => recents.filter((item) => item.slug !== excludeSlug), [recents, excludeSlug]);
 
   if (!items.length) return null;
 

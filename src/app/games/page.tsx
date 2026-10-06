@@ -39,11 +39,11 @@ export async function generateMetadata({
 
 // Verdict → badge styling. Green reads "buy this", amber "it will do", red "no".
 const VERDICT_STYLE: Record<Verdict, string> = {
-  excellent: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  good: "bg-blue-50 text-accent border-blue-200",
-  playable: "bg-amber-50 text-amber-700 border-amber-200",
-  marginal: "bg-orange-50 text-orange-700 border-orange-200",
-  unsupported: "bg-red-50 text-red-600 border-red-200",
+  excellent: "bg-success-soft text-success border-success-line",
+  good: "bg-accent-soft text-accent border-accent-line",
+  playable: "bg-warn-soft text-warn border-warn-line",
+  marginal: "bg-caution-soft text-caution border-caution-line",
+  unsupported: "bg-danger-soft text-danger border-danger-line",
   unknown: "bg-surface-soft text-muted border-line",
 };
 
@@ -113,14 +113,14 @@ export default async function GamesPage({
       {/* Hero — the "ad" the buyer lands on */}
       <section className="hero-frame !rounded-none">
         <div className="shell relative z-10 py-10 sm:py-14">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[12px] font-semibold text-white/85">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-on-ink-fill px-4 py-1.5 text-[12px] font-semibold text-on-ink-soft">
             <Gamepad2 className="size-3.5" />
             გეიმინგ ლეპტოპები
           </div>
           <h1 className="mt-5 max-w-3xl text-3xl font-bold leading-tight text-white sm:text-4xl lg:text-5xl">
             რომელი ლეპტოპი გაუშვებს <span className="hero-highlight">{activeGame.name}</span>-ს?
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 sm:text-base">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-on-ink-muted sm:text-base">
             ავირჩიეთ ლეპტოპები ქართული მაღაზიებიდან და დავაჯგუფეთ იმის მიხედვით, თუ რა პარამეტრებზე და
             რამდენ კადრზე ითამაშებ. ფასი და მაღაზია იქვეა.
           </p>
@@ -136,8 +136,8 @@ export default async function GamesPage({
                   aria-current={active ? "page" : undefined}
                   className={
                     active
-                      ? "rounded-full bg-surface px-4 py-2 text-[13px] font-bold text-[#1d4ed8]"
-                      : "rounded-full bg-white/10 px-4 py-2 text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/20 hover:text-white"
+                      ? "rounded-full bg-surface px-4 py-2 text-[13px] font-bold text-accent-strong"
+                      : "rounded-full bg-on-ink-fill px-4 py-2 text-[13px] font-semibold text-on-ink-soft transition-colors hover:bg-on-ink-fill-strong hover:text-white"
                   }
                 >
                   {game.name}
@@ -152,13 +152,13 @@ export default async function GamesPage({
                 <div className="text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
                   {playableCount}
                 </div>
-                <div className="mt-1.5 text-[12px] font-medium text-white/60">ლეპტოპი გაუშვებს</div>
+                <div className="mt-1.5 text-[12px] font-medium text-on-ink-muted">ლეპტოპი გაუშვებს</div>
               </div>
               <div className="stat-rule">
                 <div className="text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
                   {formatGel(cheapestPlayable.price)}
                 </div>
-                <div className="mt-1.5 text-[12px] font-medium text-white/60">ყველაზე იაფი, რომელიც გაუშვებს</div>
+                <div className="mt-1.5 text-[12px] font-medium text-on-ink-muted">ყველაზე იაფი, რომელიც გაუშვებს</div>
               </div>
             </div>
           )}
@@ -173,7 +173,7 @@ export default async function GamesPage({
         />
 
         {/* Honesty note — these are estimates, and buyers deserve to know. */}
-        <p className="mb-6 flex items-start gap-2 rounded-xl border border-blue-100 bg-accent-soft px-4 py-3 text-[12.5px] leading-5 text-ink-soft">
+        <p className="mb-6 flex items-start gap-2 rounded-xl border border-accent-line bg-accent-soft px-4 py-3 text-[12.5px] leading-5 text-ink-soft">
           <Info className="mt-0.5 size-4 shrink-0 text-accent" />
           <span>
             კადრების რაოდენობა სავარაუდოა და დამოკიდებულია ლეპტოპის კონკრეტულ კონფიგურაციაზე
@@ -220,7 +220,7 @@ export default async function GamesPage({
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/categories/laptops"
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-ink hover:bg-accent-strong"
           >
             ყველა ლეპტოპის ნახვა
             <ArrowRight className="size-4" />
@@ -272,7 +272,7 @@ function LaptopRow({ entry }: { entry: Scored }) {
               {ramGb}GB RAM
             </span>
           )}
-          {shopCount > 1 && <span className="text-emerald-700">{shopCount} მაღაზია</span>}
+          {shopCount > 1 && <span className="text-success">{shopCount} მაღაზია</span>}
         </div>
 
         {fit.fps && fit.preset && (
@@ -283,7 +283,7 @@ function LaptopRow({ entry }: { entry: Scored }) {
         )}
 
         {fit.notes.map((note) => (
-          <p key={note} className="mt-1 text-[12px] text-amber-700">
+          <p key={note} className="mt-1 text-[12px] text-warn">
             {note}
           </p>
         ))}

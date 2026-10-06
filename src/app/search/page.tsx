@@ -94,7 +94,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Param
                 <p className="eyebrow mb-1">ძებნა</p>
                 <h1 className="font-display break-words text-xl font-bold text-ink sm:text-2xl">{headline}</h1>
               </div>
-              <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-full bg-deal-soft px-3.5 py-1.5 text-xs font-semibold text-deal-strong hover:bg-deal-strong hover:text-white">
+              <Link href="/deals" className="flex shrink-0 items-center gap-1.5 rounded-full bg-deal-soft px-3.5 py-1.5 text-xs font-semibold text-danger-strong hover:bg-deal-strong hover:text-white">
                 <BadgePercent className="size-3.5" />
                 აქციები
               </Link>
@@ -237,7 +237,7 @@ function FailedSearchState({ query, relaxed }: { query?: string; relaxed: Relaxe
         {query ? <StockRequestForm query={query} /> : null}
 
         <div className="mx-auto mt-5 flex flex-wrap justify-center gap-2">
-          <Link href="/search" className="flex h-9 items-center rounded-md bg-accent px-4 text-sm font-semibold text-white hover:bg-accent-strong">
+          <Link href="/search" className="flex h-9 items-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-ink hover:bg-accent-strong">
             ფილტრების გასუფთავება
           </Link>
           <CategoryShortcut href="/categories/mobiles" icon={Smartphone} label="ტელეფონები" />

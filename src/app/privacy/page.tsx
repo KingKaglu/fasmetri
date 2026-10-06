@@ -67,7 +67,7 @@ export default function PrivacyPage() {
             <h2 className="text-base font-semibold text-ink">კონტაქტი</h2>
             <p className="mt-2">
               შეკითხვებისთვის ან მონაცემების შესახებ მოთხოვნისთვის მოგვწერე{" "}
-              <a className="font-semibold text-ink underline underline-offset-2 hover:text-black" href="/contact">კონტაქტის გვერდზე</a>.
+              <a className="font-semibold text-ink underline underline-offset-2 hover:text-accent" href="/contact">კონტაქტის გვერდზე</a>.
             </p>
           </div>
 

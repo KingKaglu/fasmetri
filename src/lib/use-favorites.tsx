@@ -1,13 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { createLocalStore, useLocalStore, useMounted } from "@/lib/local-store";
 
 // Client-side favorites ("ფავორიტები"). Unlike compare (slugs only), favorites
 // persist a small product *snapshot* so the /favorites page renders instantly
 // from localStorage without server fetches — the guest-wishlist pattern used
 // by price-comparison sites. Same hydration-safety contract as use-compare:
-// starts empty on server + first client render, loads in an effect, and
-// consumers gate visible state on `mounted`.
+// empty on the server + hydration render (useSyncExternalStore server
+// snapshot), then the stored value; consumers gate visible state on `mounted`.
 
 export const FAVORITES_STORAGE_KEY = "fasmetri:favorites";
 export const FAVORITES_MAX = 60;
@@ -65,41 +66,13 @@ function sanitize(values: unknown): FavoriteSnapshot[] {
   return out;
 }
 
+const EMPTY: FavoriteSnapshot[] = [];
+const favoritesStore = createLocalStore<FavoriteSnapshot[]>(FAVORITES_STORAGE_KEY, sanitize, EMPTY);
+const setItems = favoritesStore.update;
+
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const [items, setItems] = useState<FavoriteSnapshot[]>([]);
-
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const raw = window.localStorage.getItem(FAVORITES_STORAGE_KEY);
-      if (raw) setItems(sanitize(JSON.parse(raw)));
-    } catch {
-      // Corrupt/unavailable storage — start empty.
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    try {
-      window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // Ignore quota / private-mode failures.
-    }
-  }, [items, mounted]);
-
-  useEffect(() => {
-    function onStorage(event: StorageEvent) {
-      if (event.key !== FAVORITES_STORAGE_KEY) return;
-      try {
-        setItems(sanitize(event.newValue ? JSON.parse(event.newValue) : []));
-      } catch {
-        setItems([]);
-      }
-    }
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  const mounted = useMounted();
+  const items = useLocalStore(favoritesStore);
 
   const add = useCallback((snapshot: Omit<FavoriteSnapshot, "savedAt">) => {
     const slug = snapshot.slug.trim();
@@ -124,7 +97,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const clear = useCallback(() => setItems([]), []);
+  const clear = useCallback(() => setItems(() => []), []);
 
   const value = useMemo<FavoritesContextValue>(
     () => ({

@@ -41,7 +41,7 @@ export function CompareTray() {
   return (
     // Positioned by <BottomStack> (fixed, above the mobile nav and the cookie bar).
     <div className="w-full px-3 pb-2 md:px-0 md:pb-0">
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 rounded-xl border border-line bg-white/95 p-3 shadow-[var(--shadow-lg)] backdrop-blur sm:flex-row sm:items-center sm:gap-4">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 rounded-xl border border-line bg-overlay-strong p-3 shadow-[var(--shadow-lg)] backdrop-blur sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
           <span className="shrink-0 text-xs font-semibold text-muted">
             შედარება ({items.length}/4)

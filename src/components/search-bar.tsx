@@ -215,8 +215,8 @@ export function SearchBar({
           isHeader ? "h-10 md:h-11" : large ? "h-14" : "h-12"
         } ${
           open && suggestions.length > 0
-            ? "border-accent ring-2 ring-blue-100"
-            : "border-line focus-within:border-accent focus-within:ring-2 focus-within:ring-blue-100"
+            ? "border-accent ring-2 ring-focus-ring"
+            : "border-line focus-within:border-accent focus-within:ring-2 focus-within:ring-focus-ring"
         }`}
       >
         <label className="flex min-w-0 flex-1 items-center gap-2 px-3">
@@ -269,7 +269,7 @@ export function SearchBar({
         <button
           type="submit"
           aria-label="ძებნა"
-          className={`shrink-0 rounded-r-full font-semibold text-white ${
+          className={`shrink-0 rounded-r-full font-semibold text-accent-ink ${
             isHeader
               ? "h-full bg-accent px-4 text-sm hover:bg-accent-strong"
               : large
@@ -361,7 +361,7 @@ export function SearchBar({
                     src={item.imageUrl}
                     alt=""
                     loading="lazy"
-                    className="size-9 shrink-0 rounded-md border border-line object-contain bg-surface-soft"
+                    className="size-9 shrink-0 rounded-md border border-line object-contain bg-image-tile"
                   />
                 ) : (
                   <span className="grid size-9 shrink-0 place-items-center rounded-md bg-surface-mute text-muted">
@@ -421,7 +421,7 @@ export function SearchBar({
               onClick={() => goToSearch(query.trim())}
               className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs font-semibold text-accent hover:bg-accent-soft"
             >
-              <span>ყველა შედეგი „{query.trim()}"</span>
+              <span>ყველა შედეგი „{query.trim()}&quot;</span>
               <ArrowRight className="size-3.5" />
             </button>
           </li>

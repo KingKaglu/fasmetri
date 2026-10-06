@@ -50,20 +50,20 @@ const descriptions: Record<string, string> = {
 // Friendly variety: each category gets a distinct soft-pastel tile so the
 // grid reads as colorful and approachable at a glance.
 const accentColors: Record<string, string> = {
-  mobiles: "bg-blue-100 text-blue-600",
-  laptops: "bg-violet-100 text-violet-600",
-  tablets: "bg-sky-100 text-sky-600",
-  audio: "bg-pink-100 text-pink-600",
-  wearables: "bg-amber-100 text-amber-600",
-  gaming: "bg-indigo-100 text-indigo-600",
-  televisions: "bg-emerald-100 text-emerald-600",
-  monitors: "bg-cyan-100 text-cyan-600",
-  "home-appliances": "bg-orange-100 text-orange-600",
-  "small-appliances": "bg-lime-100 text-lime-600",
-  beauty: "bg-rose-100 text-rose-600",
-  refrigerators: "bg-teal-100 text-teal-600",
-  "washing-machines": "bg-slate-100 text-slate-600",
-  "tv-mounts": "bg-stone-100 text-stone-600",
+  mobiles: "bg-tint-blue-soft text-tint-blue",
+  laptops: "bg-tint-violet-soft text-tint-violet",
+  tablets: "bg-tint-sky-soft text-tint-sky",
+  audio: "bg-tint-pink-soft text-tint-pink",
+  wearables: "bg-tint-amber-soft text-tint-amber",
+  gaming: "bg-tint-indigo-soft text-tint-indigo",
+  televisions: "bg-tint-emerald-soft text-tint-emerald",
+  monitors: "bg-tint-cyan-soft text-tint-cyan",
+  "home-appliances": "bg-tint-orange-soft text-tint-orange",
+  "small-appliances": "bg-tint-lime-soft text-tint-lime",
+  beauty: "bg-tint-rose-soft text-tint-rose",
+  refrigerators: "bg-tint-teal-soft text-tint-teal",
+  "washing-machines": "bg-tint-slate-soft text-tint-slate",
+  "tv-mounts": "bg-tint-stone-soft text-tint-stone",
 };
 
 export function CategoryCard({
@@ -102,7 +102,7 @@ export function CategoryCard({
               პროდუქტი
             </span>
             {!comingSoon && (category.dealCount ?? 0) > 0 && (
-              <span className="inline-flex items-center gap-1 text-emerald-700">
+              <span className="inline-flex items-center gap-1 text-success">
                 <span className="font-semibold">{formatNumber(category.dealCount ?? 0)}</span>
                 აქტიური აქცია
               </span>

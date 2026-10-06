@@ -14,6 +14,7 @@ import { CompareTray } from "@/components/compare-tray";
 import { BottomStack } from "@/components/bottom-stack";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { siteUrl } from "@/config/site";
+import { THEME_COLORS, THEME_INIT_SCRIPT } from "@/lib/theme";
 
 // Self-hosted by next/font: no render-blocking Google Fonts stylesheet, no
 // third-party connection, and a size-adjusted fallback while it loads. 500 is
@@ -62,8 +63,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ffffff",
-  colorScheme: "light",
+  // Both schemes are supported (globals.css dark variant). The browser chrome
+  // follows the OS here; ThemeToggleButton rewrites these metas when the
+  // visitor picks a theme by hand.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
+  ],
+  colorScheme: "light dark",
 };
 
 export default async function RootLayout({
@@ -110,8 +117,13 @@ export default async function RootLayout({
   ];
 
   return (
-    <html lang="ka" className={`${notoSansGeorgian.variable} h-full antialiased`}>
+    // suppressHydrationWarning: THEME_INIT_SCRIPT may set data-theme on <html>
+    // before React hydrates; that attribute is intentionally not React's.
+    <html lang="ka" className={`${notoSansGeorgian.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
+        {/* Applies a stored light/dark choice before first paint (no flash).
+            Inline and synchronous on purpose; CSP allows inline scripts. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {/*
           Every product image (incl. the LCP hero + first listing cards) is served
           through the wsrv.nl image proxy. Warming the DNS + TLS connection here

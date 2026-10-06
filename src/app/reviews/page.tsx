@@ -96,7 +96,7 @@ function RatingSummary({
             <li key={star} className="flex items-center gap-2 text-xs text-ink-soft">
               <span className="w-3 tabular-nums">{star}</span>
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-mute">
-                <span className="block h-full rounded-full bg-amber-400" style={{ width: `${percent}%` }} />
+                <span className="block h-full rounded-full bg-star" style={{ width: `${percent}%` }} />
               </span>
               <span className="w-8 text-right tabular-nums text-muted">{count}</span>
             </li>

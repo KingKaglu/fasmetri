@@ -88,8 +88,8 @@ export function ProductImage({
   }
 
   return (
-    <div className={`relative isolate ${shape} overflow-hidden bg-surface-soft`}>
-      <div className="absolute inset-x-4 bottom-5 h-8 rounded-full bg-black/8 blur-xl" />
+    <div className={`relative isolate ${shape} overflow-hidden bg-image-tile`}>
+      <div className="absolute inset-x-4 bottom-5 h-8 rounded-full bg-image-shadow blur-xl" />
       {showImage ? (
         <Image
           key={useWsrv ? "wsrv" : "direct"}

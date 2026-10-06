@@ -1,14 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { createLocalStore, useLocalStore, useMounted } from "@/lib/local-store";
 
 // Client-side product-compare selection. Holds an array of product *slugs*
 // (cap 4, deduped) and persists them to localStorage so the picks survive
-// navigation. Hydration safety: the selection always starts empty on the
-// server AND on the first client render, then loads from localStorage inside
-// an effect once `mounted` is true. Consumers that render visible UI from the
-// selection (the tray, the card toggle's checked state) must gate on `mounted`
-// to avoid an SSR/client text mismatch.
+// navigation. Hydration safety: the selection is empty on the server AND on
+// the hydration render (useSyncExternalStore's server snapshot), then switches
+// to the stored value. Consumers that render visible UI from the selection
+// (the tray, the card toggle's checked state) still gate on `mounted`.
 
 export const COMPARE_STORAGE_KEY = "fasmetri:compare";
 export const COMPARE_MAX = 4;
@@ -43,45 +43,15 @@ function sanitize(values: unknown): string[] {
   return out;
 }
 
+const EMPTY: string[] = [];
+// One store per tab: every provider mount shares it, and other tabs are
+// followed through the `storage` event.
+const compareStore = createLocalStore<string[]>(COMPARE_STORAGE_KEY, sanitize, EMPTY);
+const setItems = compareStore.update;
+
 export function CompareProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const [items, setItems] = useState<string[]>([]);
-
-  // Load persisted selection once on mount.
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const raw = window.localStorage.getItem(COMPARE_STORAGE_KEY);
-      if (raw) setItems(sanitize(JSON.parse(raw)));
-    } catch {
-      // Corrupt/unavailable storage — start empty.
-    }
-  }, []);
-
-  // Persist on every change (only after mount so we never clobber storage with
-  // the empty initial state before the load effect has run).
-  useEffect(() => {
-    if (!mounted) return;
-    try {
-      window.localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(items));
-    } catch {
-      // Ignore quota / private-mode failures.
-    }
-  }, [items, mounted]);
-
-  // Keep multiple tabs / multiple provider mounts in sync.
-  useEffect(() => {
-    function onStorage(event: StorageEvent) {
-      if (event.key !== COMPARE_STORAGE_KEY) return;
-      try {
-        setItems(sanitize(event.newValue ? JSON.parse(event.newValue) : []));
-      } catch {
-        setItems([]);
-      }
-    }
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+  const mounted = useMounted();
+  const items = useLocalStore(compareStore);
 
   const add = useCallback((slug: string) => {
     const value = slug.trim();

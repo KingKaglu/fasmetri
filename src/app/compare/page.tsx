@@ -129,7 +129,7 @@ export default async function ComparePage({
                     {Number.isFinite(column.lowestPrice) ? formatGel(column.lowestPrice) : "—"}
                   </span>
                   {isCheapest && columns.length > 1 ? (
-                    <span className="w-fit rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                    <span className="w-fit rounded-full bg-success-solid px-2 py-0.5 text-[11px] font-bold text-white">
                       საუკეთესო ფასი
                     </span>
                   ) : null}

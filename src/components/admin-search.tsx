@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 
 // Debounced search box: updates the `q` URL param 400ms after typing stops,
@@ -15,8 +15,19 @@ export function AdminDebouncedSearch({ placeholder }: { placeholder: string }) {
   const [pending, setPending] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => setValue(urlQuery), [urlQuery]);
-  useEffect(() => setPending(false), [searchParams]);
+  // Follow URL changes (back/forward, the debounced replace landing). Adjusted
+  // during render rather than in an effect, per React's "storing information
+  // from previous renders" pattern.
+  const [syncedQuery, setSyncedQuery] = useState(urlQuery);
+  if (syncedQuery !== urlQuery) {
+    setSyncedQuery(urlQuery);
+    setValue(urlQuery);
+  }
+  const [syncedParams, setSyncedParams] = useState(searchParams);
+  if (syncedParams !== searchParams) {
+    setSyncedParams(searchParams);
+    setPending(false);
+  }
 
   function push(next: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -41,7 +52,7 @@ export function AdminDebouncedSearch({ placeholder }: { placeholder: string }) {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-2xl border border-[#e4e4e7] bg-white pl-10 pr-10 text-sm font-bold text-[var(--brand)] outline-none focus:border-[#0a0a0a]"
+        className="h-11 w-full rounded-2xl border border-line bg-surface pl-10 pr-10 text-sm font-bold text-[var(--brand)] outline-none focus:border-ink"
       />
       <span className="absolute right-3 top-1/2 -translate-y-1/2">
         {pending ? (
