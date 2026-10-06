@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/config/site";
 import { activeEmailProvider, priceDropEmailHtml, sendAlertEmail } from "@/server/alerts/email";
 import { sendPushToEmail } from "@/lib/push";
+import { verifiedEmailSet } from "@/server/alerts/verification";
 
 type NotifiedVia = "none" | "console" | "resend" | "smtp";
 
@@ -31,7 +32,17 @@ export async function prepareTriggeredAlerts() {
       },
     },
   });
-  const triggered = alerts.filter((alert) => alert.product.offers[0] && Number(alert.product.offers[0].currentPrice) <= Number(alert.targetPrice));
+  const reached = alerts.filter((alert) => alert.product.offers[0] && Number(alert.product.offers[0].currentPrice) <= Number(alert.targetPrice));
+
+  // Double opt-in: an alert whose address was never confirmed is skipped, not
+  // closed — it stays ACTIVE and fires on the first run after the owner clicks
+  // the confirmation link. Rows from before double opt-in were backfilled as
+  // verified (migration 20261006000000_email_double_opt_in).
+  const verified = await verifiedEmailSet(reached.map((alert) => alert.email));
+  const triggered = reached.filter((alert) => verified.has(alert.email.toLowerCase()));
+  if (reached.length > triggered.length) {
+    console.log(`[alerts] ${reached.length - triggered.length} alert(s) at target but waiting for email confirmation.`);
+  }
 
   // Without a transport every alert below would be closed having told nobody.
   // Say so once, loudly: this is otherwise invisible until a user complains

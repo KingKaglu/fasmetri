@@ -26,7 +26,11 @@ export async function sendExpoPushToEmail(email: string, payload: PushPayload): 
 
   let tokens;
   try {
-    tokens = await prisma.appPushToken.findMany({ where: { email }, select: { id: true, token: true } });
+    // Double opt-in: only installs the address owner confirmed.
+    tokens = await prisma.appPushToken.findMany({
+      where: { email, emailVerifiedAt: { not: null } },
+      select: { id: true, token: true },
+    });
   } catch {
     return 0;
   }

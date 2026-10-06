@@ -10,6 +10,11 @@ const eslintConfig = [
       ".codex-logs/**",
       "reports/**",
       "next-env.d.ts",
+      // Local-only, git-ignored scratch trees (Python venvs with vendored JS).
+      "scraper-sgai/**",
+      "phase2-browser/**",
+      "phase3-browser/**",
+      "**/.venv/**",
     ],
   },
   ...next,

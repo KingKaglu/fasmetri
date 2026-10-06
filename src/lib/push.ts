@@ -46,7 +46,9 @@ async function sendWebPushToEmail(email: string, payload: PushPayload): Promise<
   if (!ensureConfigured() || !prisma) return 0;
   let subscriptions;
   try {
-    subscriptions = await prisma.pushSubscription.findMany({ where: { email } });
+    // Double opt-in: only endpoints the address owner confirmed via the
+    // emailed link. An unconfirmed binding could be anyone's browser.
+    subscriptions = await prisma.pushSubscription.findMany({ where: { email, emailVerifiedAt: { not: null } } });
   } catch {
     return 0;
   }

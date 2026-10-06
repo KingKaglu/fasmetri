@@ -15,6 +15,8 @@ export function StockRequestForm({ query }: { query: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  // True when the address still has to be confirmed (double opt-in).
+  const [needsConfirm, setNeedsConfirm] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,6 +37,8 @@ export function StockRequestForm({ query }: { query: string }) {
         body: JSON.stringify({ email, query }),
       });
       if (response.ok) {
+        const payload = await response.json().catch(() => null);
+        setNeedsConfirm(payload?.verification?.status === "pending");
         setDone(true);
         trackEvent("alert_created", { search_term: query, kind: "stock_request" });
         formElement.reset();
@@ -50,7 +54,9 @@ export function StockRequestForm({ query }: { query: string }) {
   if (done) {
     return (
       <p className="mx-auto mt-5 max-w-md rounded-md border border-line bg-surface-soft px-4 py-3 text-sm text-ink-soft">
-        დაფიქსირდა 👍 შევატყობინებთ, როგორც კი „{query}“ გამოჩნდება.
+        {needsConfirm
+          ? `დაფიქსირდა 👍 დაადასტურე ელფოსტა წერილიდან და შეგატყობინებთ, როგორც კი „${query}“ გამოჩნდება.`
+          : `დაფიქსირდა 👍 შევატყობინებთ, როგორც კი „${query}“ გამოჩნდება.`}
       </p>
     );
   }

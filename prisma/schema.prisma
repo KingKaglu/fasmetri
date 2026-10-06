@@ -550,12 +550,15 @@ model LoginAttempt {
 // a user enters when creating a UserPriceAlert; prepareTriggeredAlerts() pushes
 // to every subscription matching that email when an alert fires.
 model PushSubscription {
-  id        String   @id @default(cuid())
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  email     String?
-  createdAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  endpoint        String    @unique
+  p256dh          String
+  auth            String
+  email           String?
+  // Set when the address owner confirmed THIS browser via the emailed link
+  // (double opt-in). Null = pending: no alert is pushed to this endpoint.
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
 
   @@index([email])
 }
@@ -768,14 +771,51 @@ model SiteReview {
 // PushSubscription (which holds browser Web Push endpoints). Matched to an
 // alert by email, exactly like the browser table: there are still no accounts.
 model AppPushToken {
-  id         String   @id @default(cuid())
+  id              String    @id @default(cuid())
   // "ExponentPushToken[...]" — issued by Expo, reissued on reinstall.
-  token      String   @unique
-  platform   String
-  email      String?
-  appVersion String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  token           String    @unique
+  platform        String
+  email           String?
+  appVersion      String?
+  // Double opt-in, same as PushSubscription.emailVerifiedAt.
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([email])
+}
+
+// Double opt-in for every place a visitor types an email (price alerts, stock
+// requests, push registration). There are no accounts, so without this anyone
+// could subscribe someone else's address, or bind their own device to someone
+// else's alerts. An address is "verified" once its owner clicked a link sent to
+// it; alert and stock-request emails are only sent to verified addresses.
+//
+// Rows that existed before double opt-in shipped were backfilled with
+// source = "backfill" so real subscribers were not silently cut off.
+model VerifiedEmail {
+  email      String   @id
+  verifiedAt DateTime @default(now())
+  source     String   @default("link") // "link" | "backfill"
+}
+
+// One confirmation link. Only the SHA-256 of the token is stored; the raw token
+// exists in the email alone. Single-use (usedAt) and expiring (expiresAt).
+// Consuming it verifies `email` and, when set, the device binding it was issued
+// for. `claimHash` is a second secret returned only to the browser that asked
+// for the link, so that browser (and nobody else) can attach its push
+// subscription to the same pending confirmation instead of triggering a second
+// email.
+model EmailVerificationToken {
+  id                 String    @id @default(cuid())
+  tokenHash          String    @unique
+  claimHash          String?   @unique
+  email              String
+  pushSubscriptionId String?
+  appPushTokenId     String?
+  expiresAt          DateTime
+  usedAt             DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@index([email, createdAt])
 }

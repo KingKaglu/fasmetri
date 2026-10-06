@@ -6,6 +6,7 @@ import { siteUrl } from "@/config/site";
 // is what the wrapper actually adds, so pass it through by hand.
 import { listProducts } from "@/lib/catalog";
 import { activeEmailProvider, sendAlertEmail, stockRequestEmailHtml } from "@/server/alerts/email";
+import { verifiedEmailSet } from "@/server/alerts/verification";
 
 // Closes the loop on StockRequest: someone searched for something the catalog
 // did not have and left an email. Once that search starts returning products,
@@ -29,11 +30,15 @@ export type FulfilledStockRequest = {
 export async function fulfilPendingStockRequests(): Promise<FulfilledStockRequest[]> {
   if (!prisma) return [];
 
-  const pending = await prisma.stockRequest.findMany({
+  const waiting = await prisma.stockRequest.findMany({
     where: { notified: false },
     select: { id: true, email: true, query: true, normalized: true },
     orderBy: { createdAt: "asc" },
   });
+  // Double opt-in: requests from unconfirmed addresses wait (unnotified) until
+  // the address is confirmed. They still count as catalog votes in /admin.
+  const verified = await verifiedEmailSet(waiting.map((request) => request.email));
+  const pending = waiting.filter((request) => verified.has(request.email.toLowerCase()));
   if (!pending.length) return [];
 
   // One catalog probe per distinct term.

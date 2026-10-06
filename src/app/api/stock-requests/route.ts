@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { isLikelyBot } from "@/lib/bot-detect";
 import { normalizeSearchText } from "@/lib/searchKeywords";
+import { requestEmailVerification } from "@/server/alerts/verification";
 
 // "Tell me when you stock this", captured from the zero-results state. The
 // visitor has just told us exactly what the catalog is missing, which is worth
@@ -36,7 +37,10 @@ export async function POST(request: Request) {
   });
   // Asking twice for the same thing is a no-op, not an error: the visitor just
   // wants reassurance it was recorded.
-  if (existing) return Response.json({ accepted: true, duplicate: true }, { status: 200 });
+  if (existing) {
+    const verification = await requestEmailVerification({ email: parsed.data.email });
+    return Response.json({ accepted: true, duplicate: true, verification }, { status: 200 });
+  }
 
   const count = await prisma.stockRequest.count({ where: { email: parsed.data.email } });
   if (count >= MAX_REQUESTS_PER_EMAIL) {
@@ -46,5 +50,8 @@ export async function POST(request: Request) {
   await prisma.stockRequest.create({
     data: { email: parsed.data.email, query: parsed.data.query, normalized },
   });
-  return Response.json({ accepted: true }, { status: 201 });
+  // Double opt-in: the request still counts as a catalog vote, but the
+  // "it's here" mail only goes to a confirmed address.
+  const verification = await requestEmailVerification({ email: parsed.data.email });
+  return Response.json({ accepted: true, verification }, { status: 201 });
 }
