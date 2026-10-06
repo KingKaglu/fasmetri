@@ -18,6 +18,7 @@ import {
 import { isAdminRequest } from "@/lib/admin-auth";
 import { formatGel, formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { msAgo } from "@/lib/request-time";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
   const shop = await prisma.shop.findUnique({ where: { slug } });
   if (!shop) notFound();
 
-  const staleCutoff = new Date(Date.now() - STALE_OFFER_MS);
+  const staleCutoff = msAgo(STALE_OFFER_MS);
 
   const [
     activeOffers,
@@ -154,14 +155,14 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
           href={shop.baseUrl}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/25 px-4 text-sm font-black text-white hover:border-white"
+          className="inline-flex h-11 items-center gap-2 rounded-2xl border border-on-ink-line-strong px-4 text-sm font-black text-white hover:border-on-ink"
         >
           <ExternalLink className="size-4" />
           საიტზე გადასვლა
         </a>
         <Link
           href={`/admin/review?shop=${shop.slug}`}
-          className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[#0a0a0a] hover:bg-white/85"
+          className="inline-flex h-11 items-center gap-2 rounded-2xl bg-surface px-4 text-sm font-black text-ink hover:bg-on-ink/85"
         >
           <GitCompareArrows className="size-4" />
           Review ({pendingCount})
@@ -185,7 +186,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
       <div className="grid gap-5 lg:grid-cols-[1fr_.85fr]">
         <AdminPanel title="Sync ისტორია" description="ბოლო გაშვებები GitHub Actions-იდან (SyncLog).">
           {syncLogs.length ? (
-            <div className="divide-y divide-[#ededee]">
+            <div className="divide-y divide-line">
               {syncLogs.map((log) => (
                 <div key={log.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                   <div className="flex flex-wrap items-center gap-2">
@@ -230,7 +231,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
               />
               <Link
                 href="/admin/sync"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-line bg-surface px-4 text-sm font-black text-[var(--brand)] hover:border-ink"
               >
                 <RefreshCw className="size-4" />
                 Sync პანელი
@@ -241,7 +242,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
           <AdminPanel title="Match სტატუსები" description="აქტიური შეთავაზებების განაწილება.">
             <div className="grid gap-2 p-4">
               {matchStatusGroups.map((group) => (
-                <div key={group.matchStatus} className="flex items-center justify-between rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2">
+                <div key={group.matchStatus} className="flex items-center justify-between rounded-xl border border-line bg-surface-soft px-3 py-2">
                   <span className="text-sm font-black text-[var(--brand)]">
                     {MATCH_STATUS_LABELS[group.matchStatus] ?? group.matchStatus}
                     <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-[var(--muted)]">{group.matchStatus}</span>
@@ -257,7 +258,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
       <div className="grid gap-5 lg:grid-cols-2">
         <AdminPanel title="კატეგორიები" description="აქტიური შეთავაზებები კატეგორიების მიხედვით, ფასის დიაპაზონით.">
           {categories.length ? (
-            <div className="divide-y divide-[#ededee]">
+            <div className="divide-y divide-line">
               {categories.map((category) => (
                 <div key={category.name} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                   <span className="text-sm font-black text-[var(--brand)]">{category.name}</span>
@@ -274,7 +275,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
 
         <AdminPanel title="ბოლო ფასის ცვლილებები" description="PriceHistory ამ მაღაზიის შეთავაზებებზე.">
           {priceChanges.length ? (
-            <div className="divide-y divide-[#ededee]">
+            <div className="divide-y divide-line">
               {priceChanges.map((entry) => (
                 <div key={entry.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                   <a href={entry.offer.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-sm font-black text-[var(--brand)] hover:underline">
@@ -306,7 +307,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
         }
       >
         {pendingMatches.length ? (
-          <div className="divide-y divide-[#ededee]">
+          <div className="divide-y divide-line">
             {pendingMatches.map((match) => (
               <div key={match.id} className="grid gap-3 p-4 lg:grid-cols-[minmax(0,1fr)_12rem]">
                 <div className="min-w-0">
@@ -336,7 +337,7 @@ export default async function AdminShopDetailPage({ params }: { params: Promise<
 
       <AdminPanel title="ბოლოს დამატებული შეთავაზებები" description="უახლესი აქტიური შეთავაზებები (firstSeenAt).">
         {newestOffers.length ? (
-          <div className="divide-y divide-[#ededee]">
+          <div className="divide-y divide-line">
             {newestOffers.map((offer) => (
               <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <a href={offer.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-sm font-black text-[var(--brand)] hover:underline">

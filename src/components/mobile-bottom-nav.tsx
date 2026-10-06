@@ -52,7 +52,7 @@ export function MobileBottomNav() {
                   strokeWidth={active ? 2.5 : 2}
                 />
                 {showBadge && (
-                  <span className="absolute -right-2.5 -top-1.5 grid min-w-[1.1rem] place-items-center rounded-full bg-danger px-1 py-0.5 text-[11px] font-bold leading-none tabular-nums text-white">
+                  <span className="absolute -right-2.5 -top-1.5 grid min-w-[1.1rem] place-items-center rounded-full bg-deal-strong px-1 py-0.5 text-[11px] font-bold leading-none tabular-nums text-white">
                     {favoriteCount > 99 ? "99+" : favoriteCount}
                   </span>
                 )}

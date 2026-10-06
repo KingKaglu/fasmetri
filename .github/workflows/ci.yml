@@ -1,0 +1,46 @@
+name: CI
+
+# Static checks for every push and pull request: type-check (npm run lint is
+# tsc), ESLint with the React Compiler rules (npm run lint:eslint), and every
+# npm run test:* script. None of them touch a database or the network, so this
+# runs on GitHub-hosted infra, not the self-hosted GE runner. The production
+# build itself is checked by Vercel on every push.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: ESLint
+        run: npm run lint:eslint
+
+      - name: Tests
+        run: |
+          set -e
+          for script in $(node -e "console.log(Object.keys(require('./package.json').scripts).filter((k) => k.startsWith('test:')).join(' '))"); do
+            echo "::group::npm run $script"
+            npm run --silent "$script"
+            echo "::endgroup::"
+          done

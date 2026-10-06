@@ -83,7 +83,7 @@ export function ProductBulkBar() {
     "inline-flex h-9 items-center gap-1.5 rounded-2xl border px-3 text-xs font-black transition disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
-    <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-[#0a0a0a] bg-[#0a0a0a] p-3 text-white shadow-lg">
+    <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-ink bg-ink-surface p-3 text-white shadow-lg">
       <span className="text-xs font-black">{selected.length} არჩეული</span>
       <button
         type="button"
@@ -93,7 +93,7 @@ export function ProductBulkBar() {
           if (!window.confirm(`დაიშალოს ${selected.length} პროდუქტის ყველა შეთავაზება ცალკეულ პროდუქტებად?`)) return;
           run("unlink", () => bulkUnlinkProducts(selected.map((entry) => entry.id)));
         }}
-        className={`${button} border-[#d4d4d8] bg-[#f4f4f5] text-[var(--danger)] hover:border-white`}
+        className={`${button} border-line-strong bg-surface-mute text-[var(--danger)] hover:border-on-ink`}
       >
         {busy === "unlink" ? <Loader2 className="size-3.5 animate-spin" /> : <Unlink className="size-3.5" />}
         Bulk unlink
@@ -106,7 +106,7 @@ export function ProductBulkBar() {
           if (!window.confirm(`წაიშალოს ${orphanCount} ობოლი (0 შეთავაზება) პროდუქტი?`)) return;
           run("delete", () => bulkDeleteOrphans(selected.map((entry) => entry.id)));
         }}
-        className={`${button} border-[#d4d4d8] bg-[#f4f4f5] text-[var(--danger)] hover:border-white`}
+        className={`${button} border-line-strong bg-surface-mute text-[var(--danger)] hover:border-on-ink`}
       >
         {busy === "delete" ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
         ობლების წაშლა ({orphanCount})
@@ -120,15 +120,15 @@ export function ProductBulkBar() {
           if (!window.confirm(`გაერთიანება:\n\n"${source.title}"\n→ გადადის →\n"${target.title}"\n\n(პირველი არჩეული რჩება, მეორე იშლება)`)) return;
           run("merge", () => mergeCanonicalProducts(target.id, source.id));
         }}
-        className={`${button} border-[#b8edf2] bg-[var(--aqua-soft)] text-[#087d8f] hover:border-white`}
+        className={`${button} border-accent-line bg-accent-soft text-accent hover:border-on-ink`}
       >
         {busy === "merge" ? <Loader2 className="size-3.5 animate-spin" /> : <GitMerge className="size-3.5" />}
         გაერთიანება 2→1
       </button>
-      <button type="button" disabled={busy !== null} onClick={clear} className={`${button} border-white/30 bg-transparent text-white hover:border-white`}>
+      <button type="button" disabled={busy !== null} onClick={clear} className={`${button} border-on-ink-line-strong bg-transparent text-white hover:border-on-ink`}>
         <X className="size-3.5" /> გასუფთავება
       </button>
-      {message ? <span className="text-xs font-bold text-[#d4d4d8]">{message}</span> : null}
+      {message ? <span className="text-xs font-bold text-subtle">{message}</span> : null}
     </div>
   );
 }

@@ -145,7 +145,7 @@ export function CatalogFilters({
             <SlidersHorizontal className="size-3.5 text-accent" />
             <span className="text-[13px] font-bold text-ink">ფილტრები</span>
             {activeCount > 0 && (
-              <span className="rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-bold tabular-nums leading-none text-white">
+              <span className="rounded-full bg-accent px-1.5 py-0.5 text-[11px] font-bold tabular-nums leading-none text-accent-ink">
                 {activeCount}
               </span>
             )}
@@ -306,25 +306,30 @@ function NumberFilter({
   max?: number;
   onCommit: (value: string) => void;
 }) {
-  const [val, setVal] = useState(defaultValue != null ? String(defaultValue) : "");
-  const dirty = useRef(false);
+  // `dirty` marks a user edit that has not been committed yet; only those are
+  // debounced into a navigation.
+  const [draft, setDraft] = useState({ value: defaultValue != null ? String(defaultValue) : "", dirty: false });
+  const [syncedDefault, setSyncedDefault] = useState(defaultValue);
+  const val = draft.value;
 
   // Re-sync from the server value after navigation; never fire a commit for it.
-  useEffect(() => {
-    dirty.current = false;
-    setVal(defaultValue != null ? String(defaultValue) : "");
-  }, [defaultValue]);
+  // Adjusted during render (React's "storing information from previous
+  // renders" pattern) instead of in an effect.
+  if (syncedDefault !== defaultValue) {
+    setSyncedDefault(defaultValue);
+    setDraft({ value: defaultValue != null ? String(defaultValue) : "", dirty: false });
+  }
 
   // Debounced commit, only for user edits.
   useEffect(() => {
-    if (!dirty.current) return;
+    if (!draft.dirty) return;
     const t = setTimeout(() => {
-      dirty.current = false;
-      onCommit(val.trim());
+      setDraft((current) => (current.dirty ? { ...current, dirty: false } : current));
+      onCommit(draft.value.trim());
     }, 500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [val]);
+  }, [draft]);
 
   return (
     <div>
@@ -340,13 +345,10 @@ function NumberFilter({
         value={val}
         placeholder={placeholder}
         className="filter-control"
-        onChange={(e) => {
-          dirty.current = true;
-          setVal(e.target.value);
-        }}
+        onChange={(e) => setDraft({ value: e.target.value, dirty: true })}
         onBlur={() => {
-          if (dirty.current) {
-            dirty.current = false;
+          if (draft.dirty) {
+            setDraft((current) => ({ ...current, dirty: false }));
             onCommit(val.trim());
           }
         }}
@@ -493,7 +495,7 @@ function Select({
         aria-label={`${label}: ${selected?.label ?? ""}`}
         onClick={() => (open ? closeMenu(false) : openMenu(selectedIndex >= 0 ? selectedIndex : 0))}
         onKeyDown={onTriggerKeyDown}
-        className="flex w-full min-h-10 items-center justify-between gap-2 rounded-xl border border-line-strong bg-surface px-3 text-left text-sm font-medium text-ink hover:border-accent focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-blue-100 outline-none"
+        className="flex w-full min-h-10 items-center justify-between gap-2 rounded-xl border border-line-strong bg-surface px-3 text-left text-sm font-medium text-ink hover:border-accent focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-focus-ring outline-none"
       >
         <span className="min-w-0 truncate">{selected?.label}</span>
         <ChevronDown className={`size-4 shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
@@ -522,12 +524,12 @@ function Select({
                   onMouseMove={() => setActiveIndex(index)}
                   className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors ${
                     active
-                      ? "bg-accent font-semibold text-white"
+                      ? "bg-accent font-semibold text-accent-ink"
                       : "text-ink-soft"
                   } ${highlighted && !active ? "bg-surface-mute" : ""} ${!active && !highlighted ? "hover:bg-surface-soft" : ""}`}
                 >
                   <span className="min-w-0 truncate">{option.label}</span>
-                  {active && <Check className="size-3.5 shrink-0 text-white" />}
+                  {active && <Check className="size-3.5 shrink-0 text-accent-ink" />}
                 </div>
               );
             })}
@@ -565,7 +567,7 @@ function TogglePill({ label, checked, onChange }: { label: string; checked?: boo
         onChange={(e) => onChange(e.target.checked)}
         className="peer sr-only"
       />
-      <span className="flex min-h-9 items-center justify-center rounded-full border border-line-strong px-2 text-center text-xs font-semibold text-ink-soft transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-white hover:border-accent">
+      <span className="flex min-h-9 items-center justify-center rounded-full border border-line-strong px-2 text-center text-xs font-semibold text-ink-soft transition peer-checked:border-accent peer-checked:bg-accent peer-checked:text-accent-ink hover:border-accent">
         <span className="truncate">{label}</span>
       </span>
     </label>

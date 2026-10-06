@@ -100,7 +100,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
   const chip = (active: boolean) =>
     `inline-flex h-9 items-center gap-1.5 rounded-2xl px-3 text-xs font-black transition ${
-      active ? "bg-[#0a0a0a] text-white" : "border border-[#e4e4e7] bg-white text-[var(--brand)] hover:border-[#0a0a0a]"
+      active ? "bg-ink-surface text-white" : "border border-line bg-surface text-[var(--brand)] hover:border-ink"
     }`;
 
   return (
@@ -144,7 +144,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </AdminPanel>
 
       <AdminPanel>
-        <div className="hidden grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem] gap-3 border-b border-[#ededee] bg-[#fafafa] px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)] sm:grid">
+        <div className="hidden grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem] gap-3 border-b border-line bg-surface-soft px-4 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted)] sm:grid">
           <span />
           <span>პროდუქტი</span>
           <span>კატეგორია</span>
@@ -153,7 +153,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
           <span className="text-right">ფასი განახლდა</span>
           <span />
         </div>
-        <div className="divide-y divide-[#ededee]">
+        <div className="divide-y divide-line">
           {products.map((product) => {
             const activeOffers = product.offers.filter((offer) => offer.isActive);
             const storeCount = new Set(activeOffers.map((offer) => offer.shop.slug)).size;
@@ -166,7 +166,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
             const lastPriceUpdate = priceChangeTimes.length ? new Date(Math.max(...priceChangeTimes)) : null;
             return (
               <details key={product.id} className="group">
-                <summary className="grid cursor-pointer list-none grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-[#fafafa] sm:grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem]">
+                <summary className="grid cursor-pointer list-none grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-3 p-4 hover:bg-surface-soft sm:grid-cols-[1.25rem_minmax(0,1.6fr)_repeat(4,minmax(0,auto))_1.25rem]">
                   <ProductSelectCheckbox id={product.id} title={product.title} activeOffers={activeOffers.length} />
                   <div className="flex min-w-0 items-center gap-3">
                     <AdminProductThumb src={product.primaryImage} alt={product.title} />
@@ -188,7 +188,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   <div className="hidden text-right text-sm font-black text-[var(--brand)] sm:block">
                     {storeCount} მაღაზია / {activeOffers.length} შეთავაზება
                   </div>
-                  <div className="text-right text-sm font-black tabular-nums text-[#087d8f]">
+                  <div className="text-right text-sm font-black tabular-nums text-accent">
                     {minPrice == null ? "—" : maxPrice !== minPrice ? `${formatGel(minPrice)} – ${formatGel(maxPrice!)}` : formatGel(minPrice)}
                   </div>
                   <div className="hidden text-right text-xs font-bold text-[var(--muted)] sm:block">
@@ -197,7 +197,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   <ChevronDown className="size-4 shrink-0 text-[var(--muted)] transition group-open:rotate-180" />
                 </summary>
 
-                <div className="grid gap-2 border-t border-[#ededee] bg-[#fafafa] p-4">
+                <div className="grid gap-2 border-t border-line bg-surface-soft p-4">
                   <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-[var(--muted)]">
                     <span className="break-all">key: {product.canonicalKey}</span>
                     {product.product?.slug ? (
@@ -210,7 +210,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                     const availabilityTone =
                       offer.availability === "IN_STOCK" ? "good" : offer.availability === "OUT_OF_STOCK" ? "danger" : "warn";
                     return (
-                      <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#ededee] bg-white p-3">
+                      <div key={offer.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3">
                         <div className="flex min-w-0 items-center gap-2.5">
                           <AdminProductThumb src={offer.imageUrl} alt={offer.title} size={36} />
                           <AdminShopAvatar name={offer.shop.name} slug={offer.shop.slug} />
@@ -229,14 +229,14 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                               href={offer.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="mt-1 block max-w-md truncate text-xs font-bold text-[#087d8f] underline-offset-2 hover:underline"
+                              className="mt-1 block max-w-md truncate text-xs font-bold text-accent underline-offset-2 hover:underline"
                             >
                               {offer.url}
                             </a>
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--brand)] hover:border-[#0a0a0a]">
+                          <a href={offer.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-line bg-surface px-3 text-xs font-black text-[var(--brand)] hover:border-ink">
                             ნახვა <ExternalLink className="size-3.5" />
                           </a>
                           <UnlinkOfferButton offerId={offer.id} offerTitle={`${offer.shop.name}: ${offer.title}`} />
@@ -256,13 +256,13 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       {totalPages > 1 ? (
         <div className="flex items-center justify-center gap-2">
           {page > 1 ? (
-            <Link href={query({ page: String(page - 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]">
+            <Link href={query({ page: String(page - 1) })} className="inline-flex h-10 items-center rounded-2xl border border-line bg-surface px-4 text-sm font-black text-[var(--brand)] hover:border-ink">
               წინა
             </Link>
           ) : null}
           <span className="text-sm font-black text-[var(--muted)]">{page} / {totalPages}</span>
           {page < totalPages ? (
-            <Link href={query({ page: String(page + 1) })} className="inline-flex h-10 items-center rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]">
+            <Link href={query({ page: String(page + 1) })} className="inline-flex h-10 items-center rounded-2xl border border-line bg-surface px-4 text-sm font-black text-[var(--brand)] hover:border-ink">
               შემდეგი
             </Link>
           ) : null}

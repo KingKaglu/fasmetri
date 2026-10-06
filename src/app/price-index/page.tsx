@@ -29,18 +29,18 @@ export default async function PriceIndexPage() {
       {/* Masthead band — the "markets page" front */}
       <section className="section-ink section-ink-grain">
         <div className="shell pt-9 pb-9 sm:pt-12 sm:pb-11">
-          <div className="mb-5 inline-flex w-fit flex-wrap items-center gap-x-2 gap-y-1 rounded-full bg-white/10 px-4 py-1.5 text-[12px] font-semibold text-white/85">
+          <div className="mb-5 inline-flex w-fit flex-wrap items-center gap-x-2 gap-y-1 rounded-full bg-on-ink-fill px-4 py-1.5 text-[12px] font-semibold text-on-ink-soft">
             <span className="text-white">ფასმეტრი</span>
-            <span aria-hidden className="text-white/30">/</span>
+            <span aria-hidden className="text-on-ink-faint">/</span>
             <span>ბაზრის მონიტორინგი</span>
-            <span aria-hidden className="hidden text-white/30 sm:inline">/</span>
+            <span aria-hidden className="hidden text-on-ink-faint sm:inline">/</span>
             <span className="hidden sm:inline">{georgianDateline()}</span>
           </div>
 
           <h1 className="font-display text-4xl font-bold leading-[1.08] text-white sm:text-5xl">
             ფასების ინდექსი
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-on-ink-muted sm:text-base">
             რამდენად გაიაფდა ან გაძვირდა ტექნიკა საქართველოში? ინდექსი ადარებს ერთი და იმავე შეთავაზების
             დღევანდელ ფასს მისსავე ფასთან {index.windowDays} დღის წინ — ასე ჩანს ბაზრის რეალური მოძრაობა და
             არა კატალოგის ცვლილება.
@@ -53,7 +53,7 @@ export default async function PriceIndexPage() {
                   <span aria-hidden className="text-2xl sm:text-3xl">{index.overall.changePct < 0 ? "▼" : index.overall.changePct > 0 ? "▲" : "•"}</span>
                   {formatPct(index.overall.changePct)}
                 </div>
-                <div className="mt-2 text-[12px] font-medium text-white/60">
+                <div className="mt-2 text-[12px] font-medium text-on-ink-muted">
                   ბაზარი ბოლო {index.windowDays} დღეში
                 </div>
               </div>
@@ -63,7 +63,7 @@ export default async function PriceIndexPage() {
               <IndexStat label="დაკვირვებული შეთავაზება" value={index.overall.sampleSize} />
             </div>
           ) : (
-            <div className="mt-8 max-w-xl border border-white/20 px-4 py-3 text-sm text-white/70">
+            <div className="mt-8 max-w-xl border border-on-ink-line-strong px-4 py-3 text-sm text-on-ink-muted">
               ინდექსი ჯერ გროვდება — საკმარისი ფასის ისტორია დაგროვებისთანავე აქ გამოჩნდება ბაზრის 7-დღიანი სურათი.
             </div>
           )}
@@ -124,13 +124,13 @@ export default async function PriceIndexPage() {
               <p className="mt-2 text-[13px] leading-6 text-ink-soft">
                 ყოველი შეთავაზების დღევანდელი ფასი დარდება მისსავე, მაღაზიის გვერდიდან ჩაწერილ ფასს {index.windowDays} დღის
                 წინ. ცვლილებები საშუალდება კატეგორიების მიხედვით; უკიდურესი გადახრები (მაგ. მონაცემის შეცდომა) იჭრება,
-                რომ ერთმა პროდუქტმა ინდექსი ვერ გადაწიოს. შედეგი CPI-ის მსგავსი, „ერთნაირი კალათის" საზომია — ის არ
+                რომ ერთმა პროდუქტმა ინდექსი ვერ გადაწიოს. შედეგი CPI-ის მსგავსი, „ერთნაირი კალათის&quot; საზომია — ის არ
                 იცვლება იმის მიხედვით, რომელი პროდუქტები დაემატა ან მოაკლდა კატალოგს ამ კვირაში.
               </p>
             </div>
             <Link
               href="/deals"
-              className="inline-flex h-11 w-fit items-center gap-2 rounded-full bg-accent px-5 text-[13px] font-bold text-white hover:bg-accent-strong"
+              className="inline-flex h-11 w-fit items-center gap-2 rounded-full bg-accent px-5 text-[13px] font-bold text-accent-ink hover:bg-accent-strong"
             >
               ნახე დღევანდელი ფასდაკლებები
               <ArrowRight className="size-3.5" />
@@ -159,7 +159,7 @@ function IndexStat({ label, value }: { label: string; value: number }) {
       <div className="font-display text-2xl font-bold tabular-nums leading-none text-white sm:text-3xl">
         {formatNumber(value)}
       </div>
-      <div className="mt-1.5 text-[12px] font-medium text-white/60">{label}</div>
+      <div className="mt-1.5 text-[12px] font-medium text-on-ink-muted">{label}</div>
     </div>
   );
 }
@@ -185,7 +185,7 @@ function CategoryRow({ category, maxAbsPct }: { category: CategoryIndex; maxAbsP
   return (
     <li className="wire-row flex min-w-0 items-center gap-3 px-3 py-3 sm:gap-4 sm:px-4">
       <span
-        className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-emerald-600" : "text-red-400"}`}
+        className={`w-10 shrink-0 text-center text-[13px] font-black tabular-nums ${dropped ? "text-success" : "text-danger"}`}
         aria-hidden
       >
         {flatMove ? "•" : dropped ? "▼" : "▲"}
@@ -199,13 +199,13 @@ function CategoryRow({ category, maxAbsPct }: { category: CategoryIndex; maxAbsP
       {/* Move bar — filled ink for drops (prices falling), outlined for rises */}
       <span className="hidden h-2 w-32 shrink-0 border border-line-strong bg-surface sm:block md:w-44" aria-hidden>
         <span
-          className={`block h-full ${dropped ? "bg-emerald-500" : flatMove ? "bg-transparent" : "bg-red-300"}`}
+          className={`block h-full ${dropped ? "bg-success-solid" : flatMove ? "bg-transparent" : "bg-danger-line"}`}
           style={{ width: `${barWidth}%` }}
         />
       </span>
       <span
         className={`w-16 shrink-0 text-right text-sm font-black tabular-nums sm:w-20 ${
-          dropped ? "text-emerald-600" : "text-red-500"
+          dropped ? "text-success" : "text-danger"
         }`}
       >
         {formatPct(category.changePct)}
@@ -255,7 +255,7 @@ function MoverRow({ mover, rank, direction }: { mover: IndexMover; rank: number;
         </span>
         <span
           className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tabular-nums ${
-            dropped ? "bg-savings-soft text-savings-strong" : "bg-deal-soft text-deal-strong"
+            dropped ? "bg-savings-soft text-success" : "bg-deal-soft text-danger-strong"
           }`}
         >
           {dropped ? <TrendingDown className="size-3" /> : <TrendingUp className="size-3" />}

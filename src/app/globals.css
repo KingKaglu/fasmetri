@@ -26,11 +26,14 @@
   --surface: var(--c-000);
   --surface-soft: var(--c-025);
   --surface-mute: var(--c-050);
+  --surface-strong: var(--c-150);
   --surface-ink: var(--c-900);
+  /* decorative only (empty stars, dividers) — never body text */
+  --subtle: var(--c-300);
   /* Hairline borders — translucent slate so they sit softly on any surface */
   --line: rgba(15, 23, 42, 0.08);
   --line-strong: rgba(15, 23, 42, 0.14);
-  --muted: #64748b;
+  --muted: #5e6d82;
   --muted-strong: #334155;
 
   --brand: #0f172a;
@@ -60,9 +63,100 @@
   --save-ink: #ffffff;
   --save-soft: #059669;
   --star: #f59e0b;
+
+  /* Status colours. Each has text (-strong where a darker text is needed),
+     -soft (tinted panel) and -line (panel border); -solid is for filled
+     badges and dots that carry white text (--on-solid). */
+  --success: #047857;
+  --success-solid: #059669;
+  --success-soft: #ecfdf5;
+  --success-line: #a7f3d0;
   --danger: #dc2626;
+  --danger-strong: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-line: #fecaca;
   --warn: #b45309;
+  --warn-strong: #92400e;
   --warn-soft: #fffbeb;
+  --warn-line: #fde68a;
+  /* one step past warn: "barely playable" */
+  --caution: #c2410c;
+  --caution-soft: #fff7ed;
+  --caution-line: #fed7aa;
+  --accent-line: #bfdbfe;
+  --accent-hover-line: rgba(37, 99, 235, 0.35);
+  --focus-ring: rgba(37, 99, 235, 0.15);
+  /* Text/icons on filled colour (accent, deal, savings badges) */
+  --on-solid: #ffffff;
+
+  /* Always-dark bands (footer, announcement strip, ink sections, heroes).
+     These stay dark in both themes, so their text is fixed white-alpha. */
+  --on-ink: #ffffff;
+  --on-ink-soft: rgba(255, 255, 255, 0.85);
+  --on-ink-muted: rgba(255, 255, 255, 0.7);
+  --on-ink-subtle: rgba(255, 255, 255, 0.5);
+  --on-ink-faint: rgba(255, 255, 255, 0.3);
+  --on-ink-line: rgba(255, 255, 255, 0.14);
+  --on-ink-line-strong: rgba(255, 255, 255, 0.25);
+  --on-ink-fill: rgba(255, 255, 255, 0.1);
+  --on-ink-fill-strong: rgba(255, 255, 255, 0.2);
+  --on-ink-accent: rgba(147, 197, 253, 0.9);
+  --ink-gradient: linear-gradient(135deg, #0f172a 0%, #16233f 60%, #1e3a8a 130%);
+  --ink-glow: radial-gradient(ellipse 60% 80% at 85% 10%, rgba(96, 165, 250, 0.22) 0%, transparent 70%);
+  --hero-glow:
+    radial-gradient(ellipse 50% 70% at 15% 110%, rgba(96, 165, 250, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 85% at 88% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  --brand-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+
+  /* Translucent chrome */
+  --header-bg: rgba(255, 255, 255, 0.92);
+  /* round controls floating over product photos (favourite, compare) */
+  --overlay: rgba(255, 255, 255, 0.9);
+  --overlay-strong: rgba(255, 255, 255, 0.95);
+  /* Product photos are shot on white: they always sit on a light tile, in
+     both themes, so they never look like a broken white box. */
+  --image-tile: #f8fafc;
+  --image-shadow: rgba(0, 0, 0, 0.08);
+  /* modal / sheet backdrop */
+  --scrim: rgba(2, 6, 23, 0.45);
+  /* hero marker-pen word */
+  --highlight-bg: #fde047;
+  --highlight-ink: #1e3a8a;
+
+  /* Category icon tints (decorative): icon colour + soft tile */
+  --tint-blue: #2563eb;
+  --tint-blue-soft: #dbeafe;
+  --tint-violet: #7c3aed;
+  --tint-violet-soft: #ede9fe;
+  --tint-sky: #0284c7;
+  --tint-sky-soft: #e0f2fe;
+  --tint-pink: #db2777;
+  --tint-pink-soft: #fce7f3;
+  --tint-amber: #d97706;
+  --tint-amber-soft: #fef3c7;
+  --tint-indigo: #4f46e5;
+  --tint-indigo-soft: #e0e7ff;
+  --tint-emerald: #059669;
+  --tint-emerald-soft: #d1fae5;
+  --tint-cyan: #0891b2;
+  --tint-cyan-soft: #cffafe;
+  --tint-orange: #ea580c;
+  --tint-orange-soft: #ffedd5;
+  --tint-lime: #65a30d;
+  --tint-lime-soft: #ecfccb;
+  --tint-rose: #e11d48;
+  --tint-rose-soft: #ffe4e6;
+  --tint-teal: #0d9488;
+  --tint-teal-soft: #ccfbf1;
+  --tint-slate: #475569;
+  --tint-slate-soft: #f1f5f9;
+  --tint-stone: #57534e;
+  --tint-stone-soft: #f5f5f4;
+
+  /* Brand mark: identity colours, identical in both themes */
+  --brand-mark: #1d4ed8;
+  --brand-mark-soft: rgba(29, 78, 216, 0.4);
+  --brand-mark-glow: 0 8px 20px rgba(37, 99, 235, 0.28);
 
   /* hero — deep friendly blue with a soft glow */
   --hero-bg: linear-gradient(130deg, #1e3a8a 0%, #1d4ed8 52%, #2563eb 100%);
@@ -98,6 +192,130 @@
   }
 }
 
+/* ─── Dark theme ─────────────────────────────────────────
+   One `dark` variant, two triggers: the OS preference (unless the visitor
+   picked "light" in the theme menu) and an explicit data-theme="dark" on
+   <html>, set before first paint by the inline script in layout.tsx.
+   Every token gets its dark value here once; components never branch.
+   Fills that carry white text (--deal-strong, --savings-strong,
+   --success-solid, --ink-surface, --hero-bg) keep their light values, since
+   they already pass on any background. Contrast of every text token below on
+   --surface / --background / --surface-mute is >= 4.5:1 (checked in the
+   rendered page). */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not([data-theme="light"]):not([data-theme="light"] *)) {
+      @slot;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+
+  @variant dark {
+    color-scheme: dark;
+
+    --background: #0b1120;
+    --foreground: #e2e8f0;
+    --surface: #111a2c;
+    --surface-soft: #152035;
+    --surface-mute: #1a263d;
+    --surface-strong: #22304a;
+    --surface-ink: #020617;
+    --subtle: #475569;
+    --line: rgba(148, 163, 184, 0.16);
+    --line-strong: rgba(148, 163, 184, 0.28);
+    --muted: #94a3b8;
+    --muted-strong: #cbd5e1;
+
+    --brand: #f1f5f9;
+    --brand-soft: #cbd5e1;
+    --brand-ink: #0b1120;
+    --ink-surface: #020617;
+    --accent: #60a5fa;
+    --accent-strong: #93c5fd;
+    --accent-soft: rgba(96, 165, 250, 0.14);
+    --accent-ink: #0b1120;
+    --accent-line: rgba(96, 165, 250, 0.35);
+    --accent-hover-line: rgba(96, 165, 250, 0.5);
+    --focus-ring: rgba(96, 165, 250, 0.3);
+    --aqua: #34d399;
+    --aqua-soft: rgba(52, 211, 153, 0.12);
+
+    --price: #f1f5f9;
+    --price-deal: #f87171;
+    --deal-soft: rgba(248, 113, 113, 0.12);
+    --savings: #34d399;
+    --savings-soft: rgba(52, 211, 153, 0.12);
+    --star: #fbbf24;
+
+    --success: #34d399;
+    --success-soft: rgba(52, 211, 153, 0.12);
+    --success-line: rgba(52, 211, 153, 0.32);
+    --danger: #f87171;
+    --danger-strong: #fca5a5;
+    --danger-soft: rgba(248, 113, 113, 0.12);
+    --danger-line: rgba(248, 113, 113, 0.32);
+    --warn: #fbbf24;
+    --warn-strong: #fcd34d;
+    --warn-soft: rgba(251, 191, 36, 0.12);
+    --warn-line: rgba(251, 191, 36, 0.32);
+    --caution: #fb923c;
+    --caution-soft: rgba(251, 146, 60, 0.12);
+    --caution-line: rgba(251, 146, 60, 0.32);
+
+    --header-bg: rgba(11, 17, 32, 0.88);
+    --overlay: rgba(17, 26, 44, 0.88);
+    --overlay-strong: rgba(17, 26, 44, 0.95);
+    /* still light: product photos are shot on white */
+    --image-tile: #f1f5f9;
+    --scrim: rgba(0, 0, 0, 0.6);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 12px 28px -10px rgba(0, 0, 0, 0.6), 0 4px 10px -4px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 20px 40px -16px rgba(0, 0, 0, 0.7), 0 6px 14px -6px rgba(0, 0, 0, 0.4);
+
+    --tint-blue: #60a5fa;
+    --tint-blue-soft: rgba(96, 165, 250, 0.14);
+    --tint-violet: #a78bfa;
+    --tint-violet-soft: rgba(167, 139, 250, 0.14);
+    --tint-sky: #38bdf8;
+    --tint-sky-soft: rgba(56, 189, 248, 0.14);
+    --tint-pink: #f472b6;
+    --tint-pink-soft: rgba(244, 114, 182, 0.14);
+    --tint-amber: #fbbf24;
+    --tint-amber-soft: rgba(251, 191, 36, 0.14);
+    --tint-indigo: #818cf8;
+    --tint-indigo-soft: rgba(129, 140, 248, 0.14);
+    --tint-emerald: #34d399;
+    --tint-emerald-soft: rgba(52, 211, 153, 0.14);
+    --tint-cyan: #22d3ee;
+    --tint-cyan-soft: rgba(34, 211, 238, 0.14);
+    --tint-orange: #fb923c;
+    --tint-orange-soft: rgba(251, 146, 60, 0.14);
+    --tint-lime: #a3e635;
+    --tint-lime-soft: rgba(163, 230, 53, 0.14);
+    --tint-rose: #fb7185;
+    --tint-rose-soft: rgba(251, 113, 133, 0.14);
+    --tint-teal: #2dd4bf;
+    --tint-teal-soft: rgba(45, 212, 191, 0.14);
+    --tint-slate: #94a3b8;
+    --tint-slate-soft: rgba(148, 163, 184, 0.14);
+    --tint-stone: #a8a29e;
+    --tint-stone-soft: rgba(168, 162, 158, 0.14);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 /* ─── Tailwind theme: semantic tokens ──────────────────────
    `inline` makes each utility reference the :root variable directly, so the
    section overrides above (.section-ink redefines --muted, --line, --brand…)
@@ -109,25 +327,86 @@
   --color-ink: var(--brand);
   --color-ink-soft: var(--muted-strong);
   --color-muted: var(--muted);
-  --color-subtle: var(--c-300);
+  --color-subtle: var(--subtle);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
   --color-surface-mute: var(--surface-mute);
-  --color-surface-strong: var(--c-150);
+  --color-surface-strong: var(--surface-strong);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
   --color-savings: var(--savings);
   --color-savings-strong: var(--savings-strong);
   --color-savings-soft: var(--savings-soft);
   --color-deal: var(--price-deal);
   --color-deal-strong: var(--deal-strong);
   --color-deal-soft: var(--deal-soft);
+  --color-star: var(--star);
+  --color-success: var(--success);
+  --color-success-solid: var(--success-solid);
+  --color-success-soft: var(--success-soft);
+  --color-success-line: var(--success-line);
   --color-danger: var(--danger);
+  --color-danger-strong: var(--danger-strong);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-line: var(--danger-line);
   --color-warn: var(--warn);
+  --color-warn-strong: var(--warn-strong);
   --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --color-caution: var(--caution);
+  --color-caution-soft: var(--caution-soft);
+  --color-caution-line: var(--caution-line);
+  --color-accent-line: var(--accent-line);
+  --color-focus-ring: var(--focus-ring);
+  --color-on-solid: var(--on-solid);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-soft: var(--on-ink-soft);
+  --color-on-ink-muted: var(--on-ink-muted);
+  --color-on-ink-subtle: var(--on-ink-subtle);
+  --color-on-ink-faint: var(--on-ink-faint);
+  --color-on-ink-line: var(--on-ink-line);
+  --color-on-ink-line-strong: var(--on-ink-line-strong);
+  --color-on-ink-fill: var(--on-ink-fill);
+  --color-on-ink-fill-strong: var(--on-ink-fill-strong);
+  --color-ink-surface: var(--ink-surface);
+  --color-ink-deep: var(--c-999);
+  --color-scrim: var(--scrim);
+  --color-overlay: var(--overlay);
+  --color-overlay-strong: var(--overlay-strong);
+  --color-image-tile: var(--image-tile);
+  --color-image-shadow: var(--image-shadow);
+  --color-tint-blue: var(--tint-blue);
+  --color-tint-blue-soft: var(--tint-blue-soft);
+  --color-tint-violet: var(--tint-violet);
+  --color-tint-violet-soft: var(--tint-violet-soft);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-sky-soft: var(--tint-sky-soft);
+  --color-tint-pink: var(--tint-pink);
+  --color-tint-pink-soft: var(--tint-pink-soft);
+  --color-tint-amber: var(--tint-amber);
+  --color-tint-amber-soft: var(--tint-amber-soft);
+  --color-tint-indigo: var(--tint-indigo);
+  --color-tint-indigo-soft: var(--tint-indigo-soft);
+  --color-tint-emerald: var(--tint-emerald);
+  --color-tint-emerald-soft: var(--tint-emerald-soft);
+  --color-tint-cyan: var(--tint-cyan);
+  --color-tint-cyan-soft: var(--tint-cyan-soft);
+  --color-tint-orange: var(--tint-orange);
+  --color-tint-orange-soft: var(--tint-orange-soft);
+  --color-tint-lime: var(--tint-lime);
+  --color-tint-lime-soft: var(--tint-lime-soft);
+  --color-tint-rose: var(--tint-rose);
+  --color-tint-rose-soft: var(--tint-rose-soft);
+  --color-tint-teal: var(--tint-teal);
+  --color-tint-teal-soft: var(--tint-teal-soft);
+  --color-tint-slate: var(--tint-slate);
+  --color-tint-slate-soft: var(--tint-slate-soft);
+  --color-tint-stone: var(--tint-stone);
+  --color-tint-stone-soft: var(--tint-stone-soft);
   --font-sans: var(--font-georgian, "Noto Sans Georgian"), "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
 }
 
@@ -235,30 +514,30 @@ textarea {
    Each sets its own --line and text color so nested cards adapt. */
 
 .section-paper {
-  background: var(--c-000);
-  color: var(--c-900);
+  background: var(--surface);
+  color: var(--brand);
 }
 
 .section-mist {
-  background: var(--c-025);
-  color: var(--c-900);
+  background: var(--surface-soft);
+  color: var(--brand);
 }
 
 .section-frame {
-  background: var(--c-000);
-  color: var(--c-900);
+  background: var(--surface);
+  color: var(--brand);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
 }
 
 .section-ink {
-  background: linear-gradient(135deg, #0f172a 0%, #16233f 60%, #1e3a8a 130%);
-  color: #ffffff;
-  --line: rgba(255, 255, 255, 0.12);
-  --line-strong: rgba(255, 255, 255, 0.2);
-  --muted: rgba(255, 255, 255, 0.62);
-  --muted-strong: rgba(255, 255, 255, 0.85);
-  --brand: #ffffff;
+  background: var(--ink-gradient);
+  color: var(--on-ink);
+  --line: var(--on-ink-line);
+  --line-strong: var(--on-ink-fill-strong);
+  --muted: var(--on-ink-muted);
+  --muted-strong: var(--on-ink-soft);
+  --brand: var(--on-ink);
   --surface: rgba(255, 255, 255, 0.05);
 }
 
@@ -272,14 +551,28 @@ textarea {
   inset: 0;
   z-index: -1;
   opacity: 0.35;
-  background-image: radial-gradient(ellipse 60% 80% at 85% 10%, rgba(96, 165, 250, 0.22) 0%, transparent 70%);
+  background-image: var(--ink-glow);
   pointer-events: none;
 }
 
 /* Softly tinted panel — a light accent wash for variety */
 .section-hatch {
-  background: linear-gradient(180deg, #eff6ff 0%, #f6f8fb 100%);
-  color: var(--c-900);
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--background) 100%);
+  color: var(--brand);
+}
+
+/* Anything drawn on top of a product photo. The photo tile stays light in
+   both themes (--image-tile), so badges on it keep their light-theme values
+   instead of dark-theme tints that would vanish on a near-white image. */
+.on-image {
+  --success: #047857;
+  --success-soft: #ecfdf5;
+  --success-line: #a7f3d0;
+  --muted: #5e6d82;
+  --line: rgba(15, 23, 42, 0.08);
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --subtle: #b6c0cd;
 }
 
 /* ─── Card hover (one shared motion language) ────────── */
@@ -289,7 +582,7 @@ textarea {
 }
 .card-hover:hover {
   transform: translateY(-3px);
-  border-color: rgba(37, 99, 235, 0.35);
+  border-color: var(--accent-hover-line);
   box-shadow: var(--shadow-card-hover);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -317,15 +610,47 @@ textarea {
   border: 1px solid var(--c-800);
   border-radius: var(--radius-card);
   background: var(--c-900);
-  color: #ffffff;
+  color: var(--on-ink);
 }
 
 /* ─── Header ─────────────────────────────────────────── */
 
 .site-header {
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--header-bg);
   backdrop-filter: saturate(160%) blur(14px);
+}
+
+/* Mobile header search row: folds away while scrolling down, comes back on
+   scroll-up or at the top (SiteHeader sets data-collapsed). The 1fr -> 0fr
+   grid-row transition animates to the content's real height without
+   measuring it. The clip only hides overflow while folded or folding: once
+   expanded, the search suggestions must be free to drop below the header,
+   so `overflow` flips back to visible only after the 220ms expand finishes
+   (a discrete transition). --header-h follows every frame through the
+   header's ResizeObserver, so sticky elements never slide under it. */
+.header-search-row {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 220ms ease;
+}
+.header-search-row > .header-search-clip {
+  min-height: 0;
+  overflow: visible;
+  transition: overflow 0s 220ms;
+  transition-behavior: allow-discrete;
+}
+.header-search-row[data-collapsed] {
+  grid-template-rows: 0fr;
+}
+.header-search-row[data-collapsed] > .header-search-clip {
+  overflow: hidden;
+  transition-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-search-row,
+  .header-search-row > .header-search-clip {
+    transition: none;
+  }
 }
 
 /* ─── Buttons ────────────────────────────────────────── */
@@ -355,13 +680,13 @@ textarea {
 
 .chip-deal {
   background: var(--deal-strong);
-  color: #ffffff;
+  color: var(--on-solid);
 }
 
 .chip-savings {
-  border: 1px solid rgba(5, 150, 105, 0.25);
+  border: 1px solid var(--success-line);
   background: var(--savings-soft);
-  color: #047857;
+  color: var(--success);
 }
 
 .chip-muted {
@@ -387,7 +712,7 @@ textarea {
 .filter-control:focus,
 .contact-control:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px var(--focus-ring);
   outline: none;
 }
 
@@ -417,7 +742,7 @@ textarea {
   position: relative;
   border-radius: var(--radius-card);
   background: var(--hero-bg);
-  color: #fff;
+  color: var(--on-ink);
 }
 
 .hero-frame::before {
@@ -426,9 +751,7 @@ textarea {
   inset: 0;
   border-radius: inherit;
   opacity: 0.4;
-  background-image:
-    radial-gradient(ellipse 50% 70% at 15% 110%, rgba(96, 165, 250, 0.35) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 85% at 88% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  background-image: var(--hero-glow);
   pointer-events: none;
 }
 
@@ -438,7 +761,7 @@ textarea {
 .home-hero {
   position: relative;
   background:
-    radial-gradient(56rem 24rem at 50% -10rem, var(--accent-soft) 0%, rgba(239, 246, 255, 0) 72%),
+    radial-gradient(56rem 24rem at 50% -10rem, var(--accent-soft) 0%, transparent 72%),
     linear-gradient(180deg, var(--surface) 0%, var(--background) 100%);
   border-bottom: 1px solid var(--line);
 }
@@ -453,8 +776,8 @@ textarea {
 /* Marker-pen emphasis for a single heading word on the hero */
 .hero-highlight {
   position: relative;
-  color: #1e3a8a;
-  background: #fde047;
+  color: var(--highlight-ink);
+  background: var(--highlight-bg);
   border-radius: 0.375rem;
   padding: 0.02em 0.18em;
   -webkit-box-decoration-break: clone;
@@ -725,7 +1048,7 @@ body {
   color: var(--accent);
 }
 .section-ink .masthead-kicker {
-  color: rgba(147, 197, 253, 0.9);
+  color: var(--on-ink-accent);
 }
 
 .masthead-link {
@@ -747,13 +1070,13 @@ body {
   background: var(--accent-soft);
 }
 .section-ink .masthead-link {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  background: var(--on-ink-fill);
+  color: var(--on-ink);
 }
 .section-ink .masthead-link:hover {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  border-color: var(--on-ink-muted);
+  background: var(--on-ink-fill-strong);
+  color: var(--on-ink);
 }
 
 /* ─── Ticker table (price wire) ───────────────────────── */
@@ -773,7 +1096,7 @@ body {
 
 /* Stat column with a left rule — hero stats */
 .stat-rule {
-  border-left: 2px solid rgba(255, 255, 255, 0.25);
+  border-left: 2px solid var(--on-ink-line-strong);
   padding-left: 0.9rem;
   border-radius: 1px;
 }
@@ -852,7 +1175,7 @@ body {
   padding: 0.1rem 0.4rem;
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-solid);
 }
 .home-card-body {
   display: flex;
@@ -1119,7 +1442,7 @@ body {
   padding: 0.05rem 0.45rem;
   font-size: 11px;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-solid);
 }
 .home-compare-price {
   margin-left: auto;
@@ -1134,7 +1457,7 @@ body {
   gap: 0.35rem;
   font-size: 13px;
   font-weight: 700;
-  color: var(--savings);
+  color: var(--success);
 }
 .home-compare-cta {
   display: inline-flex;
@@ -1146,7 +1469,7 @@ body {
   padding: 0.6rem;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
 }
 .home-compare:hover .home-compare-cta {
   background: var(--accent-strong);
@@ -1248,11 +1571,11 @@ body {
   padding: 0.05rem 0.45rem;
   font-size: 11px;
   font-weight: 700;
-  color: var(--savings-strong);
+  color: var(--success);
 }
 .home-card-meta[data-multi] {
   font-weight: 600;
-  color: var(--savings);
+  color: var(--success);
 }
 
 /* Recent price changes */
@@ -1282,7 +1605,7 @@ body {
 }
 .home-change-ico.is-down {
   background: var(--savings-soft);
-  color: var(--savings);
+  color: var(--success);
 }
 .home-change-ico.is-up {
   background: var(--deal-soft);

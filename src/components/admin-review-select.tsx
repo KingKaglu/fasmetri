@@ -22,7 +22,7 @@ export function ReviewSelectCheckbox({ matchId }: { matchId: string }) {
       aria-pressed={checked}
       title={checked ? "მონიშვნის მოხსნა" : "მონიშვნა"}
       className={`inline-flex size-9 shrink-0 items-center justify-center rounded-xl border transition ${
-        checked ? "border-[#0a0a0a] bg-[#0a0a0a] text-white" : "border-[#e4e4e7] bg-white text-[var(--muted)] hover:border-[#0a0a0a]"
+        checked ? "border-ink bg-ink-surface text-white" : "border-line bg-surface text-[var(--muted)] hover:border-ink"
       }`}
     >
       {checked ? <CheckSquare className="size-4" /> : <Square className="size-4" />}
@@ -84,13 +84,13 @@ export function ReviewSelectionProvider({ allIds, children }: { allIds: string[]
     <SelectionContext.Provider value={value}>
       {children}
       {selected.size > 0 || progress ? (
-        <div className="sticky bottom-4 z-40 mx-auto flex w-fit max-w-full flex-wrap items-center gap-2 rounded-2xl border border-[#27272a] bg-[#0a0a0a] px-4 py-3 text-white shadow-[0_18px_44px_rgba(10,10,10,0.35)]">
+        <div className="sticky bottom-4 z-40 mx-auto flex w-fit max-w-full flex-wrap items-center gap-2 rounded-2xl border border-on-ink-line bg-ink-surface px-4 py-3 text-white shadow-[0_18px_44px_rgba(10,10,10,0.35)]">
           <span className="text-sm font-black tabular-nums">{selected.size} მონიშნული</span>
           <button
             type="button"
             disabled={busy !== null || selected.size === 0}
             onClick={() => act("approve")}
-            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#1c8b43] px-4 text-sm font-black text-white hover:bg-[#157035] disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-success-solid px-4 text-sm font-black text-white hover:bg-success disabled:cursor-wait disabled:opacity-60"
           >
             {busy === "approve" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
             დადასტურება
@@ -99,7 +99,7 @@ export function ReviewSelectionProvider({ allIds, children }: { allIds: string[]
             type="button"
             disabled={busy !== null || selected.size === 0}
             onClick={() => act("reject")}
-            className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-white/25 px-4 text-sm font-black text-white hover:border-white disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-on-ink-line-strong px-4 text-sm font-black text-white hover:border-on-ink disabled:cursor-wait disabled:opacity-60"
           >
             {busy === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
             უარყოფა
@@ -108,7 +108,7 @@ export function ReviewSelectionProvider({ allIds, children }: { allIds: string[]
             type="button"
             disabled={busy !== null}
             onClick={() => setSelected(new Set(allIds))}
-            className="text-xs font-black text-white/70 underline-offset-2 hover:text-white hover:underline"
+            className="text-xs font-black text-on-ink-muted underline-offset-2 hover:text-white hover:underline"
           >
             ყველას მონიშვნა ({allIds.length})
           </button>
@@ -119,11 +119,11 @@ export function ReviewSelectionProvider({ allIds, children }: { allIds: string[]
               setSelected(new Set());
               setProgress("");
             }}
-            className="text-xs font-black text-white/70 underline-offset-2 hover:text-white hover:underline"
+            className="text-xs font-black text-on-ink-muted underline-offset-2 hover:text-white hover:underline"
           >
             გასუფთავება
           </button>
-          {progress ? <span className="text-xs font-bold text-white/70">{progress}</span> : null}
+          {progress ? <span className="text-xs font-bold text-on-ink-muted">{progress}</span> : null}
         </div>
       ) : null}
     </SelectionContext.Provider>

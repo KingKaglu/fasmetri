@@ -29,7 +29,7 @@ export function UnlinkOfferButton({ offerId, offerTitle }: { offerId: string; of
         type="button"
         disabled={busy}
         onClick={unlink}
-        className="inline-flex h-9 items-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-3 text-xs font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-9 items-center gap-1.5 rounded-2xl border border-line-strong bg-surface-mute px-3 text-xs font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Unlink className="size-3.5" />}
         Unlink

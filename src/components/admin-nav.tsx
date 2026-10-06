@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Gauge,
   GitCompareArrows,
@@ -42,7 +42,9 @@ function isActive(pathname: string, href: string) {
 
 async function logout() {
   await fetch("/api/admin/session", { method: "DELETE" });
-  location.href = "/admin";
+  // A full document load on purpose (drops every client cache of admin data),
+  // so not router.push. Absolute URL, which is what the Next lint rule wants.
+  window.location.assign(new URL("/admin", window.location.href));
 }
 
 export function AdminNav() {
@@ -59,7 +61,7 @@ export function AdminNav() {
 function AdminSidebar({ pathname }: { pathname: string }) {
   return (
     <nav className="hidden shrink-0 lg:block lg:w-60">
-      <div className="rounded-[1.15rem] border border-[#27272a] bg-[#0a0a0a] p-2 text-white shadow-[0_18px_44px_rgba(10,10,10,0.22)] lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:flex lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:min-h-[34rem] lg:flex-col">
+      <div className="rounded-[1.15rem] border border-on-ink-line bg-ink-surface p-2 text-white shadow-[0_18px_44px_rgba(10,10,10,0.22)] lg:sticky lg:top-[calc(var(--header-h)+1rem)] lg:flex lg:max-h-[calc(100vh-var(--header-h)-2rem)] lg:min-h-[34rem] lg:flex-col">
         <p className="px-3 pb-2 pt-3 text-[11px] font-black uppercase tracking-[0.18em] text-white">
           fasmetri admin
         </p>
@@ -73,21 +75,21 @@ function AdminSidebar({ pathname }: { pathname: string }) {
                 aria-current={active ? "page" : undefined}
                 className={`group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-black transition ${
                   active
-                    ? "bg-white text-[#0a0a0a] shadow-[0_8px_18px_rgba(0,0,0,0.25)]"
-                    : "text-white/72 hover:bg-white/10 hover:text-white"
+                    ? "bg-surface text-ink shadow-[0_8px_18px_rgba(0,0,0,0.25)]"
+                    : "text-on-ink-muted hover:bg-on-ink-fill hover:text-white"
                 }`}
               >
                 <Icon className="size-4 shrink-0" />
                 <span className="whitespace-nowrap">{label}</span>
-                {active ? <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-white/85" /> : null}
+                {active ? <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-on-ink/85" /> : null}
               </Link>
             );
           })}
         </div>
-        <div className="mt-1.5 border-t border-white/10 pt-1.5">
+        <div className="mt-1.5 border-t border-on-ink-line pt-1.5">
           <Link
             href="/"
-            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-black text-white/72 transition hover:bg-white/10 hover:text-white"
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-black text-on-ink-muted transition hover:bg-on-ink-fill hover:text-white"
           >
             <Store className="size-4 shrink-0" />
             საჯარო საიტი
@@ -95,7 +97,7 @@ function AdminSidebar({ pathname }: { pathname: string }) {
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-black text-white/72 transition hover:bg-white/10 hover:text-white"
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[13px] font-black text-on-ink-muted transition hover:bg-on-ink-fill hover:text-white"
           >
             <LogOut className="size-4 shrink-0" />
             გასვლა
@@ -107,22 +109,24 @@ function AdminSidebar({ pathname }: { pathname: string }) {
 }
 
 function AdminBottomBar({ pathname }: { pathname: string }) {
-  const [moreOpen, setMoreOpen] = useState(false);
+  // The sheet remembers the path it was opened on, so navigating closes it
+  // without an effect.
+  const [openedOn, setOpenedOn] = useState<string | null>(null);
+  const moreOpen = openedOn === pathname;
+  const setMoreOpen = (open: boolean) => setOpenedOn(open ? pathname : null);
   const overflowActive = mobileOverflow.some(({ href }) => isActive(pathname, href));
-
-  useEffect(() => setMoreOpen(false), [pathname]);
 
   return (
     <div className="lg:hidden">
       {moreOpen ? (
-        <div className="fixed inset-0 z-40 bg-black/45" onClick={() => setMoreOpen(false)}>
+        <div className="fixed inset-0 z-40 bg-scrim" onClick={() => setMoreOpen(false)}>
           <div
-            className="absolute inset-x-3 bottom-20 rounded-[1.15rem] border border-[#27272a] bg-[#0a0a0a] p-2 text-white shadow-[0_-18px_44px_rgba(10,10,10,0.35)]"
+            className="absolute inset-x-3 bottom-20 rounded-[1.15rem] border border-on-ink-line bg-ink-surface p-2 text-white shadow-[0_-18px_44px_rgba(10,10,10,0.35)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between px-3 py-2">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white">სხვა გვერდები</p>
-              <button type="button" aria-label="დახურვა" onClick={() => setMoreOpen(false)} className="rounded-lg p-1 text-white/70 hover:bg-white/10">
+              <button type="button" aria-label="დახურვა" onClick={() => setMoreOpen(false)} className="rounded-lg p-1 text-on-ink-muted hover:bg-on-ink-fill">
                 <X className="size-4" />
               </button>
             </div>
@@ -133,7 +137,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
                   key={href}
                   href={href}
                   className={`flex items-center gap-2.5 rounded-xl px-3 py-3 text-sm font-black ${
-                    active ? "bg-white text-[#0a0a0a]" : "text-white/80 hover:bg-white/10"
+                    active ? "bg-surface text-ink" : "text-on-ink-soft hover:bg-on-ink-fill"
                   }`}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -141,15 +145,15 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
                 </Link>
               );
             })}
-            <div className="mt-1 border-t border-white/10 pt-1">
-              <Link href="/" className="flex items-center gap-2.5 rounded-xl px-3 py-3 text-sm font-black text-white/80 hover:bg-white/10">
+            <div className="mt-1 border-t border-on-ink-line pt-1">
+              <Link href="/" className="flex items-center gap-2.5 rounded-xl px-3 py-3 text-sm font-black text-on-ink-soft hover:bg-on-ink-fill">
                 <Store className="size-4 shrink-0" />
                 საჯარო საიტი
               </Link>
               <button
                 type="button"
                 onClick={logout}
-                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left text-sm font-black text-white/80 hover:bg-white/10"
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left text-sm font-black text-on-ink-soft hover:bg-on-ink-fill"
               >
                 <LogOut className="size-4 shrink-0" />
                 გასვლა
@@ -159,7 +163,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#27272a] bg-[#0a0a0a] pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1.5 text-white shadow-[0_-12px_30px_rgba(10,10,10,0.3)]">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-on-ink-line bg-ink-surface pb-[max(env(safe-area-inset-bottom),0.4rem)] pt-1.5 text-white shadow-[0_-12px_30px_rgba(10,10,10,0.3)]">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {mobilePrimary.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
@@ -169,7 +173,7 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-black ${
-                  active ? "text-white" : "text-white/60"
+                  active ? "text-white" : "text-on-ink-muted"
                 }`}
               >
                 <Icon className="size-5" />
@@ -179,9 +183,9 @@ function AdminBottomBar({ pathname }: { pathname: string }) {
           })}
           <button
             type="button"
-            onClick={() => setMoreOpen((open) => !open)}
+            onClick={() => setMoreOpen(!moreOpen)}
             className={`flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-black ${
-              moreOpen || overflowActive ? "text-white" : "text-white/60"
+              moreOpen || overflowActive ? "text-white" : "text-on-ink-muted"
             }`}
           >
             <MoreHorizontal className="size-5" />

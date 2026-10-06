@@ -83,7 +83,7 @@ export default async function AdminFeedbackPage() {
         <Link
           href="/reviews"
           target="_blank"
-          className="inline-flex h-10 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[#0a0a0a]"
+          className="inline-flex h-10 items-center gap-2 rounded-2xl bg-surface px-4 text-sm font-black text-ink"
         >
           <ExternalLink className="size-4" />
           საჯარო გვერდი
@@ -92,7 +92,7 @@ export default async function AdminFeedbackPage() {
 
       {error ? (
         <AdminPanel title="მიუწვდომელია">
-          <p className="px-4 py-5 text-sm font-bold text-[#d9412f]">{error}</p>
+          <p className="px-4 py-5 text-sm font-bold text-danger">{error}</p>
         </AdminPanel>
       ) : null}
 
@@ -123,7 +123,7 @@ export default async function AdminFeedbackPage() {
         description={`ბოლო ${MAX_ROWS} ჩანაწერი, ახლიდან ძველისკენ.`}
       >
         {rows.length ? (
-          <ul className="divide-y divide-[#ededee]">
+          <ul className="divide-y divide-line">
             {rows.map((row) => (
               <li key={row.id} className="grid gap-3 px-4 py-4">
                 <div className="flex flex-wrap items-center gap-2">
@@ -139,7 +139,7 @@ export default async function AdminFeedbackPage() {
                 <p className="whitespace-pre-line text-sm leading-6 text-[var(--brand)]">{row.body}</p>
 
                 {row.reply ? (
-                  <p className="border-l-2 border-[#e4e4e7] pl-3 text-sm leading-6 text-[var(--muted)]">
+                  <p className="border-l-2 border-line pl-3 text-sm leading-6 text-[var(--muted)]">
                     <span className="font-black">პასუხი:</span> {row.reply}
                   </p>
                 ) : null}

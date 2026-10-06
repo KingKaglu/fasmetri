@@ -612,7 +612,7 @@ function PriceChangeRow({ change }: { change: Awaited<ReturnType<typeof listRece
         </span>
         <span className="shrink-0 text-right">
           <span className="block text-[13.5px] font-bold tabular-nums text-ink">{formatGel(change.currentPrice)}</span>
-          <span className={`block text-[12px] font-semibold tabular-nums ${dropped ? "text-savings" : "text-deal"}`}>
+          <span className={`block text-[12px] font-semibold tabular-nums ${dropped ? "text-success" : "text-deal"}`}>
             {dropped ? "−" : "+"}
             {formatGel(delta)}
           </span>

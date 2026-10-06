@@ -106,7 +106,7 @@ export function ReviewForm() {
               <Star
                 aria-hidden
                 className={`size-7 transition-colors ${
-                  step <= shown ? "fill-amber-400 text-amber-400" : "fill-subtle text-subtle"
+                  step <= shown ? "fill-star text-star" : "fill-subtle text-subtle"
                 }`}
               />
             </button>
@@ -154,13 +154,13 @@ export function ReviewForm() {
         <input id="review-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
-      {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm font-semibold text-danger">{error}</p> : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="submit"
           disabled={busy}
-          className="h-10 rounded-md bg-accent px-5 text-sm font-semibold text-white hover:bg-accent-strong disabled:opacity-60"
+          className="h-10 rounded-md bg-accent px-5 text-sm font-semibold text-accent-ink hover:bg-accent-strong disabled:opacity-60"
         >
           {busy ? "იგზავნება…" : "გამოქვეყნება"}
         </button>

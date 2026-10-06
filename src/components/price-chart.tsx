@@ -47,7 +47,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
         <div className="relative grid min-h-24 place-items-center overflow-hidden rounded-md border border-dashed border-line bg-surface-soft px-5">
           <span className="absolute inset-x-6 top-1/2 border-t border-dashed border-line-strong" />
           <div className="relative grid gap-1.5 text-center">
-            <span className="mx-auto size-3 rounded-full bg-accent ring-4 ring-blue-100" />
+            <span className="mx-auto size-3 rounded-full bg-accent ring-4 ring-focus-ring" />
             <strong className="text-xl font-bold text-ink">{formatGel(latestPoint.price)}</strong>
             <span className="text-xs text-muted">ისტორია ამ ფასით დაიწყო {formatUpdated(latestPoint.capturedAt)}</span>
           </div>
@@ -70,7 +70,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             avoids the height="100%" → container-resize → re-measure loop. */}
         <ResponsiveContainer width="100%" height={CHART_HEIGHT} debounce={50}>
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 4 }}>
-            <CartesianGrid vertical={false} stroke="#e2e8f0" strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} stroke="var(--line-strong)" strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
               type="number"
@@ -80,7 +80,7 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               tickFormatter={formatShortDate}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "#71717a", fontSize: 11, fontWeight: 700 }}
+              tick={{ fill: "var(--muted)", fontSize: 11, fontWeight: 700 }}
             />
             <YAxis
               domain={priceDomain(data)}
@@ -89,19 +89,21 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
               width={80}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "#71717a", fontSize: 11, fontWeight: 700 }}
+              tick={{ fill: "var(--muted)", fontSize: 11, fontWeight: 700 }}
             />
             <Tooltip
-              cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }}
+              cursor={{ stroke: "var(--c-400)", strokeDasharray: "3 3" }}
               formatter={(value) => [formatGel(Number(value)), "ფასი"]}
               labelFormatter={(_, payload) => {
                 const timestamp = Number(payload?.[0]?.payload?.timestamp);
                 return Number.isFinite(timestamp) ? formatUpdated(new Date(timestamp)) : "";
               }}
               contentStyle={{
-                border: "1px solid #e4e4e7",
+                border: "1px solid var(--line-strong)",
                 borderRadius: 6,
-                boxShadow: "0 8px 24px rgba(15,23,42,.08)",
+                background: "var(--surface)",
+                color: "var(--brand)",
+                boxShadow: "var(--shadow-md)",
                 fontWeight: 700,
                 fontSize: 12,
               }}
@@ -109,10 +111,10 @@ export function PriceChart({ history }: { history: HistoryPoint[] }) {
             <Line
               type="monotone"
               dataKey="price"
-              stroke="#2563eb"
+              stroke="var(--accent)"
               strokeWidth={2}
-              activeDot={{ r: 5, fill: "#2563eb", stroke: "#ffffff", strokeWidth: 2 }}
-              dot={data.length > 60 ? false : { r: 3, fill: "#2563eb", stroke: "#2563eb" }}
+              activeDot={{ r: 5, fill: "var(--accent)", stroke: "var(--surface)", strokeWidth: 2 }}
+              dot={data.length > 60 ? false : { r: 3, fill: "var(--accent)", stroke: "var(--accent)" }}
               isAnimationActive={false}
             />
           </LineChart>
@@ -142,7 +144,7 @@ function HistorySummary({
         </p>
       </div>
       <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
-        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">მინ. {formatGel(minPrice)}</span>
+        <span className="rounded-full border border-success-line bg-success-soft px-2.5 py-1 font-semibold text-success">მინ. {formatGel(minPrice)}</span>
         <span className="rounded-full border border-line bg-surface px-2.5 py-1 font-semibold text-ink-soft">მაქს. {formatGel(maxPrice)}</span>
       </div>
     </div>

@@ -80,7 +80,6 @@ async function redditSearch(query: string): Promise<Result> {
       // Reddit has blocked anonymous API since 2024; treat as soft failure
       return { source: "reddit", label, items: [], error: `HTTP ${res.status} — Reddit API requires login since 2024` };
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json = (await res.json()) as any;
     const items: Item[] = (json?.data?.children ?? []).map((c: any) => ({
       title: c.data.title as string,

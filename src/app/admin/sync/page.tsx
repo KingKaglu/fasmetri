@@ -26,6 +26,7 @@ import {
 } from "@/lib/admin-sync-status";
 import { formatDurationMs, formatRelativeTime, formatUpdated } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { msAgo, requestNow } from "@/lib/request-time";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,7 @@ export default async function AdminSyncPage() {
       const [activeCount, lastSeen, seen24h, missing, runs, syncLogs, lastSuccess] = await Promise.all([
         db.productOffer.count({ where: { ...offerWhere, isActive: true } }),
         db.productOffer.aggregate({ where: offerWhere, _max: { lastSeenAt: true } }),
-        db.productOffer.count({ where: { ...offerWhere, isActive: true, lastSeenAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
+        db.productOffer.count({ where: { ...offerWhere, isActive: true, lastSeenAt: { gte: msAgo(24 * 60 * 60 * 1000) } } }),
         db.productOffer.count({ where: { ...offerWhere, isActive: true, missedSyncCount: { gt: 0 } } }),
         fetchWorkflowRuns(module.workflowFile),
         db.syncLog.findMany({
@@ -97,7 +98,7 @@ export default async function AdminSyncPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {modules.map((module) => {
-          const fresh = module.lastSeenAt && Date.now() - module.lastSeenAt.getTime() < 24 * 60 * 60 * 1000;
+          const fresh = module.lastSeenAt && requestNow() - module.lastSeenAt.getTime() < 24 * 60 * 60 * 1000;
           return (
             <AdminMetricCard
               key={module.key}
@@ -128,9 +129,9 @@ export default async function AdminSyncPage() {
           >
             <div className="grid gap-3 p-4">
               {module.lastSuccess ? (
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#bfeecf] bg-[var(--savings-soft)] px-3 py-2.5">
-                  <CheckCircle2 className="size-4 text-[var(--savings)]" />
-                  <p className="text-sm font-black text-[var(--savings)]">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-success-line bg-[var(--savings-soft)] px-3 py-2.5">
+                  <CheckCircle2 className="size-4 text-success" />
+                  <p className="text-sm font-black text-success">
                     ბოლო წარმატებული sync: {formatRelativeTime(module.lastSuccess.completedAt)}
                   </p>
                   <p className="text-xs font-bold text-[var(--muted-strong)]">
@@ -147,7 +148,7 @@ export default async function AdminSyncPage() {
               </div>
 
               {module.report ? (
-                <div className="rounded-xl border border-[#ededee] bg-[#fafafa] p-3 text-xs font-bold text-[var(--muted-strong)]">
+                <div className="rounded-xl border border-line bg-surface-soft p-3 text-xs font-bold text-[var(--muted-strong)]">
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">ბოლო ლოკალური რეპორტი</p>
                   <p className="mt-1">
                     {module.report.mode} — ნაპოვნია {module.report.discoveredCount ?? "?"}, განახლდა {module.report.updatedCount ?? "?"}, ჩავარდა {module.report.failedCount ?? 0} —{" "}
@@ -161,7 +162,7 @@ export default async function AdminSyncPage() {
               ) : null}
 
               {!module.syncLogs.length && !module.lastSuccess ? (
-                <div className="rounded-xl border border-dashed border-[#ededee] bg-[#fafafa] px-3 py-2.5 text-sm font-bold text-[var(--muted)]">
+                <div className="rounded-xl border border-dashed border-line bg-surface-soft px-3 py-2.5 text-sm font-bold text-[var(--muted)]">
                   სინქრონიზაცია არ მომხდარა
                 </div>
               ) : null}
@@ -169,13 +170,13 @@ export default async function AdminSyncPage() {
               {module.syncLogs.length ? (
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[var(--accent-strong)]">Sync ისტორია</p>
-                  <ol className="mt-2 border-l-2 border-[#ededee] pl-4">
+                  <ol className="mt-2 border-l-2 border-line pl-4">
                     {module.syncLogs.map((log) => {
                       const tone = logTone(log.status);
-                      const dotColor = tone === "good" ? "bg-[#22c55e]" : tone === "warn" ? "bg-[#eab308]" : "bg-[#ef4444]";
+                      const dotColor = tone === "good" ? "bg-success-solid" : tone === "warn" ? "bg-star" : "bg-danger";
                       return (
                         <li key={log.id} className="relative pb-3 last:pb-0">
-                          <span className={`absolute -left-[1.45rem] top-1 size-3 rounded-full border-2 border-white ${dotColor}`} />
+                          <span className={`absolute -left-[1.45rem] top-1 size-3 rounded-full border-2 border-surface ${dotColor}`} />
                           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                             <p className="text-xs font-black text-[var(--brand)]">
                               {log.runType === "full" ? "სრული სინქი" : "ფასების სინქი"}
@@ -202,7 +203,7 @@ export default async function AdminSyncPage() {
                       href={run.htmlUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-between gap-2 rounded-xl border border-[#ededee] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#0a0a0a]"
+                      className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-ink"
                     >
                       <span className="inline-flex items-center gap-2">
                         <AdminStatusDot tone={run.conclusion === "success" ? "good" : run.conclusion === null ? "warn" : "danger"} pulse={run.conclusion === null} />
@@ -233,7 +234,7 @@ export default async function AdminSyncPage() {
             {matcherRuns?.length ? (
               <div className="grid gap-1.5">
                 {matcherRuns.map((run) => (
-                  <a key={run.id} href={run.htmlUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-[#ededee] bg-white px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-[#0a0a0a]">
+                  <a key={run.id} href={run.htmlUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-bold text-[var(--muted-strong)] hover:border-ink">
                     <span className="inline-flex items-center gap-2">
                       <AdminStatusDot tone={run.conclusion === "success" ? "good" : run.conclusion === null ? "warn" : "danger"} pulse={run.conclusion === null} />
                       {run.conclusion ?? run.status}
@@ -244,13 +245,13 @@ export default async function AdminSyncPage() {
               </div>
             ) : (
               <p className="text-sm font-bold text-[var(--muted)]">
-                ლოკალურად: <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
+                ლოკალურად: <code className="rounded-sm bg-surface-mute px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded-sm bg-surface-mute px-1.5 py-0.5">npm run match:laptops</code>
               </p>
             )}
           </div>
         ) : (
           <p className="p-4 text-sm font-bold text-[var(--muted)]">
-            ლოკალურად: <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded-sm bg-[#f1f5ec] px-1.5 py-0.5">npm run match:laptops</code>
+            ლოკალურად: <code className="rounded-sm bg-surface-mute px-1.5 py-0.5">npm run match:phones</code> და <code className="rounded-sm bg-surface-mute px-1.5 py-0.5">npm run match:laptops</code>
           </p>
         )}
       </AdminPanel>

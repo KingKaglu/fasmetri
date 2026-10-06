@@ -4,6 +4,7 @@ import { AdminLogin } from "@/components/admin-login";
 import { AdminEmptyState, AdminLoginShell, AdminMetricCard, AdminPageHeader, AdminPanel, AdminShell, AdminStatusPill } from "@/components/admin-ui";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { msAgo } from "@/lib/request-time";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function AdminSearchesPage() {
   if (!prisma) {
     error = "DATABASE_URL not configured.";
   } else {
-    const since = new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
+    const since = msAgo(WINDOW_DAYS * 24 * 60 * 60 * 1000);
     try {
       [rows, stockRequests] = await Promise.all([
         prisma.searchQuery.findMany({
@@ -100,7 +101,7 @@ export default async function AdminSearchesPage() {
       </div>
 
       {error ? (
-        <div className="rounded-[1rem] border border-[#fed7aa] bg-[#fff7ed] p-4 text-sm font-bold text-[#c2410c]">{error}</div>
+        <div className="rounded-[1rem] border border-caution-line bg-caution-soft p-4 text-sm font-bold text-caution">{error}</div>
       ) : (
         <>
           <AdminPanel
@@ -187,7 +188,7 @@ function QueryTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[30rem] text-sm">
-        <thead className="bg-[#fafafa]">
+        <thead className="bg-surface-soft">
           <tr className="text-left text-[11px] font-black uppercase tracking-wider text-[var(--muted)]">
             <th className="px-4 py-3">ძებნა</th>
             <th className="px-4 py-3 text-right">რაოდენობა</th>
@@ -196,14 +197,14 @@ function QueryTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.key} className="border-t border-[#ededee]">
+            <tr key={row.key} className="border-t border-line">
               <td className="max-w-0 truncate px-4 py-3 font-bold text-[var(--brand)]">
                 <Link
                   href={`/search?q=${encodeURIComponent(row.key)}`}
                   target="_blank"
                   className="inline-flex items-center gap-1.5 hover:text-[var(--accent)]"
                 >
-                  {failed ? <SearchX className="size-3.5 shrink-0 text-[#c2410c]" /> : <Search className="size-3.5 shrink-0 text-[var(--muted)]" />}
+                  {failed ? <SearchX className="size-3.5 shrink-0 text-caution" /> : <Search className="size-3.5 shrink-0 text-[var(--muted)]" />}
                   <span className="truncate">{row.key}</span>
                 </Link>
               </td>
@@ -230,7 +231,7 @@ function CountTable({ head, rows }: { head: string; rows: { key: string; count: 
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[24rem] text-sm">
-        <thead className="bg-[#fafafa]">
+        <thead className="bg-surface-soft">
           <tr className="text-left text-[11px] font-black uppercase tracking-wider text-[var(--muted)]">
             <th className="px-4 py-3">{head}</th>
             <th className="px-4 py-3 text-right">რაოდენობა</th>
@@ -238,7 +239,7 @@ function CountTable({ head, rows }: { head: string; rows: { key: string; count: 
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.key} className="border-t border-[#ededee]">
+            <tr key={row.key} className="border-t border-line">
               <td className="max-w-0 truncate px-4 py-3 font-bold text-[var(--brand)]">{row.key}</td>
               <td className="px-4 py-3 text-right font-black tabular-nums text-[var(--brand)]">{row.count}</td>
             </tr>

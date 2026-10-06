@@ -54,7 +54,7 @@ export default async function AdminShopsPage() {
               <div className="grid content-start gap-3">
                 <Link
                   href={`/admin/shops/${shop.slug}`}
-                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-[#0a0a0a] px-4 text-sm font-black text-white hover:bg-black"
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-ink-surface px-4 text-sm font-black text-white hover:bg-ink-deep"
                 >
                   სრული დეტალები
                   <ChevronRight className="size-4" />

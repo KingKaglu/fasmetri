@@ -14,7 +14,7 @@ export function OpenBothButton({ storeUrl, publicUrl }: { storeUrl: string; publ
         window.open(storeUrl, "_blank", "noopener,noreferrer");
         if (publicUrl) window.open(publicUrl, "_blank", "noopener,noreferrer");
       }}
-      className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-xs font-black text-[var(--muted-strong)] hover:border-[#0a0a0a]"
+      className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-2xl border border-line bg-surface px-3 text-xs font-black text-[var(--muted-strong)] hover:border-ink"
     >
       <ExternalLink className="size-3.5" />
       ორივეს გახსნა
@@ -55,7 +55,7 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
         type="button"
         disabled={busy !== null}
         onClick={() => act("approve")}
-        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl bg-[#1c8b43] px-4 text-sm font-black text-white hover:bg-[#157035] disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl bg-success-solid px-4 text-sm font-black text-white hover:bg-success disabled:cursor-wait disabled:opacity-60"
       >
         {busy === "approve" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
         დადასტურება
@@ -64,12 +64,12 @@ export function ReviewRowActions({ matchId }: { matchId: string }) {
         type="button"
         disabled={busy !== null}
         onClick={() => act("reject")}
-        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl border border-[#d4d4d8] bg-[#f4f4f5] px-4 text-sm font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl border border-line-strong bg-surface-mute px-4 text-sm font-black text-[var(--danger)] hover:border-[var(--danger)] disabled:cursor-wait disabled:opacity-60"
       >
         {busy === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
         უარყოფა
       </button>
-      {error ? <p className="rounded-xl border border-[#d4d4d8] bg-[#f4f4f5] px-3 py-2 text-xs font-bold text-[var(--danger)]">{error}</p> : null}
+      {error ? <p className="rounded-xl border border-line-strong bg-surface-mute px-3 py-2 text-xs font-bold text-[var(--danger)]">{error}</p> : null}
     </div>
   );
 }
@@ -108,7 +108,7 @@ export function AutoTriageButton() {
         type="button"
         disabled={busy}
         onClick={run}
-        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a] disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-line bg-surface px-4 text-sm font-black text-[var(--brand)] hover:border-ink disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}
         Run Auto-Triage
@@ -146,7 +146,7 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
 
   return (
     <form onSubmit={submit} className="flex flex-wrap items-center gap-2">
-      <label className="inline-flex h-11 items-center gap-2 rounded-2xl border border-[#e4e4e7] bg-white px-3 text-sm font-black text-[var(--brand)]">
+      <label className="inline-flex h-11 items-center gap-2 rounded-2xl border border-line bg-surface px-3 text-sm font-black text-[var(--brand)]">
         min confidence
         <input
           name="minConfidence"
@@ -160,7 +160,7 @@ export function BulkApproveForm({ category }: { category?: "mobiles" | "laptops"
       </label>
       <button
         disabled={busy}
-        className="inline-flex h-11 items-center justify-center rounded-2xl bg-[#0a0a0a] px-4 text-sm font-black text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center rounded-2xl bg-ink-surface px-4 text-sm font-black text-white hover:bg-ink-deep disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? "მუშავდება..." : "Bulk დადასტურება"}
       </button>

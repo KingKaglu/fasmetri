@@ -455,7 +455,7 @@ function PriceDirectionBadge({ currentPrice, history }: { currentPrice: number; 
   return (
     <span
       className={`inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-        dropped ? "bg-savings-soft text-savings-strong" : "bg-deal-soft text-deal-strong"
+        dropped ? "bg-savings-soft text-success" : "bg-deal-soft text-danger-strong"
       }`}
     >
       <Icon className="size-3" />
@@ -484,7 +484,7 @@ function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number;
       {atLow ? (
         <span
           className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-          style={{ borderColor: "var(--accent)", color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 10%, white)" }}
+          style={{ borderColor: "var(--accent)", color: "var(--accent)", background: "var(--accent-soft)" }}
         >
           დაბალ ფასში
         </span>
@@ -500,10 +500,10 @@ function PriceHistoryLowBadge({ currentPrice, history }: { currentPrice: number;
 function StatCell({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <span className={`flex flex-col gap-0.5 rounded-md border p-2 ${accent ? "border-transparent bg-accent" : "border-line bg-surface-soft"}`}>
-      <strong className={`text-[12px] font-semibold uppercase tracking-wider ${accent ? "text-white/60" : "text-muted"}`}>
+      <strong className={`text-[12px] font-semibold uppercase tracking-wider ${accent ? "text-accent-ink/70" : "text-muted"}`}>
         {label}
       </strong>
-      <span className={`text-sm font-bold tabular-nums ${accent ? "text-white" : "text-ink"}`}>{value}</span>
+      <span className={`text-sm font-bold tabular-nums ${accent ? "text-accent-ink" : "text-ink"}`}>{value}</span>
     </span>
   );
 }
@@ -529,7 +529,7 @@ function MatchConfidenceBadge({ confidence, status, singleStore = false }: { con
   const isPublic = isPublicMatchStatus(status);
   const tier =
     isPublic && confidence >= 95
-      ? { label: "ზუსტი დამთხვევა", styles: "border-emerald-200 bg-emerald-50 text-emerald-700" }
+      ? { label: "ზუსტი დამთხვევა", styles: "border-success-line bg-success-soft text-success" }
       : isPublic && confidence >= 90
         ? { label: "ძლიერი დამთხვევა", styles: "border-line-strong bg-surface-mute text-ink" }
         : { label: "მსგავსი პროდუქტი", styles: "border-line-strong bg-surface text-muted" };

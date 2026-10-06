@@ -75,7 +75,7 @@ function HighlightedTitle({ title, shared }: { title: string; shared: Set<string
         const key = part.toLowerCase();
         if (key.length > 1 && shared.has(key)) {
           return (
-            <mark key={index} className="rounded-sm bg-[#ededee] px-0.5 text-[var(--brand)]">
+            <mark key={index} className="rounded-sm bg-surface-mute px-0.5 text-[var(--brand)]">
               {part}
             </mark>
           );
@@ -91,7 +91,7 @@ function SegLink({ href, active, children }: { href: string; active: boolean; ch
     <Link
       href={href}
       className={`inline-flex h-9 items-center rounded-2xl px-3 text-xs font-black ${
-        active ? "bg-[#0a0a0a] text-white" : "border border-[#e4e4e7] bg-white text-[var(--brand)] hover:border-[#0a0a0a]"
+        active ? "bg-ink-surface text-white" : "border border-line bg-surface text-[var(--brand)] hover:border-ink"
       }`}
     >
       {children}
@@ -295,7 +295,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
             <div
               key={match.id}
               data-review-row={match.id}
-              className="rounded-[1.15rem] transition data-[selected=true]:ring-2 data-[selected=true]:ring-[#0a0a0a] data-[selected=true]:ring-offset-2"
+              className="rounded-[1.15rem] transition data-[selected=true]:ring-2 data-[selected=true]:ring-ink data-[selected=true]:ring-offset-2"
             >
               <AdminPanel>
                 <article className="p-4">
@@ -308,7 +308,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                       {flagged ? (
                         <span
                           title={`ფასის სხვაობა: ${spreadLabel}. ხშირად მცდარი დაკავშირების ნიშანი.`}
-                          className="inline-flex items-center gap-1 rounded-full border border-[#f2d98f] bg-[var(--warn-soft)] px-2.5 py-1 text-[11px] font-black text-[var(--warn)]"
+                          className="inline-flex items-center gap-1 rounded-full border border-warn-line bg-[var(--warn-soft)] px-2.5 py-1 text-[11px] font-black text-[var(--warn)]"
                         >
                           <TriangleAlert className="size-3" />
                           ფასის სხვაობა {spreadLabel}
@@ -320,11 +320,11 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                     </time>
                   </div>
 
-                  <p className="mt-2 rounded-xl border border-[#ededee] bg-[#fafafa] px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{match.reason}</p>
+                  <p className="mt-2 rounded-xl border border-line bg-surface-soft px-3 py-2 text-xs font-bold text-[var(--muted-strong)]">{match.reason}</p>
 
                   <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_13rem]">
-                    <div className="grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#ededee] bg-[#fafafa] p-3">
-                      <div className="overflow-hidden rounded-xl border border-[#ededee] bg-white">
+                    <div className="grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-line bg-surface-soft p-3">
+                      <div className="overflow-hidden rounded-xl border border-line bg-surface">
                         <ProductImage src={raw.originalImageUrl} alt={raw.originalTitle} />
                       </div>
                       <div className="min-w-0">
@@ -332,15 +332,15 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                         <p className="mt-1 break-words text-sm font-black leading-snug text-[var(--brand)]">
                           <HighlightedTitle title={raw.originalTitle} shared={sharedWithCanonical} />
                         </p>
-                        {raw.rawPrice != null ? <p className="mt-1 text-lg font-black tabular-nums text-[#087d8f]">{formatGel(Number(raw.rawPrice))}</p> : null}
+                        {raw.rawPrice != null ? <p className="mt-1 text-lg font-black tabular-nums text-accent">{formatGel(Number(raw.rawPrice))}</p> : null}
                         <a href={raw.originalUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-black text-[var(--brand)] underline-offset-2 hover:underline">
                           მაღაზიაში ნახვა <ExternalLink className="size-3" />
                         </a>
                       </div>
                     </div>
 
-                    <div className="grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-[#ededee] bg-white p-3">
-                      <div className="overflow-hidden rounded-xl border border-[#ededee] bg-[#fafafa]">
+                    <div className="grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] gap-3 rounded-[1rem] border border-line bg-surface p-3">
+                      <div className="overflow-hidden rounded-xl border border-line bg-surface-soft">
                         <ProductImage src={canonical.primaryImage} alt={canonical.title} />
                       </div>
                       <div className="min-w-0">
@@ -351,7 +351,7 @@ export default async function AdminReviewPage({ searchParams }: { searchParams: 
                           <HighlightedTitle title={canonical.title} shared={sharedWithRaw} />
                         </p>
                         {cheapest ? (
-                          <p className="mt-1 text-lg font-black tabular-nums text-[#087d8f]">
+                          <p className="mt-1 text-lg font-black tabular-nums text-accent">
                             {formatGel(Number(cheapest.currentPrice))} <span className="text-xs font-bold text-[var(--muted)]">({cheapest.shop.name})</span>
                           </p>
                         ) : (

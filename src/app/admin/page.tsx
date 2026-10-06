@@ -17,6 +17,7 @@ import { isAdminRequest } from "@/lib/admin-auth";
 import { githubConfigured } from "@/lib/admin-sync-status";
 import { formatGel, formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { requestNow } from "@/lib/request-time";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const now = Date.now();
+  const now = requestNow();
   const staleCutoff = new Date(now - STALE_OFFER_MS);
   const weekAgo = new Date(now - WEEK_MS);
   const twoWeeksAgo = new Date(now - 2 * WEEK_MS);
@@ -127,7 +128,7 @@ export default async function AdminDashboardPage() {
         title="საიტის მართვა"
         description="კატალოგი, sync-ის ჯანმრთელობა და review queue ერთ ეკრანზე."
       >
-        <Link href="/admin/review" className="inline-flex h-11 items-center gap-2 rounded-2xl bg-white px-4 text-sm font-black text-[#0a0a0a] hover:bg-white/85">
+        <Link href="/admin/review" className="inline-flex h-11 items-center gap-2 rounded-2xl bg-surface px-4 text-sm font-black text-ink hover:bg-on-ink/85">
           <GitCompareArrows className="size-4" />
           Review queue ({pendingReview})
         </Link>
@@ -190,7 +191,7 @@ export default async function AdminDashboardPage() {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_.85fr]">
         <AdminPanel title="მაღაზიების სტატუსი" description="🟢 sync ბოლო 6სთ-ში · 🟡 ბოლო 24სთ-ში · 🔴 24სთ+">
-          <div className="divide-y divide-[#ededee]">
+          <div className="divide-y divide-line">
             {shopStatus.map((shop) => (
               <div key={shop.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
@@ -218,7 +219,7 @@ export default async function AdminDashboardPage() {
             <StaleOfferCleanupButton staleCount={staleOffers} />
             <Link
               href="/admin/offers?view=oos"
-              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-[#e4e4e7] bg-white px-4 text-sm font-black text-[var(--brand)] hover:border-[#0a0a0a]"
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-line bg-surface px-4 text-sm font-black text-[var(--brand)] hover:border-ink"
             >
               <Tags className="size-4" />
               Out-of-stock შეთავაზებები ({outOfStock})
@@ -229,7 +230,7 @@ export default async function AdminDashboardPage() {
 
       <AdminPanel title="ბოლო აქტივობა" description="ბოლო ფასის ცვლილებები sync-ებიდან და matcher-ის ბოლო გადაწყვეტილებები.">
         {activity.length ? (
-          <div className="divide-y divide-[#ededee]">
+          <div className="divide-y divide-line">
             {activity.map((item) => (
               <div key={item.id} className="flex flex-wrap items-start justify-between gap-2 p-4">
                 <div className="min-w-0">

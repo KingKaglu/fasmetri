@@ -75,7 +75,7 @@ export function MobileFilterDrawer({
           <SlidersHorizontal className="size-4" />
           ფილტრები
         </span>
-        <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-white">
+        <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-ink">
           {badge ?? "გახსნა"}
         </span>
       </button>
@@ -87,7 +87,7 @@ export function MobileFilterDrawer({
             tabIndex={-1}
             aria-label="ფილტრების დახურვა"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ink/50"
+            className="absolute inset-0 bg-scrim"
           />
           <div
             ref={panelRef}

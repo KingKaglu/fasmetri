@@ -1,12 +1,19 @@
 "use client";
 
-import { BellRing, CheckCircle2, Loader2 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { BellRing, CheckCircle2, Loader2, MailCheck } from "lucide-react";
+import { FormEvent, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { useClientValue } from "@/lib/local-store";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-type PushState = "idle" | "working" | "enabled" | "denied" | "error";
+type PushState = "idle" | "working" | "enabled" | "pending" | "denied" | "error";
+
+// Mirrors VerificationStatus in src/server/alerts/verification.ts.
+type Verification =
+  | { status: "verified" }
+  | { status: "pending"; emailSent: boolean; retryAfterSeconds?: number; claim?: string; attached?: boolean };
+type ResendState = "idle" | "working" | "sent" | "throttled" | "error";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -36,16 +43,17 @@ export function AlertForm({
   const [error, setError] = useState("");
   const [unsubscribeHref, setUnsubscribeHref] = useState("");
   const [emailUsed, setEmailUsed] = useState("");
-  const [pushSupported, setPushSupported] = useState(false);
   const [pushState, setPushState] = useState<PushState>("idle");
+  const [verification, setVerification] = useState<Verification | null>(null);
+  const [resendState, setResendState] = useState<ResendState>("idle");
 
   // Push is a progressive enhancement: only offered when VAPID is configured and
-  // the browser supports Service Worker + Push. Checked after mount (no SSR mismatch).
-  useEffect(() => {
-    setPushSupported(
-      Boolean(vapidPublicKey) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
-    );
-  }, [vapidPublicKey]);
+  // the browser supports Service Worker + Push. False on the server and during
+  // hydration (no SSR mismatch).
+  const pushSupported = useClientValue(
+    () => Boolean(vapidPublicKey) && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window,
+    false,
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,6 +84,8 @@ export function AlertForm({
       if (response.ok) {
         const payload = await response.json().catch(() => null);
         setUnsubscribeHref(payload?.alert?.unsubscribeUrl ?? "");
+        setVerification(payload?.verification ?? null);
+        setResendState("idle");
         setEmailUsed(email);
         setPushState("idle");
         setSuccess(true);
@@ -111,13 +121,36 @@ export function AlertForm({
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ subscription: sub.toJSON(), email: emailUsed || undefined }),
+        body: JSON.stringify({
+          subscription: sub.toJSON(),
+          email: emailUsed || undefined,
+          claim: verification?.status === "pending" ? verification.claim : undefined,
+        }),
       });
-      setPushState(res.ok ? "enabled" : "error");
+      const payload = res.ok ? await res.json().catch(() => null) : null;
+      // Pending = the address owner still has to confirm this browser by mail.
+      setPushState(!res.ok ? "error" : payload?.verification?.status === "pending" ? "pending" : "enabled");
     } catch {
       setPushState("error");
     }
   }
+
+  async function resend() {
+    if (!emailUsed) return;
+    setResendState("working");
+    try {
+      const res = await fetch("/api/alerts/verify/resend", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: emailUsed }),
+      });
+      setResendState(res.ok ? "sent" : res.status === 429 ? "throttled" : "error");
+    } catch {
+      setResendState("error");
+    }
+  }
+
+  const awaitingConfirmation = success && verification?.status === "pending" ? verification : null;
 
   return (
     <form onSubmit={submit} noValidate className="grid gap-2.5 rounded-lg border border-line bg-surface p-4">
@@ -147,7 +180,7 @@ export function AlertForm({
       />
       <button
         disabled={busy}
-        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent text-sm font-semibold text-white hover:bg-accent-strong disabled:cursor-wait disabled:opacity-60"
+        className="flex h-10 items-center justify-center gap-1.5 rounded-md bg-accent text-sm font-semibold text-accent-ink hover:bg-accent-strong disabled:cursor-wait disabled:opacity-60"
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : null}
         დაყენება
@@ -163,15 +196,40 @@ export function AlertForm({
           </>
         ) : null}
       </p>
-      {success ? (
-        <p role="status" className="flex items-start gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+      {awaitingConfirmation ? (
+        <div role="status" className="grid gap-1.5 rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-xs font-medium text-ink">
+          <p className="flex items-start gap-1.5">
+            <MailCheck className="mt-0.5 size-3.5 shrink-0 text-accent" />
+            {awaitingConfirmation.emailSent
+              ? `შეტყობინება შენახულია. დადასტურების ბმული გავუგზავნეთ ${emailUsed}-ს — დაადასტურე და მერე ჩაირთვება.`
+              : awaitingConfirmation.retryAfterSeconds
+                ? "შეტყობინება შენახულია. დადასტურების წერილი ცოტა ხნის წინ უკვე გამოგიგზავნეთ — შეამოწმე ფოსტა (Spam-იც)."
+                : "შეტყობინება შენახულია, მაგრამ დადასტურების წერილი ახლა ვერ გავგზავნეთ — სცადე ცოტა ხანში."}
+          </p>
+          {resendState === "sent" ? (
+            <p className="text-muted">წერილი თავიდან გაიგზავნა.</p>
+          ) : resendState === "throttled" ? (
+            <p className="text-muted">ცოტა ხანში სცადე — წერილი ახლახან გაიგზავნა.</p>
+          ) : (
+            <button
+              type="button"
+              onClick={resend}
+              disabled={resendState === "working"}
+              className="justify-self-start text-accent underline underline-offset-2 disabled:opacity-60"
+            >
+              {resendState === "error" ? "ვერ გაიგზავნა — სცადე თავიდან" : "წერილი არ მოვიდა? თავიდან გაგზავნა"}
+            </button>
+          )}
+        </div>
+      ) : success ? (
+        <p role="status" className="flex items-start gap-1.5 rounded-xl border border-savings/30 bg-savings-soft px-3 py-2 text-xs font-medium text-success">
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" />
           {emailDelivery
             ? "შეტყობინება დაყენებულია — ფასის დაკლებისას ელფოსტაზე მოგწერთ."
             : "შეტყობინება შენახულია — ელფოსტის გაგზავნა ჯერ არ არის ჩართული, ამიტომ ჩართვისთანავე მიიღებ. ახლავე შეტყობინებისთვის ჩართე ბრაუზერის push."}
         </p>
       ) : null}
-      {success && pushSupported && pushState !== "enabled" ? (
+      {success && pushSupported && pushState !== "enabled" && pushState !== "pending" ? (
         <button
           type="button"
           onClick={enablePush}
@@ -183,8 +241,13 @@ export function AlertForm({
           ჩართე ბრაუზერის შეტყობინებები
         </button>
       ) : null}
+      {pushState === "pending" ? (
+        <p role="status" className="rounded-xl border border-accent/30 bg-accent-soft px-3 py-2 text-xs font-medium text-ink">
+          ბრაუზერის შეტყობინებები ჩაირთვება, როგორც კი ელფოსტიდან დაადასტურებ.
+        </p>
+      ) : null}
       {pushState === "enabled" ? (
-        <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+        <p role="status" className="rounded-xl border border-success-line bg-success-soft px-3 py-2 text-xs font-medium text-success">
           ბრაუზერის შეტყობინებები ჩართულია.
         </p>
       ) : null}
@@ -195,7 +258,7 @@ export function AlertForm({
         <p className="text-[12px] leading-5 text-muted">შეტყობინების ჩართვა ვერ მოხერხდა — სცადე თავიდან.</p>
       ) : null}
       {error ? (
-        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+        <p role="alert" className="rounded-xl border border-danger-line bg-danger-soft px-3 py-2 text-xs font-medium text-danger-strong">
           {error}
         </p>
       ) : null}

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { requestEmailVerification } from "@/server/alerts/verification";
 
 const alertInput = z.object({
   email: z.string().trim().min(3).max(254).email().transform((value) => value.toLowerCase()),
@@ -49,6 +50,9 @@ export async function POST(request: Request) {
         select,
       });
   const unsubscribeUrl = new URL(`/alerts/unsubscribe/${alert.id}`, request.url).toString();
+  // Double opt-in: the alert is stored either way, but nothing is mailed to an
+  // address until its owner clicks the confirmation link.
+  const verification = await requestEmailVerification({ email: parsed.data.email });
   return Response.json({
     alert: {
       ...alert,
@@ -56,5 +60,6 @@ export async function POST(request: Request) {
       createdAt: alert.createdAt.toISOString(),
       unsubscribeUrl,
     },
+    verification,
   }, { status: 201 });
 }

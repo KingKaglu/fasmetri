@@ -30,7 +30,7 @@ export function CompareRemove({ slug, name }: { slug: string; name: string }) {
       onClick={handleRemove}
       aria-label={`${name} — შედარებიდან მოხსნა`}
       title="შედარებიდან მოხსნა"
-      className="absolute right-1.5 top-1.5 z-10 grid size-7 place-items-center rounded-full border border-line bg-white/90 text-muted shadow-sm backdrop-blur transition-colors hover:border-line-strong hover:text-ink-soft"
+      className="absolute right-1.5 top-1.5 z-10 grid size-7 place-items-center rounded-full border border-line bg-overlay text-muted shadow-sm backdrop-blur transition-colors hover:border-line-strong hover:text-ink-soft"
     >
       <X className="size-3.5" />
     </button>

@@ -7,6 +7,7 @@ import { AdminEmptyState, AdminLoginShell, AdminMetricCard, AdminPageHeader, Adm
 import { isAdminRequest } from "@/lib/admin-auth";
 import { formatGel, formatUpdated } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { msAgo } from "@/lib/request-time";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function AdminClicksPage() {
   if (!prisma) {
     error = "DATABASE_URL not configured.";
   } else {
-    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const since = msAgo(30 * 24 * 60 * 60 * 1000);
     try {
       rows = await prisma.clickEvent.findMany({
         where: { createdAt: { gte: since } },
@@ -103,7 +104,7 @@ export default async function AdminClicksPage() {
       </div>
 
       {error ? (
-        <div className="rounded-[1rem] border border-[#fed7aa] bg-[#fff7ed] p-4 text-sm font-bold text-[#c2410c]">{error}</div>
+        <div className="rounded-[1rem] border border-caution-line bg-caution-soft p-4 text-sm font-bold text-caution">{error}</div>
       ) : (
         <>
           <RecentClicks rows={recentRows} total={rows?.length ?? 0} />
@@ -128,7 +129,7 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
       actions={<AdminStatusPill tone="info">{Math.min(rows.length, total)} / {total}</AdminStatusPill>}
     >
       {rows.length ? (
-        <div className="divide-y divide-[#ededee]">
+        <div className="divide-y divide-line">
           {rows.map((row) => {
             const productTitle = clickProductTitle(row);
             const shopName = row.shopName ?? row.offer?.shop.name ?? "უცნობი მაღაზია";
@@ -140,7 +141,7 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
               <article key={row.id} className="grid gap-3 p-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_auto] md:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--aqua-soft)] px-2.5 py-1 text-[11px] font-black text-[#087d8f]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-black text-accent">
                       <MousePointerClick className="size-3.5" />
                       click
                     </span>
@@ -152,19 +153,19 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs font-black">
                     {productSlug ? (
-                      <Link href={`/products/${productSlug}`} target="_blank" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-[#e4e4e7] bg-[#fafafa] px-3 text-[var(--brand)] hover:border-[#0a0a0a]">
+                      <Link href={`/products/${productSlug}`} target="_blank" className="inline-flex h-9 items-center gap-1 rounded-2xl border border-line bg-surface-soft px-3 text-[var(--brand)] hover:border-ink">
                         <PackageSearch className="size-3.5" />
                         Public product
                       </Link>
                     ) : null}
-                    <a href={row.targetUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 max-w-full items-center gap-1 rounded-2xl bg-[#0a0a0a] px-3 text-white hover:bg-black">
+                    <a href={row.targetUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 max-w-full items-center gap-1 rounded-2xl bg-ink-surface px-3 text-white hover:bg-ink-deep">
                       <span className="truncate">მაღაზიაში ნახვა</span>
                       <ExternalLink className="size-3.5 text-[var(--accent)]" />
                     </a>
                   </div>
                 </div>
 
-                <div className="grid gap-2 rounded-2xl border border-[#ededee] bg-[#fafafa] p-3">
+                <div className="grid gap-2 rounded-2xl border border-line bg-surface-soft p-3">
                   <p className="inline-flex min-w-0 items-center gap-2 text-sm font-black text-[var(--brand)]">
                     <Store className="size-4 shrink-0 text-[var(--accent-strong)]" />
                     <span className="truncate">{shopName}</span>
@@ -173,7 +174,7 @@ function RecentClicks({ rows, total }: { rows: ClickRow[]; total: number }) {
                     <Globe2 className="size-4 shrink-0" />
                     <span className="truncate">{host}</span>
                   </p>
-                  {price ? <p className="text-xl font-black tabular-nums text-[#087d8f]">{price}</p> : null}
+                  {price ? <p className="text-xl font-black tabular-nums text-accent">{price}</p> : null}
                   {row.referrer ? <p className="truncate text-[11px] font-bold text-[var(--muted)]">from: {displayReferrer(row.referrer)}</p> : null}
                 </div>
 
@@ -231,7 +232,7 @@ function ReportTable({ title, head, rows }: { title: string; head: string; rows:
       {rows.length ? (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[28rem] text-sm">
-            <thead className="bg-[#fafafa]">
+            <thead className="bg-surface-soft">
               <tr className="text-left text-[11px] font-black uppercase tracking-wider text-[var(--muted)]">
                 <th className="px-4 py-3">{head}</th>
                 <th className="px-4 py-3 text-right">გადასვლები</th>
@@ -239,7 +240,7 @@ function ReportTable({ title, head, rows }: { title: string; head: string; rows:
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.key} className="border-t border-[#ededee]">
+                <tr key={row.key} className="border-t border-line">
                   <td className="max-w-0 truncate px-4 py-3 font-bold text-[var(--brand)]">{row.key}</td>
                   <td className="px-4 py-3 text-right font-black tabular-nums text-[var(--brand)]">{row.count}</td>
                 </tr>

@@ -67,7 +67,7 @@ export function CompareSync({ requested, resolved }: { requested: string[]; reso
   return (
     <p
       role="status"
-      className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12.5px] leading-5 text-amber-800"
+      className="mt-4 flex items-start gap-2 rounded-xl border border-warn-line bg-warn-soft px-4 py-3 text-[12.5px] leading-5 text-warn-strong"
     >
       <AlertCircle className="mt-0.5 size-4 shrink-0" />
       <span>

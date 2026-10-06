@@ -6,17 +6,17 @@ export function BrandLogo({ compact = false, tone = "dark" }: { compact?: boolea
   // Tile and gauge always invert each other so the mark never sits ink-on-ink.
   // dark tone  → black tile + white gauge (used on light page backgrounds)
   // light tone → white tile + black gauge (used on the dark footer)
-  // Arbitrary hex (not the .bg-white utility) so the dark-mode compat layer
-  // never remaps these tiles — the mark must keep its tile↔gauge contrast.
-  const tileClass = light ? "bg-[#ffffff]" : "bg-[linear-gradient(135deg,#3b82f6_0%,#1d4ed8_100%)]";
-  const ink = light ? "#1d4ed8" : "#ffffff";
+  // Brand tokens (--brand-gradient, --brand-mark*) are the same in both
+  // themes, so the mark keeps its tile/gauge contrast in dark mode too.
+  const tileClass = light ? "bg-on-ink" : "bg-[image:var(--brand-gradient)]";
+  const ink = light ? "var(--brand-mark)" : "var(--on-ink)";
   // Softer tone for the gauge track + ticks — gives the mark natural tonal
   // balance and depth on both the white tile and the blue tile.
-  const inkSoft = light ? "rgba(29,78,216,0.4)" : "rgba(255,255,255,0.45)";
+  const inkSoft = light ? "var(--brand-mark-soft)" : "var(--on-ink-subtle)";
   if (compact) {
     return (
       <Link href="/" className="group inline-flex min-w-fit items-center gap-2.5" aria-label="ფასმეტრი მთავარი გვერდი">
-        <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl shadow-[0_8px_20px_rgba(37,99,235,0.28)] ${tileClass}`}>
+        <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl shadow-[var(--brand-mark-glow)] ${tileClass}`}>
           {/* Price-meter gauge mark — two-tone monochrome (soft track + ink value fill) */}
           <svg viewBox="0 0 32 28" className="size-6" fill="none" aria-hidden="true">
             {/* gauge track (subtle) */}
@@ -35,7 +35,7 @@ export function BrandLogo({ compact = false, tone = "dark" }: { compact?: boolea
           <span className={`whitespace-nowrap text-[1.18rem] font-black sm:text-[1.25rem] ${light ? "text-white" : "text-[var(--brand)]"}`}>
             ფასმეტრი
           </span>
-          <span className={`mt-1 hidden whitespace-nowrap text-[0.66rem] font-semibold sm:block ${light ? "text-white/55" : "text-[var(--muted)]"}`}>
+          <span className={`mt-1 hidden whitespace-nowrap text-[0.66rem] font-semibold sm:block ${light ? "text-on-ink-subtle" : "text-[var(--muted)]"}`}>
             ფასების შედარება
           </span>
         </span>
